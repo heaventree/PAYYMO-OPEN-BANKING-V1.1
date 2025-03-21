@@ -17,6 +17,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
@@ -25,85 +28,75 @@
 <body data-bs-theme="dark">
     {% if session.authenticated %}
     <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <div class="d-flex align-items-center justify-content-center mb-4">
-                        <i data-lucide="landmark" style="width: 24px; height: 24px;" class="me-2"></i>
-                        <span class="fs-5 fw-semibold">GoCardless</span>
-                    </div>
-                    
-                    <ul class="nav flex-column">
+        <!-- Top Navigation Bar (WHMCS-style) -->
+        <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                    <i data-lucide="landmark" style="width: 24px; height: 24px;" class="me-2"></i>
+                    <span class="fs-5 fw-semibold">GoCardless Open Banking</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
                             <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == url_for('dashboard') %}active{% endif %}">
-                                <i data-lucide="layout-dashboard" class="me-2" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="layout-dashboard" class="me-1" style="width: 18px; height: 18px;"></i>
                                 Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#licenses" class="nav-link">
-                                <i data-lucide="key" class="me-2" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="key" class="me-1" style="width: 18px; height: 18px;"></i>
                                 Licenses
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#transactions" class="nav-link">
-                                <i data-lucide="credit-card" class="me-2" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="credit-card" class="me-1" style="width: 18px; height: 18px;"></i>
                                 Transactions
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#matches" class="nav-link">
-                                <i data-lucide="link" class="me-2" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="link" class="me-1" style="width: 18px; height: 18px;"></i>
                                 Matches
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#banks" class="nav-link">
-                                <i data-lucide="bank" class="me-2" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="building-bank" class="me-1" style="width: 18px; height: 18px;"></i>
                                 Banks
                             </a>
                         </li>
-                        <li class="nav-item mt-3">
-                            <a href="{{ url_for('logout') }}" class="nav-link text-danger">
-                                <i data-lucide="log-out" class="me-2" style="width: 18px; height: 18px;"></i>
-                                Logout
-                            </a>
-                        </li>
                     </ul>
+                    <div class="d-flex">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                            <i data-lucide="log-out" class="me-1" style="width: 16px; height: 16px;"></i>
+                            Logout
+                        </a>
+                    </div>
                 </div>
             </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="container-fluid px-md-4">
+            <!-- Page content -->
+            {% block content %}{% endblock %}
             
-            <!-- Main Content -->
-            <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block breadcrumb %}Dashboard{% endblock %}</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
-                                Refresh
-                            </button>
-                        </div>
+            <!-- Footer -->
+            <footer class="pt-3 mt-4 text-muted border-top">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0">© 2025 GoCardless Open Banking Integration</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="mb-0">Version 1.0.0</p>
                     </div>
                 </div>
-                
-                <!-- Page content -->
-                {% block content %}{% endblock %}
-                
-                <!-- Footer -->
-                <footer class="pt-3 mt-4 text-muted border-top">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p class="mb-0">© 2025 GoCardless Open Banking Integration</p>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            <p class="mb-0">Version 1.0.0</p>
-                        </div>
-                    </div>
-                </footer>
-            </div>
+            </footer>
         </div>
     </div>
     {% else %}
@@ -121,6 +114,25 @@
     <script>
         // Initialize Lucide icons
         document.addEventListener('DOMContentLoaded', function() {
+            // Create standard icons
+            lucide.createIcons();
+            
+            // Fix missing bank icon with building-bank
+            document.querySelectorAll('[data-lucide="bank"]').forEach(function(icon) {
+                icon.setAttribute('data-lucide', 'building-bank');
+            });
+            
+            // Fix key-off with key
+            document.querySelectorAll('[data-lucide="key-off"]').forEach(function(icon) {
+                icon.setAttribute('data-lucide', 'key');
+            });
+            
+            // Fix link-off with unlink
+            document.querySelectorAll('[data-lucide="link-off"]').forEach(function(icon) {
+                icon.setAttribute('data-lucide', 'unlink');
+            });
+            
+            // Create icons again to apply changes
             lucide.createIcons();
         });
     </script>
