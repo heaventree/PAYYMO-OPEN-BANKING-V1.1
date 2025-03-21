@@ -8,7 +8,7 @@
 const QuickInsightsWidget = (function() {
     // Private variables
     let currentInsightIndex = 0;
-    let widgetVisible = true;
+    let widgetVisible = false;
     let widgetElement;
     let insightData = [
         {
@@ -66,6 +66,9 @@ const QuickInsightsWidget = (function() {
         
         // Load insights from the server if available
         loadInsightsFromServer();
+        
+        // Start with the widget hidden
+        hideWidget();
     }
     
     function showInsight(index) {
