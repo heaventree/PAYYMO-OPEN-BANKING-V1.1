@@ -153,30 +153,11 @@ const QuickInsightsWidget = (function() {
         if (!document.getElementById('showInsightsBtn')) {
             const showBtn = document.createElement('button');
             showBtn.id = 'showInsightsBtn';
-            showBtn.className = 'btn btn-sm position-fixed ai-insights-btn';
+            showBtn.className = 'position-fixed ai-insights-btn';
             showBtn.style.bottom = '10px';
             showBtn.style.right = '10px';
             showBtn.style.zIndex = '1050';
-            showBtn.style.padding = '8px 16px';
-            showBtn.style.border = 'none';
-            showBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-            showBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
-            showBtn.style.color = 'white';
-            showBtn.style.fontWeight = '600';
-            showBtn.style.borderRadius = '100px';
-            showBtn.style.transition = 'all 0.3s ease';
             showBtn.innerHTML = '<i data-lucide="brain" style="width: 18px; height: 18px; margin-right: 5px;"></i> AI Insights';
-            
-            // Add hover effect
-            showBtn.addEventListener('mouseover', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
-            });
-            
-            showBtn.addEventListener('mouseout', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-            });
             showBtn.addEventListener('click', showWidget);
             
             document.body.appendChild(showBtn);

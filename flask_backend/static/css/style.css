@@ -788,6 +788,37 @@ body {
     100% { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes gradient-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* AI Insights Button */
+.ai-insights-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background-size: 200% 200%;
+    animation: gradient-animation 3s ease infinite;
+    color: white;
+    font-weight: 600;
+    border-radius: 100px;
+    padding: 8px 16px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.ai-insights-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {
