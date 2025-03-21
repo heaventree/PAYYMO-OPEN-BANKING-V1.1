@@ -67,7 +67,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="#banks" class="nav-link">
-                                <i data-lucide="building" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="building-bank" class="me-1" style="width: 18px; height: 18px;"></i>
                                 Banks
                             </a>
                         </li>
@@ -118,14 +118,9 @@
             // Create standard icons
             lucide.createIcons();
             
-            // Fix missing bank icon with building
+            // Fix missing bank icon with building-bank
             document.querySelectorAll('[data-lucide="bank"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'building');
-            });
-            
-            // Fix building-bank with building
-            document.querySelectorAll('[data-lucide="building-bank"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'building');
+                icon.setAttribute('data-lucide', 'building-bank');
             });
             
             // Fix key-off with key
