@@ -43,12 +43,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Next button enabled');
             }
             
-            // Update bank name in the authorization step
+            // Get bank name
             const bankName = this.querySelector('h6').textContent;
+            
+            // Update bank name in the authorization step
             const authorizeHeader = bankConnectionModal.querySelector('.step-2 h5');
             if (authorizeHeader) {
                 authorizeHeader.textContent = `Connect to ${bankName}`;
                 console.log(`Updated header to: Connect to ${bankName}`);
+            }
+            
+            // Update bank preview in step 2
+            const bankNameEl = bankConnectionModal.querySelector('.bank-preview .bank-name');
+            if (bankNameEl) {
+                bankNameEl.textContent = bankName;
+            }
+            
+            // Update bank preview text
+            const bankPreviewText = bankConnectionModal.querySelector('.bank-preview p');
+            if (bankPreviewText) {
+                bankPreviewText.textContent = `You'll be redirected to ${bankName}'s secure login page`;
+            }
+            
+            // Update connected account in step 3
+            const connectedBankName = bankConnectionModal.querySelector('.connected-account h6');
+            if (connectedBankName) {
+                connectedBankName.textContent = bankName;
             }
         });
     });
