@@ -6,6 +6,7 @@ Run in the background with: nohup python3 backup_chat.py &
 
 import json
 import os
+import re
 import time
 import datetime
 import shutil
