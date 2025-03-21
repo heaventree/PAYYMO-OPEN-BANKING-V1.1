@@ -136,68 +136,119 @@ document.addEventListener('DOMContentLoaded', function() {
     function positionHighlight(targetElement) {
         if (!highlightOverlay) return;
         
-        const rect = targetElement.getBoundingClientRect();
-        const padding = 10; // Extra space around the element
+        // Scroll element into view with some padding at the top
+        const scrollPadding = 100; // Pixels from top of viewport
+        const elementTop = targetElement.getBoundingClientRect().top + window.scrollY;
+        const targetScrollPosition = elementTop - scrollPadding;
         
-        highlightOverlay.style.display = 'block';
-        highlightOverlay.innerHTML = `
-            <div class="walkthrough-mask"></div>
-            <div class="walkthrough-highlight" style="
-                top: ${rect.top - padding + window.scrollY}px;
-                left: ${rect.left - padding + window.scrollX}px;
-                width: ${rect.width + padding * 2}px;
-                height: ${rect.height + padding * 2}px;
-                border-radius: 8px;
-            "></div>
-        `;
+        // Smooth scroll to the element
+        window.scrollTo({
+            top: targetScrollPosition,
+            behavior: 'smooth'
+        });
+        
+        // After scrolling, position the highlight
+        setTimeout(() => {
+            const rect = targetElement.getBoundingClientRect();
+            const padding = 10; // Extra space around the element
+            
+            highlightOverlay.style.display = 'block';
+            highlightOverlay.innerHTML = `
+                <div class="walkthrough-mask"></div>
+                <div class="walkthrough-highlight" style="
+                    top: ${rect.top - padding + window.scrollY}px;
+                    left: ${rect.left - padding + window.scrollX}px;
+                    width: ${rect.width + padding * 2}px;
+                    height: ${rect.height + padding * 2}px;
+                    border-radius: 8px;
+                "></div>
+            `;
+        }, 300); // Small delay to allow the scroll to complete
     }
 
     // Position the popover relative to the target element
     function positionPopover(targetElement, position = 'bottom') {
         if (!walkthroughPopover) return;
         
-        const targetRect = targetElement.getBoundingClientRect();
-        const popoverRect = walkthroughPopover.getBoundingClientRect();
-        const padding = 20; // Distance from target
-
-        let top, left;
-
-        switch (position) {
-            case 'top':
-                top = targetRect.top - popoverRect.height - padding + window.scrollY;
-                left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2) + window.scrollX;
-                break;
-            case 'bottom':
-                top = targetRect.bottom + padding + window.scrollY;
-                left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2) + window.scrollX;
-                break;
-            case 'left':
-                top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2) + window.scrollY;
-                left = targetRect.left - popoverRect.width - padding + window.scrollX;
-                break;
-            case 'right':
-                top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2) + window.scrollY;
-                left = targetRect.right + padding + window.scrollX;
-                break;
-            default:
-                top = targetRect.bottom + padding + window.scrollY;
-                left = targetRect.left + window.scrollX;
-        }
-
-        // Make sure popover stays within viewport
-        if (left < 10) left = 10;
-        if (left + popoverRect.width > window.innerWidth - 10) {
-            left = window.innerWidth - popoverRect.width - 10;
-        }
-        if (top < 10) top = 10;
-        
-        walkthroughPopover.style.top = `${top}px`;
-        walkthroughPopover.style.left = `${left}px`;
-
-        // Add position-specific class for styling arrow
-        walkthroughPopover.className = walkthroughPopover.className
-            .replace(/ position-(top|bottom|left|right)/g, '')
-            + ` position-${position}`;
+        // Position popover after a slight delay to ensure accurate positioning after any scrolling
+        setTimeout(() => {
+            const targetRect = targetElement.getBoundingClientRect();
+            const popoverRect = walkthroughPopover.getBoundingClientRect();
+            const padding = 20; // Distance from target
+            const viewportPadding = 15; // Minimum distance from viewport edges
+            
+            let top, left;
+            let originalPosition = position;
+    
+            // Determine the best position based on available space
+            // If the target is close to the top of the viewport, prefer bottom position
+            if (targetRect.top < 200 && position === 'top') {
+                position = 'bottom';
+            }
+            
+            // If the target is close to the bottom of the viewport, prefer top position
+            if (targetRect.bottom > window.innerHeight - 200 && position === 'bottom') {
+                position = 'top';
+            }
+            
+            // If the target is close to the left edge, prefer right position
+            if (targetRect.left < 250 && position === 'left') {
+                position = 'right';
+            }
+            
+            // If the target is close to the right edge, prefer left position
+            if (targetRect.right > window.innerWidth - 250 && position === 'right') {
+                position = 'left';
+            }
+    
+            switch (position) {
+                case 'top':
+                    top = targetRect.top - popoverRect.height - padding + window.scrollY;
+                    left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2) + window.scrollX;
+                    break;
+                case 'bottom':
+                    top = targetRect.bottom + padding + window.scrollY;
+                    left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2) + window.scrollX;
+                    break;
+                case 'left':
+                    top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2) + window.scrollY;
+                    left = targetRect.left - popoverRect.width - padding + window.scrollX;
+                    break;
+                case 'right':
+                    top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2) + window.scrollY;
+                    left = targetRect.right + padding + window.scrollX;
+                    break;
+                default:
+                    top = targetRect.bottom + padding + window.scrollY;
+                    left = targetRect.left + window.scrollX;
+            }
+    
+            // Make sure popover stays within viewport
+            if (left < viewportPadding) left = viewportPadding;
+            if (left + popoverRect.width > window.innerWidth - viewportPadding) {
+                left = window.innerWidth - popoverRect.width - viewportPadding;
+            }
+            
+            // Ensure the popover is not too close to the top of the viewport
+            const topViewportDistance = top - window.scrollY;
+            if (topViewportDistance < viewportPadding) {
+                top = window.scrollY + viewportPadding;
+            }
+            
+            // Ensure the popover is visible if it would appear below the viewport
+            const bottomViewportDistance = (top + popoverRect.height) - (window.scrollY + window.innerHeight);
+            if (bottomViewportDistance > -viewportPadding) {
+                top = window.scrollY + window.innerHeight - popoverRect.height - viewportPadding;
+            }
+            
+            walkthroughPopover.style.top = `${top}px`;
+            walkthroughPopover.style.left = `${left}px`;
+    
+            // Add position-specific class for styling arrow
+            walkthroughPopover.className = walkthroughPopover.className
+                .replace(/ position-(top|bottom|left|right)/g, '')
+                + ` position-${position}`;
+        }, 350); // Delay slightly longer than the highlight positioning to ensure accurate placement
     }
 
     // Go to next step
