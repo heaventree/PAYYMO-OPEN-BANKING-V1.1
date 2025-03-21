@@ -489,6 +489,84 @@ body {
     color: var(--color-gray-800);
 }
 
+/* Financial Goals */
+.goal-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.goal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.animated-progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.animated-progress .progress-bar {
+    position: relative;
+    border-radius: 10px;
+    transition: width 1.5s ease;
+    animation: progressPulse 2s infinite;
+    background-image: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0.15) 25%, 
+        transparent 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.15) 50%, 
+        rgba(255, 255, 255, 0.15) 75%, 
+        transparent 75%, 
+        transparent);
+    background-size: 1rem 1rem;
+}
+
+.animated-progress .progress-bar.progress-bar-info {
+    background-color: var(--color-info);
+}
+
+.animated-progress .progress-bar.progress-bar-success {
+    background-color: var(--color-success);
+}
+
+.animated-progress .progress-bar.progress-bar-warning {
+    background-color: var(--color-warning);
+}
+
+.progress-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 60px;
+    background: linear-gradient(
+        90deg, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.6) 50%, 
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: progressGlow 2s infinite;
+    transform: skewX(-30deg);
+    pointer-events: none;
+}
+
+@keyframes progressPulse {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 1rem 0;
+    }
+}
+
+@keyframes progressGlow {
+    0% {
+        transform: translateX(-100%) skewX(-30deg);
+    }
+    100% {
+        transform: translateX(500%) skewX(-30deg);
+    }
+}
+
 /* Charts */
 .chart-container {
     position: relative;
