@@ -9,7 +9,7 @@
     <div class="row align-items-center">
         <div class="col-md-6">
             <h1 class="fw-bold">Dashboard</h1>
-            <p class="text-muted">GoCardless Open Banking Integration Overview</p>
+            <p class="text-muted">Payymo Open Banking Integration Overview</p>
         </div>
         <div class="col-md-6 text-md-end">
             <div class="btn-group">
@@ -39,6 +39,195 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Key Action Cards -->
+<div class="row mb-4">
+    <!-- New Transactions Alert Card -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 border-start border-primary border-4">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i data-lucide="bell" class="text-primary" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h6 class="card-title mb-1">New Transactions</h6>
+                    <h3 class="mb-0">{{ stats.new_transactions|default(12) }}</h3>
+                    <p class="text-muted small mb-0">imported in last 24h</p>
+                </div>
+            </div>
+            <a href="#transactions" class="card-footer bg-transparent text-primary d-flex justify-content-between align-items-center small text-decoration-none">
+                <span>View New Imports</span>
+                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Unassigned Records Card -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 border-start border-warning border-4">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                    <i data-lucide="alert-circle" class="text-warning" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h6 class="card-title mb-1">Unassigned Records</h6>
+                    <h3 class="mb-0">{{ stats.unmatched_transactions|default(8) }}</h3>
+                    <p class="text-muted small mb-0">need invoice matching</p>
+                </div>
+            </div>
+            <a href="#unmatched" class="card-footer bg-transparent text-warning d-flex justify-content-between align-items-center small text-decoration-none">
+                <span>View Unassigned Records</span>
+                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Bank Connections Card -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 border-start border-success border-4">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                    <i data-lucide="landmark" class="text-success" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h6 class="card-title mb-1">Bank Connections</h6>
+                    <h3 class="mb-0">{{ stats.bank_connections }}</h3>
+                    <p class="text-muted small mb-0">active connections</p>
+                </div>
+            </div>
+            <a href="#banks" class="card-footer bg-transparent text-success d-flex justify-content-between align-items-center small text-decoration-none">
+                <span>Manage Connections</span>
+                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Total Transactions Card -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 border-start border-info border-4">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                    <i data-lucide="receipt" class="text-info" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h6 class="card-title mb-1">Total Transactions</h6>
+                    <h3 class="mb-0">{{ stats.transactions }}</h3>
+                    <p class="text-muted small mb-0">processed to date</p>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent text-info d-flex justify-content-between align-items-center small">
+                <span>Last updated: Today</span>
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Recent Transactions</h5>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" data-refresh-target="transactions-table">
+                <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
+                Refresh
+            </button>
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="transactionActions" data-bs-toggle="dropdown" aria-expanded="false">
+                Actions
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionActions">
+                <li><a class="dropdown-item" href="#"><i data-lucide="filter" class="me-2" style="width: 16px; height: 16px;"></i> Filter View</a></li>
+                <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export CSV</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive" id="transactions-table">
+            <table class="table table-hover mb-0 dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Reference</th>
+                        <th>Amount</th>
+                        <th>Bank</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_transactions %}
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.transaction_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ transaction.reference or transaction.transaction_id[:8] }}</td>
+                            <td><span class="fw-semibold">{{ "%.2f"|format(transaction.amount) }}</span> <small class="text-muted">{{ transaction.currency }}</small></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                        <i data-lucide="landmark" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    {{ transaction.bank_name or 'Unknown Bank' }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if transaction.matches|length > 0 %}
+                                <span class="badge bg-success">Matched</span>
+                                {% else %}
+                                <span class="badge bg-warning">Unmatched</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary">
+                                        <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary">
+                                        <i data-lucide="link" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i data-lucide="inbox" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
+                                    <p class="mb-1 fw-semibold">No transactions found</p>
+                                    <p class="text-muted small">Connect to a bank to start importing transactions</p>
+                                    <button class="btn btn-sm btn-primary mt-2">
+                                        <i data-lucide="plus" class="me-1" style="width: 14px; height: 14px;"></i> 
+                                        Add Bank Connection
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer border-0 bg-transparent d-flex justify-content-between align-items-center">
+        <span class="small text-muted">Showing 10 of {{ stats.transactions }} transactions</span>
+        <nav aria-label="Transaction navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
 
 <!-- Stats Overview Cards -->
 <div class="card mb-4 shadow-sm">
@@ -245,12 +434,7 @@
                     Recent Transactions
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="verifications-tab" data-bs-toggle="tab" data-bs-target="#verifications-tab-pane" type="button" role="tab" aria-controls="verifications-tab-pane" aria-selected="false">
-                    <i data-lucide="key" class="me-2" style="width: 16px; height: 16px;"></i>
-                    License Verifications
-                </button>
-            </li>
+
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches-tab-pane" type="button" role="tab" aria-controls="matches-tab-pane" aria-selected="false">
                     <i data-lucide="link" class="me-2" style="width: 16px; height: 16px;"></i>
@@ -334,60 +518,7 @@
                 </div>
             </div>
             
-            <!-- Verifications Tab -->
-            <div class="tab-pane fade" id="verifications-tab-pane" role="tabpanel" aria-labelledby="verifications-tab" tabindex="0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>License Key</th>
-                                <th>Domain</th>
-                                <th>IP Address</th>
-                                <th>Status</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if recent_verifications %}
-                                {% for verification in recent_verifications %}
-                                <tr>
-                                    <td>{{ verification.verified_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td><code class="small bg-dark text-light px-2 py-1 rounded">{{ verification.license_key[:4] }}...{{ verification.license_key[-4:] }}</code></td>
-                                    <td>{{ verification.domain }}</td>
-                                    <td><small class="text-muted">{{ verification.ip_address or 'Unknown' }}</small></td>
-                                    <td>
-                                        {% if verification.success %}
-                                        <span class="badge bg-success">Valid</span>
-                                        {% else %}
-                                        <span class="badge bg-danger">Invalid</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
-                                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center py-4">
-                                        <div class="empty-state">
-                                            <i data-lucide="key-off" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
-                                            <p class="mb-0">No license verifications found</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="small text-muted">Showing {{ recent_verifications|length if recent_verifications else 0 }} most recent verifications</span>
-                    <a href="#licenses" class="btn btn-sm btn-outline-primary">View All Licenses</a>
-                </div>
-            </div>
+
             
             <!-- Matches Tab -->
             <div class="tab-pane fade" id="matches-tab-pane" role="tabpanel" aria-labelledby="matches-tab" tabindex="0">
