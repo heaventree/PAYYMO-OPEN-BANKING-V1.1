@@ -1,0 +1,48 @@
+<!-- Quick Insights Floating Widget -->
+<div class="quick-insights-widget shadow-sm" id="quickInsightsWidget">
+    <div class="widget-header d-flex justify-content-between align-items-center p-3 bg-light rounded-top">
+        <div class="d-flex align-items-center">
+            <div class="insight-icon rounded-circle bg-info d-flex align-items-center justify-content-center me-2">
+                <i data-lucide="lightbulb" style="width: 18px; height: 18px; color: white;"></i>
+            </div>
+            <h6 class="mb-0 fw-semibold">Quick Insights</h6>
+        </div>
+        <div class="widget-controls">
+            <button class="btn btn-sm btn-icon p-0 ms-2" id="refreshInsight" title="New Insight">
+                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+            </button>
+            <button class="btn btn-sm btn-icon p-0 ms-2" id="minimizeInsight" title="Minimize">
+                <i data-lucide="minus" style="width: 16px; height: 16px;"></i>
+            </button>
+            <button class="btn btn-sm btn-icon p-0 ms-2" id="closeInsight" title="Close">
+                <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+    </div>
+    <div class="widget-body p-3 bg-white rounded-bottom">
+        <div class="insight-content mb-2">
+            <div class="insight-item">
+                <div class="insight-title d-flex align-items-center mb-2">
+                    <span class="badge bg-info rounded-pill me-2">Tip</span>
+                    <h6 class="mb-0" id="insightTitle">Matching Patterns</h6>
+                </div>
+                <p class="insight-text mb-0 text-muted small" id="insightText">
+                    Transactions with clear reference numbers have a 92% higher chance of automatic matching. Always include invoice numbers in payment references.
+                </p>
+            </div>
+        </div>
+        <div class="insight-actions d-flex justify-content-between align-items-center mt-3">
+            <div class="insight-pagination small text-muted">
+                <span id="currentInsight">1</span>/<span id="totalInsights">5</span>
+            </div>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-sm btn-outline-secondary" id="prevInsight">
+                    <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" id="nextInsight">
+                    <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
