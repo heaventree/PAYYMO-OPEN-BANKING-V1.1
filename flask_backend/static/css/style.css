@@ -790,19 +790,21 @@ body {
 
 @keyframes gradient-animation {
     0% {
-        background-position: 0% 50%;
+        background-position: 0% 0%;
     }
     50% {
-        background-position: 100% 50%;
+        background-position: 100% 100%;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 0% 0%;
     }
 }
 
 /* AI Insights Button */
 .ai-insights-btn {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%);
+    background-size: 200% 200%;
+    animation: gradient-animation 2s ease-in-out infinite;
     color: white;
     font-weight: 600;
     border-radius: 100px;
