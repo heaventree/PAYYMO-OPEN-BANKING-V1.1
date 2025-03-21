@@ -735,6 +735,59 @@ body {
     color: var(--color-info);
 }
 
+/* Quick Insights Floating Widget */
+.quick-insights-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    opacity: 0.95;
+    transition: all 0.3s ease;
+    transform-origin: bottom right;
+}
+
+.quick-insights-widget:hover {
+    opacity: 1;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.quick-insights-widget.minimized {
+    transform: translateY(calc(100% - 40px));
+}
+
+.quick-insights-widget.minimized:hover {
+    transform: translateY(calc(100% - 40px)) scale(1.02);
+}
+
+.quick-insights-widget .insight-icon {
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-info);
+}
+
+.quick-insights-widget .widget-header {
+    cursor: move;
+}
+
+.quick-insights-widget .widget-controls .btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 50%;
+}
+
+.quick-insights-widget .insight-animation {
+    animation: insightPulse 1s ease-in-out;
+}
+
+@keyframes insightPulse {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {
@@ -756,5 +809,11 @@ body {
     
     .stats-grid {
         grid-template-columns: 1fr !important;
+    }
+    
+    .quick-insights-widget {
+        width: 280px;
+        bottom: 10px;
+        right: 10px;
     }
 }
