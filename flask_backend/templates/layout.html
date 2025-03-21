@@ -5,56 +5,196 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoCardless Open Banking - {% block title %}Dashboard{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS (Replit Dark Theme) -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-dark.css') }}">
     
     {% block styles %}{% endblock %}
 </head>
-<body data-bs-theme="dark">
-    <div class="container-fluid px-0">
-        {% if session.authenticated %}
-        <header class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-            <div class="container-fluid">
-                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
-                    <i data-lucide="landmark" class="me-2"></i>
-                    <span>GoCardless Open Banking</span>
+<body data-bs-theme="dark" class="{% if session.authenticated %}dashboard-page{% endif %}">
+    {% if session.authenticated %}
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-decoration-none">
+                    <i data-lucide="landmark" class="sidebar-logo me-2" style="width: 24px; height: 24px;"></i>
+                    <span class="sidebar-title">GoCardless Open Banking</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                <button id="sidebarToggle" class="btn btn-sm btn-icon btn-outline-secondary d-md-none">
+                    <i data-lucide="menu" style="width: 18px; height: 18px;"></i>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == url_for('dashboard') %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#licenses">Licenses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#transactions">Transactions</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#matches">Matches</a>
-                        </li>
-                    </ul>
-                    <div class="d-flex">
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
-                            <i data-lucide="log-out" class="me-2" style="width: 18px; height: 18px;"></i>Logout
-                        </a>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="sidebar-menu-item">
+                    <a href="{{ url_for('dashboard') }}" class="sidebar-menu-link {% if request.path == url_for('dashboard') %}active{% endif %}">
+                        <div class="sidebar-menu-icon">
+                            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <span class="sidebar-menu-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#licenses" class="sidebar-menu-link">
+                        <div class="sidebar-menu-icon">
+                            <i data-lucide="key" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <span class="sidebar-menu-text">Licenses</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#transactions" class="sidebar-menu-link">
+                        <div class="sidebar-menu-icon">
+                            <i data-lucide="credit-card" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <span class="sidebar-menu-text">Transactions</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#matches" class="sidebar-menu-link">
+                        <div class="sidebar-menu-icon">
+                            <i data-lucide="link" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <span class="sidebar-menu-text">Matches</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#banks" class="sidebar-menu-link">
+                        <div class="sidebar-menu-icon">
+                            <i data-lucide="bank" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <span class="sidebar-menu-text">Banks</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#settings" class="sidebar-menu-link">
+                        <div class="sidebar-menu-icon">
+                            <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <span class="sidebar-menu-text">Settings</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i data-lucide="log-out" class="me-2" style="width: 16px; height: 16px;"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <div class="container-fluid">
+                    <button id="mobileSidebarToggle" class="btn btn-icon btn-outline-secondary me-2 d-lg-none">
+                        <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+                    </button>
+                    
+                    <ol class="breadcrumb mb-0 ms-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item active">{% block breadcrumb %}Dashboard{% endblock %}</li>
+                    </ol>
+                    
+                    <div class="ms-auto d-flex align-items-center">
+                        <div class="dropdown">
+                            <button class="btn btn-icon btn-outline-secondary" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    2
+                                </span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notificationsDropdown" style="width: 300px;">
+                                <div class="p-2 border-bottom">
+                                    <h6 class="mb-0">Notifications</h6>
+                                </div>
+                                <div class="notification-list" style="max-height: 300px; overflow-y: auto;">
+                                    <a href="#" class="dropdown-item p-2 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="rounded-circle bg-primary p-2">
+                                                    <i data-lucide="key" class="text-white" style="width: 16px; height: 16px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <p class="mb-0 small">New license activated</p>
+                                                <p class="text-muted small mb-0">10 minutes ago</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="dropdown-item p-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="rounded-circle bg-success p-2">
+                                                    <i data-lucide="link" class="text-white" style="width: 16px; height: 16px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <p class="mb-0 small">New transaction matched</p>
+                                                <p class="text-muted small mb-0">35 minutes ago</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="p-2 border-top text-center">
+                                    <a href="#notifications" class="text-decoration-none small">View all</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown ms-2">
+                            <button class="btn btn-outline-secondary d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i data-lucide="user" class="me-2" style="width: 18px; height: 18px;"></i>
+                                <span>Admin</span>
+                                <i data-lucide="chevron-down" class="ms-2" style="width: 16px; height: 16px;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="#profile"><i data-lucide="user" class="me-2" style="width: 16px; height: 16px;"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="#settings"><i data-lucide="settings" class="me-2" style="width: 16px; height: 16px;"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i data-lucide="log-out" class="me-2" style="width: 16px; height: 16px;"></i> Logout</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
+            </nav>
+            
+            <!-- Page Content -->
+            <div class="container-fluid content-container">
+                {% block content %}{% endblock %}
             </div>
-        </header>
-        {% endif %}
-
+            
+            <!-- Footer -->
+            <footer class="footer mt-auto">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-0 text-muted">© 2023 GoCardless Open Banking Integration</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-0 text-muted">Version 1.0.0</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    {% else %}
+    <div class="container-fluid px-0 login-container">
         <main class="container py-3">
-            {% block content %}{% endblock %}
+            {% block login_content %}{% endblock %}
         </main>
 
         <footer class="mt-auto py-3 bg-dark text-light">
@@ -62,10 +202,11 @@
                 <p class="mb-0">© 2023 GoCardless Open Banking Integration</p>
             </div>
         </footer>
-
-        <!-- Toast container for notifications -->
-        <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3"></div>
     </div>
+    {% endif %}
+
+    <!-- Toast container for notifications -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3"></div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -73,12 +214,29 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- jQuery (needed for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+        
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    document.body.classList.toggle('sidebar-open');
+                });
+            }
+        });
     </script>
     
     {% block scripts %}{% endblock %}

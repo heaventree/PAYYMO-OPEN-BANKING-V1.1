@@ -2,49 +2,59 @@
 
 {% block title %}Login{% endblock %}
 
-{% block content %}
-<div class="row justify-content-center mt-5">
+{% block login_content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
+        <div class="card shadow-lg" style="border-radius: 15px; overflow: hidden; border: none;">
+            <div class="card-header text-center p-4 bg-primary bg-gradient">
+                <i data-lucide="landmark" style="width: 64px; height: 64px;" class="text-white mb-3"></i>
+                <h2 class="fw-bold text-white mb-1">GoCardless</h2>
+                <p class="text-white-50 mb-0">Open Banking Integration</p>
+            </div>
             <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <i data-lucide="landmark" style="width: 64px; height: 64px;" class="text-primary mb-3"></i>
-                    <h3 class="fw-bold">GoCardless Open Banking</h3>
-                    <p class="text-muted">Admin Dashboard Login</p>
-                </div>
+                <h4 class="text-center mb-4">Admin Dashboard</h4>
 
                 {% if error %}
-                <div class="alert alert-danger" role="alert">
-                    <i data-lucide="alert-triangle" class="me-2" style="width: 18px; height: 18px;"></i>
-                    {{ error }}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i data-lucide="alert-triangle" class="flex-shrink-0 me-2" style="width: 20px; height: 20px;"></i>
+                    <div>
+                        {{ error }}
+                    </div>
                 </div>
                 {% endif %}
 
-                <form method="post" action="{{ url_for('login') }}">
-                    <div class="mb-3">
+                <form method="post" action="{{ url_for('login') }}" class="fade-in">
+                    <div class="mb-4">
                         <label for="username" class="form-label">Username</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i data-lucide="user" style="width: 18px; height: 18px;"></i></span>
-                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                            <span class="input-group-text bg-dark bg-opacity-25 border-end-0">
+                                <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="username" name="username" placeholder="Enter your username" required>
                         </div>
                     </div>
                     <div class="mb-4">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i data-lucide="lock" style="width: 18px; height: 18px;"></i></span>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                            <span class="input-group-text bg-dark bg-opacity-25 border-end-0">
+                                <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
+                            </span>
+                            <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="Enter your password" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i data-lucide="log-in" class="me-2" style="width: 18px; height: 18px;"></i>
-                        Login
-                    </button>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i data-lucide="log-in" class="me-2" style="width: 18px; height: 18px;"></i>
+                            Sign In
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
         
         <div class="text-center mt-4 text-muted">
-            <small>This is the admin dashboard for the GoCardless Open Banking integration with WHMCS.</small>
+            <p class="mb-1"><small>Admin dashboard for GoCardless Open Banking integration</small></p>
+            <p class="mb-0"><small>&copy; 2025 WHMCS Module</small></p>
         </div>
     </div>
 </div>

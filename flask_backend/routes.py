@@ -323,6 +323,10 @@ def dashboard():
             Transaction.transaction_date.desc()
         ).limit(10).all()
         
+        # Get current date for charts
+        now = datetime.now()
+        day_delta = timedelta(days=1)
+        
         return render_template(
             'dashboard.html',
             stats={
@@ -334,7 +338,9 @@ def dashboard():
                 'matches': matches
             },
             recent_verifications=recent_verifications,
-            recent_transactions=recent_transactions
+            recent_transactions=recent_transactions,
+            now=now,
+            day_delta=day_delta
         )
     except Exception as e:
         logger.error(f"Error rendering dashboard: {str(e)}")
