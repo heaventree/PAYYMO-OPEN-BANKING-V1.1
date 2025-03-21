@@ -1,6 +1,7 @@
 /**
- * Quick Insights Widget
- * Self-contained module for displaying financial insights in a floating widget
+ * AI-Powered Financial Insights Widget
+ * Self-contained module for displaying AI-driven financial insights in a floating widget
+ * Analyzes transaction patterns and provides smart recommendations
  * Can be easily repositioned and integrated into different layouts
  */
 
@@ -156,7 +157,7 @@ const QuickInsightsWidget = (function() {
             showBtn.style.bottom = '10px';
             showBtn.style.right = '10px';
             showBtn.style.zIndex = '1050';
-            showBtn.innerHTML = '<i data-lucide="lightbulb" style="width: 18px; height: 18px; margin-right: 5px;"></i> Show Insights';
+            showBtn.innerHTML = '<i data-lucide="brain" style="width: 18px; height: 18px; margin-right: 5px;"></i> AI Insights';
             showBtn.addEventListener('click', showWidget);
             
             document.body.appendChild(showBtn);
