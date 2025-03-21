@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payymo - Open Banking for WHMCS - {% block title %}Dashboard{% endblock %}</title>
     
-    <!-- Bootstrap CSS (Light Theme) -->
+    <!-- Replit-themed Bootstrap CSS (Light Theme) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- jQuery (required for plugins) -->
@@ -14,8 +14,8 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Lucide Icons (specific version to avoid breaking changes) -->
-    <script src="https://unpkg.com/lucide@0.276.0/dist/umd/lucide.js"></script>
+    <!-- Feather Icons for consistent icon rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
@@ -113,28 +113,22 @@
     {% endif %}
     
     <script>
-        // Initialize Lucide icons
+        // Initialize Feather icons
         document.addEventListener('DOMContentLoaded', function() {
-            // Create standard icons
-            lucide.createIcons();
-            
-            // Fix missing bank icon with building-bank
-            document.querySelectorAll('[data-lucide="bank"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'building-bank');
+            // Replace all Lucide icon references with Feather
+            document.querySelectorAll('[data-lucide]').forEach(function(icon) {
+                const iconName = icon.getAttribute('data-lucide');
+                icon.removeAttribute('data-lucide');
+                icon.setAttribute('data-feather', iconName);
             });
             
-            // Fix key-off with key
-            document.querySelectorAll('[data-lucide="key-off"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'key');
+            // Special handling for uncommon icons
+            document.querySelectorAll('[data-feather="building-bank"]').forEach(function(icon) {
+                icon.setAttribute('data-feather', 'building');
             });
             
-            // Fix link-off with unlink
-            document.querySelectorAll('[data-lucide="link-off"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'unlink');
-            });
-            
-            // Create icons again to apply changes
-            lucide.createIcons();
+            // Initialize all feather icons
+            feather.replace();
         });
     </script>
     
