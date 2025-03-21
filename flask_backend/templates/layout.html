@@ -118,23 +118,63 @@
             // Create standard icons
             lucide.createIcons();
             
-            // Fix missing bank icon with building-bank
-            document.querySelectorAll('[data-lucide="bank"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'building-bank');
+            // Fix missing icons with appropriate alternatives
+            const iconReplacements = {
+                'building-bank': 'building',
+                'landmark': 'home',
+                'layout-dashboard': 'layout',
+                'link-off': 'unlink'
+            };
+            
+            // Apply icon replacements
+            Object.entries(iconReplacements).forEach(([original, replacement]) => {
+                document.querySelectorAll(`[data-lucide="${original}"]`).forEach(icon => {
+                    icon.setAttribute('data-lucide', replacement);
+                });
             });
             
-            // Fix key-off with key
-            document.querySelectorAll('[data-lucide="key-off"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'key');
-            });
-            
-            // Fix link-off with unlink
-            document.querySelectorAll('[data-lucide="link-off"]').forEach(function(icon) {
-                icon.setAttribute('data-lucide', 'unlink');
+            // Replace trending-up icons in the financial goals component
+            document.querySelectorAll('.goal-card [data-lucide="trending-up"]').forEach(icon => {
+                icon.setAttribute('data-lucide', 'arrow-up-right');
             });
             
             // Create icons again to apply changes
             lucide.createIcons();
+            
+            // Initialize progress bars if they exist
+            const initProgressBars = () => {
+                const progressBars = document.querySelectorAll('.animated-progress .progress-bar');
+                if (progressBars.length === 0) return;
+                
+                progressBars.forEach((bar, index) => {
+                    setTimeout(() => {
+                        const value = bar.getAttribute('aria-valuenow');
+                        bar.style.width = value + '%';
+                    }, 300 * index);
+                });
+                
+                const glowElements = document.querySelectorAll('.progress-glow');
+                glowElements.forEach((glow, index) => {
+                    glow.style.animationDelay = (0.5 * index) + 's';
+                });
+            };
+            
+            // Run on initial load and whenever content changes
+            initProgressBars();
+            
+            // Add an observer to detect when the dashboard content is loaded
+            const contentObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.addedNodes.length) {
+                        initProgressBars();
+                    }
+                });
+            });
+            
+            const contentContainer = document.querySelector('.container-fluid.px-md-4');
+            if (contentContainer) {
+                contentObserver.observe(contentContainer, { childList: true, subtree: true });
+            }
         });
     </script>
     
