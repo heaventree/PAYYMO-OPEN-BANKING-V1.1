@@ -645,6 +645,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/bank_wizard.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize animated progress bars
