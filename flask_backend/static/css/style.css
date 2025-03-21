@@ -597,6 +597,47 @@ body {
     }
 }
 
+/* Bank Connection Wizard */
+.bank-connection-item {
+    min-width: 150px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bank-connection-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.bank-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.connection-steps .step-icon {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.bank-option {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bank-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-primary) !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Stepper component */
+.z-index-2 {
+    z-index: 2;
+}
+
 /* Utilities */
 .d-flex {
     display: flex;
