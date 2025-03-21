@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i data-lucide="landmark" style="width: 64px; height: 64px;" class="text-primary mb-3"></i>
+                    <h3 class="fw-bold">GoCardless Open Banking</h3>
+                    <p class="text-muted">Admin Dashboard Login</p>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i data-lucide="alert-triangle" class="me-2" style="width: 18px; height: 18px;"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="post" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-lucide="user" style="width: 18px; height: 18px;"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-lucide="lock" style="width: 18px; height: 18px;"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i data-lucide="log-in" class="me-2" style="width: 18px; height: 18px;"></i>
+                        Login
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4 text-muted">
+            <small>This is the admin dashboard for the GoCardless Open Banking integration with WHMCS.</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
