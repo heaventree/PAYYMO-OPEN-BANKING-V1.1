@@ -1,345 +1,247 @@
-<!-- Bank Connection Wizard Component -->
-<div class="card mb-4 shadow-sm" id="bank-connection-wizard">
-    <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Connect Your Bank</h5>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bankConnectionModal">
-                <i data-lucide="plus" class="me-1" style="width: 14px; height: 14px;"></i>
-                New Connection
-            </button>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-lg-12">
-                <!-- Connection Status Section -->
-                <div class="connection-status mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0">Active Bank Connections</h6>
-                        <span class="badge bg-success">3 Connected</span>
+<!-- Bank Connection Wizard Modal -->
+<div class="modal fade" id="bankConnectionModal" tabindex="-1" aria-labelledby="bankConnectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bankConnectionModalLabel">Connect to Your Bank</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Wizard Progress -->
+                <div class="wizard-progress mb-4">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
-                    <div class="d-flex flex-wrap gap-3">
-                        <!-- Connected Bank Item -->
-                        <div class="bank-connection-item border rounded p-3 bg-light">
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="bank-icon rounded-circle bg-primary bg-opacity-10 p-2 me-2">
-                                    <i data-lucide="building" style="width: 18px; height: 18px;" class="text-primary"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">Barclays</h6>
-                                    <span class="text-muted small">Business Account</span>
-                                </div>
+                    <div class="d-flex justify-content-between">
+                        <div class="step">
+                            <div class="step-icon bg-primary text-white d-flex align-items-center justify-content-center">
+                                <span>1</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-success bg-opacity-10 text-success">Connected</span>
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
-                                </button>
-                            </div>
+                            <div class="step-label">Select Bank</div>
                         </div>
-                        
-                        <!-- Connected Bank Item -->
-                        <div class="bank-connection-item border rounded p-3 bg-light">
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="bank-icon rounded-circle bg-info bg-opacity-10 p-2 me-2">
-                                    <i data-lucide="building" style="width: 18px; height: 18px;" class="text-info"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">HSBC</h6>
-                                    <span class="text-muted small">Corporate Account</span>
-                                </div>
+                        <div class="step">
+                            <div class="step-icon bg-light border d-flex align-items-center justify-content-center">
+                                <span>2</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-success bg-opacity-10 text-success">Connected</span>
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
-                                </button>
-                            </div>
+                            <div class="step-label">Authorize</div>
                         </div>
-                        
-                        <!-- Connected Bank Item -->
-                        <div class="bank-connection-item border rounded p-3 bg-light">
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="bank-icon rounded-circle bg-success bg-opacity-10 p-2 me-2">
-                                    <i data-lucide="building" style="width: 18px; height: 18px;" class="text-success"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">Monzo</h6>
-                                    <span class="text-muted small">Business Account</span>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-warning bg-opacity-10 text-warning">Refreshing</span>
-                                <button class="btn btn-sm btn-outline-secondary" disabled>
-                                    <i data-lucide="loader" style="width: 12px; height: 12px;"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Add New Bank Button -->
-                        <div class="bank-connection-item border rounded p-3 bg-light d-flex flex-column justify-content-center align-items-center" style="min-width: 150px;">
-                            <button class="btn btn-outline-primary mb-2 rounded-circle p-2" data-bs-toggle="modal" data-bs-target="#bankConnectionModal">
-                                <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
-                            </button>
-                            <span class="text-muted small">Add Bank</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step Indicator -->
-                <div class="connection-steps mb-4">
-                    <div class="d-flex justify-content-between position-relative mb-4">
-                        <!-- Progress Line -->
-                        <div class="progress position-absolute" style="width: 75%; height: 2px; top: 14px; left: 12.5%; z-index: 1;">
-                            <div class="progress-bar" role="progressbar" style="width: 66%;" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        
-                        <!-- Step 1 -->
-                        <div class="step d-flex flex-column align-items-center position-relative z-index-2">
-                            <div class="step-icon rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 30px; height: 30px; z-index: 2;">
-                                <i data-lucide="check" style="width: 16px; height: 16px;"></i>
-                            </div>
-                            <span class="small mt-2">Select Bank</span>
-                        </div>
-                        
-                        <!-- Step 2 -->
-                        <div class="step d-flex flex-column align-items-center position-relative z-index-2">
-                            <div class="step-icon rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 30px; height: 30px; z-index: 2;">
-                                <i data-lucide="check" style="width: 16px; height: 16px;"></i>
-                            </div>
-                            <span class="small mt-2">Authorize</span>
-                        </div>
-                        
-                        <!-- Step 3 -->
-                        <div class="step d-flex flex-column align-items-center position-relative z-index-2">
-                            <div class="step-icon rounded-circle d-flex align-items-center justify-content-center bg-light border" style="width: 30px; height: 30px; z-index: 2;">
+                        <div class="step">
+                            <div class="step-icon bg-light border d-flex align-items-center justify-content-center">
                                 <span>3</span>
                             </div>
-                            <span class="small mt-2">Connect</span>
+                            <div class="step-label">Complete</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Bank Selection List (Hidden when steps are active) -->
-                <div class="bank-selection d-none">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text" id="bank-search-addon">
-                            <i data-lucide="search" style="width: 14px; height: 14px;"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search for your bank..." aria-label="Search" aria-describedby="bank-search-addon">
+                <!-- Step 1: Select Bank -->
+                <div class="step-content step-1">
+                    <div class="mb-4">
+                        <h5 class="mb-3">Select Your Bank</h5>
+                        <p class="text-muted">Choose your financial institution from the list below.</p>
                     </div>
                     
-                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: if(24px; height: 24px;" class="text-primary"></i>
-                                </div>
-                                <h6 class="mb-1">Barclays</h6>
-                                <span class="badge bg-light text-muted">UK</span>
+                    <div class="form-group mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Search for your bank...">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6 col-md-4">
+                            <div class="bank-option p-3 border rounded text-center cursor-pointer">
+                                <i data-lucide="briefcase" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <h6 class="mt-2 mb-0">Barclays</h6>
                             </div>
                         </div>
-                        
-                        <!-- More banks would be listed here -->
+                        <div class="col-sm-6 col-md-4">
+                            <div class="bank-option p-3 border rounded text-center cursor-pointer">
+                                <i data-lucide="landmark" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <h6 class="mt-2 mb-0">HSBC</h6>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="bank-option p-3 border rounded text-center cursor-pointer">
+                                <i data-lucide="landmark" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <h6 class="mt-2 mb-0">Lloyds</h6>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="bank-option p-3 border rounded text-center cursor-pointer">
+                                <i data-lucide="globe" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <h6 class="mt-2 mb-0">Monzo</h6>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="bank-option p-3 border rounded text-center cursor-pointer">
+                                <i data-lucide="landmark" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <h6 class="mt-2 mb-0">Santander</h6>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="bank-option p-3 border rounded text-center cursor-pointer">
+                                <i data-lucide="landmark" class="me-1" style="width: 18px; height: 18px;"></i>
+                                <h6 class="mt-2 mb-0">NatWest</h6>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button class="btn btn-outline-secondary btn-sm">Show All Banks</button>
                     </div>
                 </div>
+                
+                <!-- Step 2: Authorize Bank -->
+                <div class="step-content step-2 d-none">
+                    <div class="text-center mb-4">
+                        <h5 class="mb-3">Connect to Bank</h5>
+                        <p class="text-muted">You'll be redirected to your bank's website to securely authorize access.</p>
+                    </div>
+                    
+                    <div class="auth-info border rounded p-4 mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-lucide="shield-check" class="text-success me-2" style="width: 24px; height: 24px;"></i>
+                            <h6 class="mb-0">Secure Connection</h6>
+                        </div>
+                        <p class="text-muted mb-0">Your credentials are never stored. We use Open Banking APIs to securely connect to your bank account.</p>
+                    </div>
+                    
+                    <div class="auth-permissions">
+                        <h6 class="mb-3">You're granting permission to:</h6>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center">
+                                <i data-lucide="check-circle" class="text-success me-2" style="width: 16px; height: 16px;"></i>
+                                <span>Access account information</span>
+                            </li>
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center">
+                                <i data-lucide="check-circle" class="text-success me-2" style="width: 16px; height: 16px;"></i>
+                                <span>View transaction history</span>
+                            </li>
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center">
+                                <i data-lucide="check-circle" class="text-success me-2" style="width: 16px; height: 16px;"></i>
+                                <span>Match transactions to invoices</span>
+                            </li>
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center text-muted">
+                                <i data-lucide="x-circle" class="text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                <span>No permission to move money</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Complete -->
+                <div class="step-content step-3 d-none">
+                    <div class="text-center mb-4">
+                        <i data-lucide="unplug" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
+                        <h5 class="mb-3">Connection Complete</h5>
+                        <p class="text-muted">Your bank account has been successfully connected.</p>
+                    </div>
+                    
+                    <div class="connected-account border rounded p-3 mb-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bank-logo me-3 bg-light rounded p-2">
+                                    <i data-lucide="landmark" style="width: 24px; height: 24px;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Bank Name</h6>
+                                    <p class="mb-0 small text-muted">Account ending in ****1234</p>
+                                </div>
+                            </div>
+                            <span class="badge bg-success">Connected</span>
+                        </div>
+                    </div>
+                    
+                    <div class="connection-info mb-4">
+                        <h6 class="mb-3">What happens next?</h6>
+                        <ul class="list-group">
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center">
+                                <div class="step-number me-3">1</div>
+                                <span>We'll start importing your transactions automatically</span>
+                            </li>
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center">
+                                <div class="step-number me-3">2</div>
+                                <span>Transactions will be matched to invoices</span>
+                            </li>
+                            <li class="list-group-item border-0 ps-0 d-flex align-items-center">
+                                <div class="step-number me-3">3</div>
+                                <span>You'll receive notifications for any transactions that need review</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="bankWizardNextBtn" disabled>Continue to Authorization</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bank Connection Modal -->
-<div class="modal fade" id="bankConnectionModal" tabindex="-1" aria-labelledby="bankConnectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="bankConnectionModalLabel">Connect Bank Account</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Stepper Header -->
-                <div class="d-flex justify-content-between position-relative mb-5">
-                    <!-- Progress Line -->
-                    <div class="progress position-absolute" style="width: 75%; height: 2px; top: 14px; left: 12.5%; z-index: 1;">
-                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    
-                    <!-- Step 1 -->
-                    <div class="step d-flex flex-column align-items-center position-relative z-index-2">
-                        <div class="step-icon rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 30px; height: 30px; z-index: 2;">
-                            <span>1</span>
-                        </div>
-                        <span class="small mt-2">Select Bank</span>
-                    </div>
-                    
-                    <!-- Step 2 -->
-                    <div class="step d-flex flex-column align-items-center position-relative z-index-2">
-                        <div class="step-icon rounded-circle d-flex align-items-center justify-content-center bg-light border" style="width: 30px; height: 30px; z-index: 2;">
-                            <span>2</span>
-                        </div>
-                        <span class="small mt-2">Authorize</span>
-                    </div>
-                    
-                    <!-- Step 3 -->
-                    <div class="step d-flex flex-column align-items-center position-relative z-index-2">
-                        <div class="step-icon rounded-circle d-flex align-items-center justify-content-center bg-light border" style="width: 30px; height: 30px; z-index: 2;">
-                            <span>3</span>
-                        </div>
-                        <span class="small mt-2">Confirm</span>
-                    </div>
-                </div>
-                
-                <!-- Step Content - Step 1: Bank Selection -->
-                <div class="step-content step-1">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text" id="modal-bank-search-addon">
-                            <i data-lucide="search" style="width: 14px; height: 14px;"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search for your bank..." aria-label="Search" aria-describedby="modal-bank-search-addon">
-                    </div>
-                    
-                    <div class="row row-cols-2 row-cols-md-3 g-3 mb-3">
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center cursor-pointer">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;" class="text-primary"></i>
-                                </div>
-                                <h6 class="mb-1">Barclays</h6>
-                                <span class="badge bg-light text-muted">UK</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center cursor-pointer">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;" class="text-info"></i>
-                                </div>
-                                <h6 class="mb-1">HSBC</h6>
-                                <span class="badge bg-light text-muted">UK</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center cursor-pointer">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;" class="text-success"></i>
-                                </div>
-                                <h6 class="mb-1">Lloyds</h6>
-                                <span class="badge bg-light text-muted">UK</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center cursor-pointer">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;" class="text-warning"></i>
-                                </div>
-                                <h6 class="mb-1">Santander</h6>
-                                <span class="badge bg-light text-muted">UK</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center cursor-pointer">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;" class="text-danger"></i>
-                                </div>
-                                <h6 class="mb-1">NatWest</h6>
-                                <span class="badge bg-light text-muted">UK</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Bank Option -->
-                        <div class="col">
-                            <div class="bank-option border rounded p-3 text-center cursor-pointer">
-                                <div class="bank-logo mb-2">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;" class="text-secondary"></i>
-                                </div>
-                                <h6 class="mb-1">Monzo</h6>
-                                <span class="badge bg-light text-muted">UK</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="small text-muted text-center">
-                        <p>Can't find your bank? <a href="#" class="text-decoration-none">View all supported banks</a></p>
-                    </div>
-                </div>
-                
-                <!-- Step Content - Step 2: Authorization (Hidden by default) -->
-                <div class="step-content step-2 d-none">
-                    <div class="text-center mb-4">
-                        <i data-lucide="building" style="width: 48px; height: 48px;" class="mb-3 text-primary"></i>
-                        <h5>Connect to Barclays</h5>
-                        <p class="text-muted">You'll be redirected to Barclays to securely authorize access to your account data.</p>
-                    </div>
-                    
-                    <div class="border rounded p-3 mb-4">
-                        <h6>What information will be shared?</h6>
-                        <ul class="text-muted mb-0">
-                            <li>Account information and balances</li>
-                            <li>Transaction history (last 90 days)</li>
-                            <li>Account holder details</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="alert alert-info" role="alert">
-                        <div class="d-flex">
-                            <i data-lucide="info" style="width: 24px; height: 24px;" class="me-2"></i>
-                            <div>
-                                <strong>Open Banking is secure.</strong> We use regulated Open Banking APIs and never store your banking credentials.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step Content - Step 3: Confirmation (Hidden by default) -->
-                <div class="step-content step-3 d-none">
-                    <div class="text-center mb-4">
-                        <div class="connection-success-icon rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
-                            <i data-lucide="check" style="width: 30px; height: 30px;"></i>
-                        </div>
-                        <h5>Connection Successful!</h5>
-                        <p class="text-muted">Your Barclays account has been connected successfully.</p>
-                    </div>
-                    
-                    <div class="border rounded p-3 mb-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bank-icon rounded-circle bg-primary bg-opacity-10 p-2 me-3">
-                                <i data-lucide="building" style="width: 24px; height: 24px;" class="text-primary"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">Barclays Business Account</h6>
-                                <span class="text-muted">Account ending in **7890</span>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between border-top pt-3 mt-3">
-                            <span class="text-muted">Connection Status:</span>
-                            <span class="text-success">Connected</span>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-success" role="alert">
-                        <div class="d-flex">
-                            <i data-lucide="check-circle" style="width: 24px; height: 24px;" class="me-2"></i>
-                            <div>
-                                <strong>What's next?</strong> Transactions will be automatically imported. You can view them in the Transactions tab.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="bankWizardNextBtn">Continue to Authorization</button>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.wizard-progress {
+    position: relative;
+    padding-top: 30px;
+}
+
+.step {
+    text-align: center;
+    z-index: 1;
+    flex: 1;
+}
+
+.step-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    font-size: 12px;
+}
+
+.step-label {
+    font-size: 12px;
+    color: var(--bs-gray-600);
+}
+
+.bank-option {
+    transition: all 0.3s ease;
+}
+
+.bank-option:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.auth-info {
+    background-color: rgba(var(--bs-success-rgb), 0.05);
+}
+
+.bank-logo {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-number {
+    width: 24px;
+    height: 24px;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+</style>
