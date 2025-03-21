@@ -1,15 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    // Initialize Bootstrap tooltips (safely)
+    try {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        if (typeof bootstrap !== 'undefined') {
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    } catch (e) {
+        console.log('Bootstrap tooltip initialization skipped');
+    }
 
-    // Initialize Bootstrap popovers
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
+    // Initialize Bootstrap popovers (safely)
+    try {
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        if (typeof bootstrap !== 'undefined') {
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+        }
+    } catch (e) {
+        console.log('Bootstrap popover initialization skipped');
+    }
 
     // Handle sidebar toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -99,17 +111,24 @@ function refreshData(target) {
 
 // Initialize charts using Chart.js
 function initializeCharts() {
+    // Check if Chart is defined
+    if (typeof Chart === 'undefined') {
+        console.log('Chart.js not loaded, skipping chart initialization');
+        return;
+    }
+    
     // Transaction Stats Chart
     const transactionStatsElem = document.getElementById('transactionStats');
     if (transactionStatsElem) {
-        const ctx = transactionStatsElem.getContext('2d');
-        
-        // Get data from data attributes
-        const labels = JSON.parse(transactionStatsElem.getAttribute('data-labels') || '[]');
-        const amounts = JSON.parse(transactionStatsElem.getAttribute('data-amounts') || '[]');
-        const counts = JSON.parse(transactionStatsElem.getAttribute('data-counts') || '[]');
-        
-        new Chart(ctx, {
+        try {
+            const ctx = transactionStatsElem.getContext('2d');
+            
+            // Get data from data attributes
+            const labels = JSON.parse(transactionStatsElem.getAttribute('data-labels') || '[]');
+            const amounts = JSON.parse(transactionStatsElem.getAttribute('data-amounts') || '[]');
+            const counts = JSON.parse(transactionStatsElem.getAttribute('data-counts') || '[]');
+            
+            new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -160,18 +179,22 @@ function initializeCharts() {
                 }
             }
         });
+        } catch (error) {
+            console.error("Error initializing transaction chart:", error);
+        }
     }
     
     // Match Rate Chart
     const matchRateElem = document.getElementById('matchRateChart');
     if (matchRateElem) {
-        const ctx = matchRateElem.getContext('2d');
-        
-        // Get data from data attributes
-        const matched = parseInt(matchRateElem.getAttribute('data-matched') || '0');
-        const unmatched = parseInt(matchRateElem.getAttribute('data-unmatched') || '0');
-        
-        new Chart(ctx, {
+        try {
+            const ctx = matchRateElem.getContext('2d');
+            
+            // Get data from data attributes
+            const matched = parseInt(matchRateElem.getAttribute('data-matched') || '0');
+            const unmatched = parseInt(matchRateElem.getAttribute('data-unmatched') || '0');
+            
+            new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Matched', 'Unmatched'],
@@ -208,27 +231,59 @@ function initializeCharts() {
                 }
             }
         });
+        } catch (error) {
+            console.error("Error initializing match rate chart:", error);
+        }
     }
 }
 
 // Initialize DataTables
 function initializeDataTables() {
-    const tables = document.querySelectorAll('.datatable');
-    tables.forEach(table => {
-        if (table.classList.contains('datatable-initialized')) return;
-        
-        new DataTable(table, {
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50],
-            responsive: true,
-            dom: 'Bfrtip',
-            buttons: [
-                'copy', 'csv', 'excel', 'pdf', 'print'
-            ]
+    // Check if DataTable is defined
+    if (typeof DataTable === 'undefined' && typeof $.fn.DataTable === 'undefined') {
+        console.log('DataTables not loaded, skipping table initialization');
+        return;
+    }
+
+    try {
+        const tables = document.querySelectorAll('.datatable');
+        tables.forEach(table => {
+            if (table.classList.contains('datatable-initialized')) return;
+            
+            try {
+                // Try using the standalone version first
+                if (typeof DataTable !== 'undefined') {
+                    new DataTable(table, {
+                        pageLength: 10,
+                        lengthMenu: [5, 10, 25, 50],
+                        responsive: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copy', 'csv', 'excel', 'pdf', 'print'
+                        ]
+                    });
+                } 
+                // Fall back to jQuery version if standalone isn't available
+                else if (typeof $.fn.DataTable !== 'undefined') {
+                    $(table).DataTable({
+                        pageLength: 10,
+                        lengthMenu: [5, 10, 25, 50],
+                        responsive: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copy', 'csv', 'excel', 'pdf', 'print'
+                        ]
+                    });
+                }
+                
+                table.classList.add('datatable-initialized');
+            } catch (tableError) {
+                console.error("Error initializing DataTable for specific table:", tableError);
+            }
         });
-        
-        table.classList.add('datatable-initialized');
-    });
+    } catch (error) {
+        console.error("Error in DataTables initialization:", error);
+    }
 }
 
 // Format currency values with proper currency symbol
