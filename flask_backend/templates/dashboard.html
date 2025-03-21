@@ -110,9 +110,21 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="goals-tab" data-bs-toggle="tab" data-bs-target="#goals" type="button" role="tab" aria-controls="goals" aria-selected="false">
+                    <i data-lucide="target" class="me-1" style="width: 16px; height: 16px;"></i>
+                    Financial Goals
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="banks-tab" data-bs-toggle="tab" data-bs-target="#banks" type="button" role="tab" aria-controls="banks" aria-selected="false">
                     <i data-lucide="building" class="me-1" style="width: 16px; height: 16px;"></i>
                     Bank Connections
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="false">
+                    <i data-lucide="pie-chart" class="me-1" style="width: 16px; height: 16px;"></i>
+                    Stats
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -133,9 +145,6 @@
         <div class="tab-content" id="dashboardTabsContent">
             <!-- Overview Tab -->
             <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-                <!-- Financial Goals - Animated Progress Bars -->
-                {% include 'components/financial_goals.html' %}
-                
                 <!-- Transaction Overview Chart -->
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
@@ -151,131 +160,337 @@
                             <canvas id="transactionChart"></canvas>
                         </div>
                     </div>
+                    <div class="card-footer-actions bg-light p-2 d-flex justify-content-end">
+                        <a href="#" class="text-decoration-none text-muted small">
+                            <i data-lucide="download" class="me-1" style="width: 14px; height: 14px;"></i>
+                            Export Data
+                        </a>
+                    </div>
                 </div>
                 
-                <!-- Stats Cards Row -->
-                <div class="row g-4 mb-4">
-                    <!-- Match Statistics -->
-                    <div class="col-lg-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-header border-0 bg-transparent">
-                                <h5 class="card-title mb-0">Match Statistics</h5>
+                <!-- New Transactions Summary -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Unassigned Transactions</h5>
+                                <span class="badge bg-warning text-dark">5 Pending</span>
                             </div>
-                            <div class="card-body">
-                                <div class="chart-container-sm text-center mb-3">
-                                    <canvas id="matchRateChart"></canvas>
-                                </div>
-                                <div class="chart-legend d-flex justify-content-center gap-4">
-                                    <div class="d-flex align-items-center">
-                                        <div class="legend-indicator bg-success me-2"></div>
-                                        <span>Matched (65%)</span>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <div class="legend-indicator bg-warning me-2"></div>
-                                        <span>Unmatched (35%)</span>
-                                    </div>
-                                </div>
-                                <div class="stats-values mt-4">
-                                    <div class="row g-0">
-                                        <div class="col-6 border-end">
-                                            <div class="p-3 text-center">
-                                                <h6 class="mb-1">Auto-matched</h6>
-                                                <p class="mb-0 h5">78%</p>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="p-3 text-center">
-                                                <h6 class="mb-1">Manual</h6>
-                                                <p class="mb-0 h5">22%</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th scope="col" class="ps-4">Transaction</th>
+                                                <th scope="col">Date</th>
+                                                <th scope="col">Amount</th>
+                                                <th scope="col">Bank</th>
+                                                <th scope="col" class="text-end pe-4">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="icon-sm bg-primary bg-opacity-15 text-primary rounded me-3">
+                                                            <i data-lucide="arrow-down-left" style="width: 16px; height: 16px;"></i>
+                                                        </div>
+                                                        <div>
+                                                            <span class="d-block fw-medium">SEO Package</span>
+                                                            <small class="text-muted">From: M. Williams</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span>Mar 20, 2025</span>
+                                                    <small class="text-muted d-block">08:15 AM</small>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-medium text-success">£150.00</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="bank-icon me-2 bg-light rounded p-1">
+                                                            <i data-lucide="building" style="width: 16px; height: 16px;"></i>
+                                                        </span>
+                                                        <span>Monzo</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end pe-4">
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i data-lucide="link" class="me-1" style="width: 14px; height: 14px;"></i>
+                                                        Match
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="icon-sm bg-primary bg-opacity-15 text-primary rounded me-3">
+                                                            <i data-lucide="arrow-down-left" style="width: 16px; height: 16px;"></i>
+                                                        </div>
+                                                        <div>
+                                                            <span class="d-block fw-medium">Email Marketing</span>
+                                                            <small class="text-muted">From: T. Davis</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span>Mar 19, 2025</span>
+                                                    <small class="text-muted d-block">10:05 AM</small>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-medium text-success">£99.00</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="bank-icon me-2 bg-light rounded p-1">
+                                                            <i data-lucide="building" style="width: 16px; height: 16px;"></i>
+                                                        </span>
+                                                        <span>Barclays</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end pe-4">
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i data-lucide="link" class="me-1" style="width: 14px; height: 14px;"></i>
+                                                        Match
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="icon-sm bg-primary bg-opacity-15 text-primary rounded me-3">
+                                                            <i data-lucide="arrow-down-left" style="width: 16px; height: 16px;"></i>
+                                                        </div>
+                                                        <div>
+                                                            <span class="d-block fw-medium">Cloud Storage</span>
+                                                            <small class="text-muted">From: R. Jenkins</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span>Mar 18, 2025</span>
+                                                    <small class="text-muted d-block">02:45 PM</small>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-medium text-success">£29.99</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="bank-icon me-2 bg-light rounded p-1">
+                                                            <i data-lucide="building" style="width: 16px; height: 16px;"></i>
+                                                        </span>
+                                                        <span>HSBC</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end pe-4">
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i data-lucide="link" class="me-1" style="width: 14px; height: 14px;"></i>
+                                                        Match
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Bank Distribution -->
-                    <div class="col-lg-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-header border-0 bg-transparent">
-                                <h5 class="card-title mb-0">Bank Distribution</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="chart-container-sm mb-3">
-                                    <canvas id="bankDistributionChart"></canvas>
+                            <div class="card-footer-actions bg-light p-2 d-flex justify-content-between">
+                                <div>
+                                    <span class="text-muted small me-2">Showing 3 of 5</span>
+                                    <a href="#transactions" class="text-decoration-none text-muted small" data-bs-toggle="tab" role="tab" aria-controls="transactions" aria-selected="false">
+                                        View All
+                                    </a>
                                 </div>
-                                <div class="text-center mt-2">
-                                    <a href="#" class="btn btn-sm btn-outline-primary">
-                                        <i data-lucide="plus" class="me-1" style="width: 14px; height: 14px;"></i>
-                                        Connect More Banks
+                                <div>
+                                    <a href="#" class="text-decoration-none text-primary small">
+                                        <i data-lucide="zap" class="me-1" style="width: 14px; height: 14px;"></i>
+                                        Auto-Match All
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- System Health -->
-                    <div class="col-lg-4">
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
                         <div class="card h-100 shadow-sm">
-                            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">System Health</h5>
-                                <span class="badge bg-success">Operational</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="health-card mb-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="health-icon bg-success">
-                                            <i data-lucide="database" class="text-white" style="width: 24px; height: 24px;"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">Database</h6>
-                                            <div class="d-flex align-items-center">
-                                                <div class="health-status me-2">
-                                                    <span class="health-dot bg-success"></span>
-                                                    <span>Connected</span>
-                                                </div>
-                                                <span class="text-success small">{{ stats.transactions + stats.matches + stats.license_count }} records</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="icon-box bg-primary bg-opacity-15 text-primary mb-3 align-self-start">
+                                    <i data-lucide="activity" style="width: 24px; height: 24px;"></i>
                                 </div>
-                                <div class="health-card mb-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="health-icon bg-success">
-                                            <i data-lucide="cloud" class="text-white" style="width: 24px; height: 24px;"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">GoCardless API</h6>
-                                            <div class="d-flex align-items-center">
-                                                <div class="health-status me-2">
-                                                    <span class="health-dot bg-success"></span>
-                                                    <span>Connected</span>
-                                                </div>
-                                                <span class="text-success small">Authenticated</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="stat-value mb-1">
+                                    <span class="h3 fw-bold">£4,562.50</span>
                                 </div>
-                                <div class="health-card">
-                                    <div class="d-flex align-items-center">
-                                        <div class="health-icon bg-success">
-                                            <i data-lucide="clock" class="text-white" style="width: 24px; height: 24px;"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">Cron Jobs</h6>
-                                            <div class="d-flex align-items-center">
-                                                <div class="health-status me-2">
-                                                    <span class="health-dot bg-success"></span>
-                                                    <span>Running</span>
-                                                </div>
-                                                <span class="text-success small">Last run: 5m ago</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <p class="card-text text-muted mb-0">Total this month</p>
+                                <div class="mt-auto pt-3">
+                                    <span class="text-success small">
+                                        <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                                        8.5% from last month
+                                    </span>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="icon-box bg-success bg-opacity-15 text-success mb-3 align-self-start">
+                                    <i data-lucide="check-circle" style="width: 24px; height: 24px;"></i>
+                                </div>
+                                <div class="stat-value mb-1">
+                                    <span class="h3 fw-bold">85%</span>
+                                </div>
+                                <p class="card-text text-muted mb-0">Match rate</p>
+                                <div class="mt-auto pt-3">
+                                    <span class="text-success small">
+                                        <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                                        3% from last month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="icon-box bg-info bg-opacity-15 text-info mb-3 align-self-start">
+                                    <i data-lucide="credit-card" style="width: 24px; height: 24px;"></i>
+                                </div>
+                                <div class="stat-value mb-1">
+                                    <span class="h3 fw-bold">42</span>
+                                </div>
+                                <p class="card-text text-muted mb-0">Transactions</p>
+                                <div class="mt-auto pt-3">
+                                    <span class="text-success small">
+                                        <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                                        12% from last month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="icon-box bg-warning bg-opacity-15 text-warning mb-3 align-self-start">
+                                    <i data-lucide="building" style="width: 24px; height: 24px;"></i>
+                                </div>
+                                <div class="stat-value mb-1">
+                                    <span class="h3 fw-bold">4</span>
+                                </div>
+                                <p class="card-text text-muted mb-0">Connected banks</p>
+                                <div class="mt-auto pt-3">
+                                    <a href="#banks" class="text-decoration-none text-primary small" data-bs-toggle="tab" role="tab" aria-controls="banks" aria-selected="false">
+                                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                                        Add Bank
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Financial Goals Tab -->
+            <div class="tab-pane fade" id="goals" role="tabpanel" aria-labelledby="goals-tab">
+                <!-- Financial Goals Component -->
+                {% include 'components/financial_goals.html' %}
+                
+                <!-- Goal Setup Guide -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header border-0 bg-transparent">
+                        <h5 class="card-title mb-0">Setting Effective Financial Goals</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-2">Why Set Financial Goals?</h6>
+                                    <p>Financial goals help track your business growth, measure success, and identify areas for improvement. By setting clear targets, you can better understand your financial performance and make data-driven decisions.</p>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-2">Types of Goals</h6>
+                                    <div class="d-flex align-items-start mb-2">
+                                        <div class="flex-shrink-0 text-primary me-2">
+                                            <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                                        </div>
+                                        <div>
+                                            <strong>Monthly</strong> - Short-term goals for immediate focus
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start mb-2">
+                                        <div class="flex-shrink-0 text-info me-2">
+                                            <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                                        </div>
+                                        <div>
+                                            <strong>Quarterly</strong> - Medium-term goals for seasonal tracking
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0 text-success me-2">
+                                            <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                                        </div>
+                                        <div>
+                                            <strong>Annual</strong> - Long-term goals for yearly planning
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-2">Best Practices</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <div class="d-flex align-items-start">
+                                                <div class="flex-shrink-0 text-primary me-2">
+                                                    <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Be specific</strong> - Set clear, measurable targets
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="d-flex align-items-start">
+                                                <div class="flex-shrink-0 text-primary me-2">
+                                                    <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Be realistic</strong> - Set achievable goals based on past performance
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="d-flex align-items-start">
+                                                <div class="flex-shrink-0 text-primary me-2">
+                                                    <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Review regularly</strong> - Adjust goals as needed
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-2">Need Help?</h6>
+                                    <p>Our team can help you set up effective financial goals based on your business metrics and industry benchmarks.</p>
+                                    <button class="btn btn-primary">
+                                        <i data-lucide="message-circle" class="me-1" style="width: 16px; height: 16px;"></i>
+                                        Get Goal Setting Support
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer-actions bg-light p-2 d-flex justify-content-end">
+                        <a href="#" class="text-decoration-none text-muted small">
+                            <i data-lucide="download" class="me-1" style="width: 14px; height: 14px;"></i>
+                            Download Goal Setting Guide
+                        </a>
                     </div>
                 </div>
             </div>
@@ -550,6 +765,227 @@
                 </div>
             </div>
             
+            <!-- Stats Tab -->
+            <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                <!-- Stats Cards Row -->
+                <div class="row g-4 mb-4">
+                    <!-- Match Statistics -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header border-0 bg-transparent">
+                                <h5 class="card-title mb-0">Match Statistics</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="chart-container-sm text-center mb-3">
+                                    <canvas id="statsMatchRateChart"></canvas>
+                                </div>
+                                <div class="chart-legend d-flex justify-content-center gap-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="legend-indicator bg-success me-2"></div>
+                                        <span>Matched (65%)</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="legend-indicator bg-warning me-2"></div>
+                                        <span>Unmatched (35%)</span>
+                                    </div>
+                                </div>
+                                <div class="stats-values mt-auto">
+                                    <div class="row g-0">
+                                        <div class="col-6 border-end">
+                                            <div class="p-3 text-center">
+                                                <h6 class="mb-1">Auto-matched</h6>
+                                                <p class="mb-0 h5">78%</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-3 text-center">
+                                                <h6 class="mb-1">Manual</h6>
+                                                <p class="mb-0 h5">22%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer-actions bg-light p-2 d-flex justify-content-end">
+                                <a href="#" class="text-decoration-none text-muted small">
+                                    <i data-lucide="download" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    Export Data
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bank Distribution -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header border-0 bg-transparent">
+                                <h5 class="card-title mb-0">Bank Distribution</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="chart-container-sm mb-3">
+                                    <canvas id="statsBankDistributionChart"></canvas>
+                                </div>
+                                <div class="mt-auto text-center">
+                                    <div class="small text-muted mb-2">4 banks connected out of 2400+ available</div>
+                                </div>
+                            </div>
+                            <div class="card-footer-actions bg-light p-2 d-flex justify-content-between">
+                                <a href="#banks" class="text-decoration-none text-muted small" data-bs-toggle="tab" role="tab" aria-controls="banks" aria-selected="false">
+                                    <i data-lucide="eye" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    Manage Banks
+                                </a>
+                                <a href="#" class="text-decoration-none text-muted small">
+                                    <i data-lucide="download" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    Export Data
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction Growth -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header border-0 bg-transparent">
+                                <h5 class="card-title mb-0">Transaction Growth</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="chart-container-sm mb-3">
+                                    <canvas id="transactionGrowthChart"></canvas>
+                                </div>
+                                <div class="mt-auto text-center">
+                                    <div class="d-flex justify-content-center gap-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="legend-indicator bg-primary me-2"></div>
+                                            <span>This Year</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="legend-indicator bg-info me-2"></div>
+                                            <span>Last Year</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer-actions bg-light p-2 d-flex justify-content-end">
+                                <a href="#" class="text-decoration-none text-muted small">
+                                    <i data-lucide="download" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    Export Data
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advanced Statistics -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Advanced Metrics</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Last 30 Days
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
+                                <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+                                <li><a class="dropdown-item" href="#">Last 90 Days</a></li>
+                                <li><a class="dropdown-item" href="#">Custom Range...</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Transaction Analysis</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Metric</th>
+                                                <th class="text-end">Value</th>
+                                                <th class="text-end">Change</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Average Transaction Value</td>
+                                                <td class="text-end">£108.63</td>
+                                                <td class="text-end text-success">+£12.50</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Median Transaction Value</td>
+                                                <td class="text-end">£78.50</td>
+                                                <td class="text-end text-success">+£5.25</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Largest Transaction</td>
+                                                <td class="text-end">£1,250.00</td>
+                                                <td class="text-end text-muted">-</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Auto-Match Success Rate</td>
+                                                <td class="text-end">78%</td>
+                                                <td class="text-end text-success">+3%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Average Matching Time</td>
+                                                <td class="text-end">2.3 hours</td>
+                                                <td class="text-end text-success">-0.5 hrs</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Bank Performance</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Bank</th>
+                                                <th class="text-end">Transactions</th>
+                                                <th class="text-end">Volume</th>
+                                                <th class="text-end">Match Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Barclays</td>
+                                                <td class="text-end">23</td>
+                                                <td class="text-end">£2,345.75</td>
+                                                <td class="text-end">92%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>HSBC</td>
+                                                <td class="text-end">15</td>
+                                                <td class="text-end">£1,256.50</td>
+                                                <td class="text-end">87%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Lloyds</td>
+                                                <td class="text-end">13</td>
+                                                <td class="text-end">£825.25</td>
+                                                <td class="text-end">85%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Monzo</td>
+                                                <td class="text-end">7</td>
+                                                <td class="text-end">£435.00</td>
+                                                <td class="text-end">71%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer-actions bg-light p-2 d-flex justify-content-end">
+                        <a href="#" class="text-decoration-none text-muted small">
+                            <i data-lucide="download" class="me-1" style="width: 14px; height: 14px;"></i>
+                            Export Full Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Banks Tab -->
             <div class="tab-pane fade" id="banks" role="tabpanel" aria-labelledby="banks-tab">
                 <!-- Bank Connections -->
@@ -1063,6 +1499,179 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Stats charts
+    var ctxStatsMatch = document.getElementById('statsMatchRateChart')?.getContext('2d');
+    if (ctxStatsMatch) {
+        new Chart(ctxStatsMatch, {
+            type: 'doughnut',
+            data: {
+                labels: ['Matched', 'Unmatched'],
+                datasets: [{
+                    data: [65, 35],
+                    backgroundColor: [
+                        colors.successLight,
+                        colors.warningLight
+                    ],
+                    borderColor: [
+                        colors.success,
+                        colors.warning
+                    ],
+                    borderWidth: 1,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((acc, curr) => acc + curr, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${percentage}% (${value})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    var ctxStatsBankDist = document.getElementById('statsBankDistributionChart')?.getContext('2d');
+    if (ctxStatsBankDist) {
+        new Chart(ctxStatsBankDist, {
+            type: 'pie',
+            data: {
+                labels: ['Barclays', 'HSBC', 'Lloyds', 'Monzo', 'Other'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        colors.primaryLight,
+                        colors.infoLight,
+                        colors.successLight,
+                        colors.secondaryLight,
+                        colors.darkLight
+                    ],
+                    borderColor: [
+                        colors.primary,
+                        colors.info,
+                        colors.success,
+                        colors.secondary,
+                        colors.dark
+                    ],
+                    borderWidth: 1,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((acc, curr) => acc + curr, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${percentage}% (${value})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    var ctxTransGrowth = document.getElementById('transactionGrowthChart')?.getContext('2d');
+    if (ctxTransGrowth) {
+        new Chart(ctxTransGrowth, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'This Year',
+                        data: [30, 45, 57, 50, 65, 80, 95, 82, 73, 62, 55, 40],
+                        fill: false,
+                        borderColor: colors.primary,
+                        tension: 0.1,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors.primary
+                    },
+                    {
+                        label: 'Last Year',
+                        data: [25, 40, 35, 45, 55, 65, 75, 65, 60, 50, 45, 35],
+                        fill: false,
+                        borderColor: colors.info,
+                        tension: 0.1,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: colors.info
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     // Bank distribution chart
     var ctxBank = document.getElementById('bankDistributionChart').getContext('2d');
     new Chart(ctxBank, {
