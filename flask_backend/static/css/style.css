@@ -207,6 +207,8 @@ body {
     flex-direction: column;
     transition: transform var(--transition-base) var(--ease-default),
                 box-shadow var(--transition-base) var(--ease-default);
+    position: relative;
+    overflow: hidden;
 }
 
 .stats-card:hover {
@@ -230,6 +232,36 @@ body {
 .stats-card-description {
     font-size: 0.875rem;
     color: var(--color-gray-500);
+}
+
+/* Card hover overlay */
+.card-hover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    opacity: 0;
+    transition: opacity var(--transition-base) var(--ease-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.stats-card:hover .card-hover-overlay {
+    opacity: 1;
+}
+
+.card-hover-overlay i {
+    margin-left: var(--space-1);
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover .card-hover-overlay i {
+    transform: translateX(3px);
 }
 
 /* Tables */
