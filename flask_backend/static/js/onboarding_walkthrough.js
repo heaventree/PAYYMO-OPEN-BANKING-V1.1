@@ -287,14 +287,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check if we should auto-start the walkthrough
     function checkAutoStartWalkthrough() {
-        // Only show walkthrough automatically for first-time users
-        if (walkthrough.enabled && !localStorage.getItem('walkthroughCompleted')) {
+        // Only auto-start if specifically enabled AND for first-time users
+        if (walkthrough.enabled && walkthrough.autoStart && !localStorage.getItem('walkthroughCompleted')) {
+            // Add a small dismiss button to the corner of the screen first
+            const dismissButton = document.createElement('button');
+            dismissButton.className = 'walkthrough-dismiss-btn btn btn-sm btn-danger position-fixed';
+            dismissButton.innerHTML = 'Skip Tour';
+            dismissButton.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999; border-radius: 20px; opacity: 0.8;';
+            document.body.appendChild(dismissButton);
+            
+            dismissButton.addEventListener('click', () => {
+                dismissButton.remove();
+                localStorage.setItem('walkthroughCompleted', 'true');
+            });
+            
             // Delay start to ensure page is fully loaded
-            setTimeout(startWalkthrough, 1500);
-        } else {
-            // Add button to manually start the walkthrough
-            addWalkthroughButton();
+            const tourTimeout = setTimeout(startWalkthrough, 1500);
+            
+            // Allow quick dismissal
+            dismissButton.addEventListener('click', () => {
+                clearTimeout(tourTimeout);
+                dismissButton.remove();
+            });
         }
+        
+        // Always add the button to manually start the walkthrough
+        addWalkthroughButton();
     }
 
     // Initialize
