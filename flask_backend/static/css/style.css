@@ -234,33 +234,21 @@ body {
     color: var(--color-gray-500);
 }
 
-/* Card hover overlay */
-.card-hover-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.95);
-    opacity: 0;
-    transition: opacity var(--transition-base) var(--ease-default);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    font-size: 0.9rem;
+/* Card footer link */
+.card-footer-link {
+    padding: var(--space-2) var(--space-3);
+    transition: background-color var(--transition-base) var(--ease-default);
 }
 
-.stats-card:hover .card-hover-overlay {
-    opacity: 1;
+.card-footer-link:hover {
+    background-color: rgba(0, 0, 0, 0.03);
 }
 
-.card-hover-overlay i {
-    margin-left: var(--space-1);
+.card-footer-link i {
     transition: transform 0.2s ease;
 }
 
-.stats-card:hover .card-hover-overlay i {
+.card-footer-link:hover i {
     transform: translateX(3px);
 }
 
