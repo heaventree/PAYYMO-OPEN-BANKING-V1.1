@@ -41,84 +41,85 @@
 {% endif %}
 
 <!-- Stats Overview Cards -->
-<div class="row" id="dashboard-stats">
-    <div class="col-xl-3 col-md-6">
-        <div class="stats-card-gradient mb-4 h-100 position-relative overflow-hidden">
-            <div class="stats-card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="stats-card-icon bg-indigo">
-                        <i data-lucide="key" style="width: 24px; height: 24px;"></i>
-                    </div>
-                    <span class="badge bg-white bg-opacity-25">Licenses</span>
-                </div>
-                <h2 class="stats-card-value mb-1">{{ stats.active_licenses }}<span class="text-muted" style="font-size: 1rem;">/{{ stats.license_count }}</span></h2>
-                <p class="stats-card-description mb-0">Active Licenses</p>
-                <div class="stats-card-trend position-absolute bottom-0 end-0 p-2 opacity-25">
-                    <i data-lucide="trending-up" style="width: 56px; height: 56px;"></i>
-                </div>
-            </div>
-            <div class="progress" style="height: 5px;">
-                <div class="progress-bar bg-light" role="progressbar" style="width: {{ (stats.active_licenses / stats.license_count * 100) if stats.license_count > 0 else 0 }}%" aria-valuenow="{{ stats.active_licenses }}" aria-valuemin="0" aria-valuemax="{{ stats.license_count }}"></div>
-            </div>
+<div class="card mb-4 shadow-sm">
+    <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Statistics Overview</h5>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary btn-refresh" data-refresh-target="dashboard-stats">
+                <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
+                Refresh
+            </button>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stats-card-gradient mb-4 h-100 position-relative overflow-hidden">
-            <div class="stats-card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="stats-card-icon bg-success">
-                        <i data-lucide="building-bank" style="width: 24px; height: 24px;"></i>
+    <div class="card-body">
+        <div class="row" id="dashboard-stats">
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card border rounded mb-3 h-100 position-relative overflow-hidden">
+                    <div class="stats-card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stats-card-icon bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i data-lucide="key" style="width: 20px; height: 20px; color: white;"></i>
+                            </div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary">Licenses</span>
+                        </div>
+                        <h2 class="stats-card-value mb-1">{{ stats.active_licenses }}<span class="text-muted" style="font-size: 1rem;">/{{ stats.license_count }}</span></h2>
+                        <p class="stats-card-description mb-0 text-muted">Active Licenses</p>
                     </div>
-                    <span class="badge bg-white bg-opacity-25">Banks</span>
-                </div>
-                <h2 class="stats-card-value mb-1">{{ stats.bank_connections }}</h2>
-                <p class="stats-card-description mb-0">Bank Connections</p>
-                <div class="stats-card-trend position-absolute bottom-0 end-0 p-2 opacity-25">
-                    <i data-lucide="bar-chart-2" style="width: 56px; height: 56px;"></i>
-                </div>
-            </div>
-            <div class="progress" style="height: 5px;">
-                <div class="progress-bar bg-light" role="progressbar" style="width: 65%" aria-valuenow="{{ stats.bank_connections }}" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stats-card-gradient mb-4 h-100 position-relative overflow-hidden">
-            <div class="stats-card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="stats-card-icon bg-info">
-                        <i data-lucide="receipt" style="width: 24px; height: 24px;"></i>
+                    <div class="progress rounded-0" style="height: 4px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (stats.active_licenses / stats.license_count * 100) if stats.license_count > 0 else 0 }}%" aria-valuenow="{{ stats.active_licenses }}" aria-valuemin="0" aria-valuemax="{{ stats.license_count }}"></div>
                     </div>
-                    <span class="badge bg-white bg-opacity-25">Transactions</span>
-                </div>
-                <h2 class="stats-card-value mb-1">{{ stats.transactions }}</h2>
-                <p class="stats-card-description mb-0">Total Transactions</p>
-                <div class="stats-card-trend position-absolute bottom-0 end-0 p-2 opacity-25">
-                    <i data-lucide="activity" style="width: 56px; height: 56px;"></i>
                 </div>
             </div>
-            <div class="progress" style="height: 5px;">
-                <div class="progress-bar bg-light" role="progressbar" style="width: 45%" aria-valuenow="{{ stats.transactions }}" aria-valuemin="0" aria-valuemax="1000"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stats-card-gradient mb-4 h-100 position-relative overflow-hidden">
-            <div class="stats-card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="stats-card-icon bg-warning">
-                        <i data-lucide="link" style="width: 24px; height: 24px;"></i>
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card border rounded mb-3 h-100 position-relative overflow-hidden">
+                    <div class="stats-card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stats-card-icon bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i data-lucide="landmark" style="width: 20px; height: 20px; color: white;"></i>
+                            </div>
+                            <span class="badge bg-success bg-opacity-10 text-success">Banks</span>
+                        </div>
+                        <h2 class="stats-card-value mb-1">{{ stats.bank_connections }}</h2>
+                        <p class="stats-card-description mb-0 text-muted">Bank Connections</p>
                     </div>
-                    <span class="badge bg-white bg-opacity-25">Matches</span>
-                </div>
-                <h2 class="stats-card-value mb-1">{{ stats.matches }}</h2>
-                <p class="stats-card-description mb-0">Invoice Matches</p>
-                <div class="stats-card-trend position-absolute bottom-0 end-0 p-2 opacity-25">
-                    <i data-lucide="pie-chart" style="width: 56px; height: 56px;"></i>
+                    <div class="progress rounded-0" style="height: 4px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%" aria-valuenow="{{ stats.bank_connections }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
                 </div>
             </div>
-            <div class="progress" style="height: 5px;">
-                <div class="progress-bar bg-light" role="progressbar" style="width: 78%" aria-valuenow="{{ stats.matches }}" aria-valuemin="0" aria-valuemax="1000"></div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card border rounded mb-3 h-100 position-relative overflow-hidden">
+                    <div class="stats-card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stats-card-icon bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i data-lucide="receipt" style="width: 20px; height: 20px; color: white;"></i>
+                            </div>
+                            <span class="badge bg-info bg-opacity-10 text-info">Transactions</span>
+                        </div>
+                        <h2 class="stats-card-value mb-1">{{ stats.transactions }}</h2>
+                        <p class="stats-card-description mb-0 text-muted">Total Transactions</p>
+                    </div>
+                    <div class="progress rounded-0" style="height: 4px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 45%" aria-valuenow="{{ stats.transactions }}" aria-valuemin="0" aria-valuemax="1000"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card border rounded mb-3 h-100 position-relative overflow-hidden">
+                    <div class="stats-card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stats-card-icon bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i data-lucide="link" style="width: 20px; height: 20px; color: white;"></i>
+                            </div>
+                            <span class="badge bg-warning bg-opacity-10 text-warning">Matches</span>
+                        </div>
+                        <h2 class="stats-card-value mb-1">{{ stats.matches }}</h2>
+                        <p class="stats-card-description mb-0 text-muted">Invoice Matches</p>
+                    </div>
+                    <div class="progress rounded-0" style="height: 4px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 78%" aria-valuenow="{{ stats.matches }}" aria-valuemin="0" aria-valuemax="1000"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
