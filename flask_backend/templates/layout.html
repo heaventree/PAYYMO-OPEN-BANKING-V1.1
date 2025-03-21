@@ -113,18 +113,46 @@
     {% endif %}
     
     <script>
-        // Initialize Feather icons
+        // Initialize Feather icons with proper mappings
         document.addEventListener('DOMContentLoaded', function() {
-            // Replace all Lucide icon references with Feather
-            document.querySelectorAll('[data-lucide]').forEach(function(icon) {
-                const iconName = icon.getAttribute('data-lucide');
-                icon.removeAttribute('data-lucide');
-                icon.setAttribute('data-feather', iconName);
+            // Icon name mappings from Lucide to Feather
+            const iconMappings = {
+                'landmark': 'home',
+                'layout-dashboard': 'layout',
+                'building-bank': 'briefcase',
+                'building': 'briefcase',
+                'credit-card': 'credit-card',
+                'alert-triangle': 'alert-triangle',
+                'eye': 'eye',
+                'refresh-cw': 'refresh-cw',
+                'file-text': 'file-text',
+                'link': 'link',
+                'zap': 'zap',
+                'arrow-down-left': 'arrow-down-left',
+                'more-vertical': 'more-vertical',
+                'alert-circle': 'alert-circle',
+                'plus': 'plus',
+                'settings': 'settings',
+                'log-out': 'log-out'
+            };
+            
+            // Replace all data-feather attributes with the correct mapping
+            document.querySelectorAll('[data-feather]').forEach(function(icon) {
+                const originalName = icon.getAttribute('data-feather');
+                if (iconMappings[originalName]) {
+                    icon.setAttribute('data-feather', iconMappings[originalName]);
+                }
             });
             
-            // Special handling for uncommon icons
-            document.querySelectorAll('[data-feather="building-bank"]').forEach(function(icon) {
-                icon.setAttribute('data-feather', 'building');
+            // Replace all data-lucide attributes that might remain
+            document.querySelectorAll('[data-lucide]').forEach(function(icon) {
+                const originalName = icon.getAttribute('data-lucide');
+                icon.removeAttribute('data-lucide');
+                if (iconMappings[originalName]) {
+                    icon.setAttribute('data-feather', iconMappings[originalName]);
+                } else {
+                    icon.setAttribute('data-feather', 'circle'); // Fallback icon
+                }
             });
             
             // Initialize all feather icons
