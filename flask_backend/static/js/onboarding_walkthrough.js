@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configuration
     const walkthrough = {
         enabled: true,
+        autoStart: false, // Set to false to prevent auto-start - less intrusive
         steps: [
             {
                 target: '.dashboard-header',
@@ -91,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         walkthroughPopover.innerHTML = `
             <div class="walkthrough-header">
                 <h5>${step.title}</h5>
-                <button type="button" class="btn-close walkthrough-close"></button>
+                <button type="button" class="btn-close walkthrough-close" aria-label="Close walkthrough"></button>
             </div>
             <div class="walkthrough-body">
                 <p>${step.content}</p>
@@ -101,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span>${currentStep + 1}/${walkthrough.steps.length}</span>
                 </div>
                 <div class="walkthrough-buttons">
+                    <button class="btn btn-sm btn-danger walkthrough-close me-2">Exit Tour</button>
                     ${currentStep > 0 ? '<button class="btn btn-sm btn-secondary walkthrough-prev">Previous</button>' : ''}
                     <button class="btn btn-sm btn-primary walkthrough-next">${currentStep < walkthrough.steps.length - 1 ? 'Next' : 'Finish'}</button>
                 </div>
@@ -110,8 +112,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Position the popover relative to the target element
         positionPopover(targetElement, step.position);
 
-        // Add event listeners
-        walkthroughPopover.querySelector('.walkthrough-close').addEventListener('click', () => endWalkthrough(false));
+        // Add event listeners to all close buttons
+        const closeButtons = walkthroughPopover.querySelectorAll('.walkthrough-close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => endWalkthrough(false));
+        });
         
         const nextBtn = walkthroughPopover.querySelector('.walkthrough-next');
         if (nextBtn) {
