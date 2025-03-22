@@ -7,17 +7,19 @@ from flask import request, jsonify, render_template, abort, session, redirect, u
 from flask_backend.app import app, db
 from flask_backend.models import (
     LicenseKey, LicenseVerification, Transaction, InvoiceMatch,
-    WhmcsInstance, BankConnection, ApiLog
+    WhmcsInstance, BankConnection, ApiLog, StripeConnection, StripePayment
 )
 from flask_backend.services.gocardless_service import GoCardlessService
 from flask_backend.services.license_service import LicenseService
 from flask_backend.services.invoice_matching_service import InvoiceMatchingService
+from flask_backend.services.stripe_service import StripeService
 from flask_backend.utils.error_handler import handle_error, APIError
 from flask_backend.utils.logger import log_api_request
 
 # Initialize services
 license_service = LicenseService()
 gocardless_service = GoCardlessService()
+stripe_service = StripeService()
 invoice_matching_service = InvoiceMatchingService()
 
 # Logger
@@ -297,6 +299,143 @@ def reject_match():
     except Exception as e:
         return handle_error(e)
 
+# ============= Stripe API Endpoints =============
+
+@app.route('/api/stripe/auth', methods=['POST'])
+def stripe_auth():
+    """Get Stripe authorization URL"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            raise APIError("No data provided", status_code=400)
+        
+        license_key = data.get('license_key')
+        domain = data.get('domain')
+        redirect_uri = data.get('redirect_uri')
+        
+        if not license_key or not domain or not redirect_uri:
+            raise APIError("Missing required fields", status_code=400)
+        
+        # Verify license first
+        license_valid = license_service.verify_license(
+            license_key=license_key, 
+            domain=domain,
+            ip_address=request.remote_addr
+        )
+        
+        if not license_valid.get('valid', False):
+            raise APIError("Invalid license", status_code=403)
+        
+        # Get Stripe auth URL
+        auth_url = stripe_service.get_authorization_url(
+            domain=domain,
+            redirect_uri=redirect_uri
+        )
+        
+        return jsonify({"auth_url": auth_url})
+    except Exception as e:
+        return handle_error(e)
+
+@app.route('/api/stripe/callback', methods=['GET', 'POST'])
+def stripe_callback():
+    """Handle Stripe OAuth callback"""
+    try:
+        # Can be GET or POST depending on the Stripe configuration
+        if request.method == 'POST':
+            data = request.get_json()
+            code = data.get('code')
+            state = data.get('state')
+        else:
+            code = request.args.get('code')
+            state = request.args.get('state')
+        
+        if not code or not state:
+            raise APIError("Missing required parameters", status_code=400)
+        
+        # Process the callback
+        result = stripe_service.process_callback(code, state)
+        
+        return jsonify(result)
+    except Exception as e:
+        return handle_error(e)
+
+@app.route('/api/stripe/payments/fetch', methods=['POST'])
+def fetch_stripe_payments():
+    """Fetch payments from Stripe for a specific account"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            raise APIError("No data provided", status_code=400)
+        
+        license_key = data.get('license_key')
+        domain = data.get('domain')
+        account_id = data.get('account_id')
+        from_date = data.get('from_date')
+        to_date = data.get('to_date', datetime.now().strftime('%Y-%m-%d'))
+        
+        if not license_key or not domain or not account_id:
+            raise APIError("Missing required fields", status_code=400)
+        
+        # Verify license first
+        license_valid = license_service.verify_license(
+            license_key=license_key, 
+            domain=domain,
+            ip_address=request.remote_addr
+        )
+        
+        if not license_valid.get('valid', False):
+            raise APIError("Invalid license", status_code=403)
+        
+        # Fetch payments
+        payments = stripe_service.fetch_payments(
+            domain=domain,
+            account_id=account_id,
+            from_date=from_date,
+            to_date=to_date
+        )
+        
+        return jsonify({"payments": payments})
+    except Exception as e:
+        return handle_error(e)
+
+@app.route('/api/stripe/balance', methods=['POST'])
+def get_stripe_balance():
+    """Get Stripe account balance"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            raise APIError("No data provided", status_code=400)
+        
+        license_key = data.get('license_key')
+        domain = data.get('domain')
+        account_id = data.get('account_id')
+        
+        if not license_key or not domain or not account_id:
+            raise APIError("Missing required fields", status_code=400)
+        
+        # Verify license first
+        license_valid = license_service.verify_license(
+            license_key=license_key, 
+            domain=domain,
+            ip_address=request.remote_addr
+        )
+        
+        if not license_valid.get('valid', False):
+            raise APIError("Invalid license", status_code=403)
+        
+        # Get balance
+        balance = stripe_service.get_account_balance(
+            domain=domain,
+            account_id=account_id
+        )
+        
+        return jsonify({"balance": balance})
+    except Exception as e:
+        return handle_error(e)
+
 # ============= Admin Dashboard =============
 
 @app.route('/')
@@ -318,12 +457,21 @@ def dashboard():
         transactions = Transaction.query.count()
         matches = InvoiceMatch.query.count()
         
+        # Stripe stats
+        stripe_connections = StripeConnection.query.count()
+        stripe_payments = StripePayment.query.count()
+        
         recent_verifications = LicenseVerification.query.order_by(
             LicenseVerification.verified_at.desc()
         ).limit(10).all()
         
         recent_transactions = Transaction.query.order_by(
             Transaction.transaction_date.desc()
+        ).limit(10).all()
+        
+        # Get recent Stripe payments
+        recent_stripe_payments = StripePayment.query.order_by(
+            StripePayment.payment_date.desc()
         ).limit(10).all()
         
         # Get current date for charts
@@ -338,10 +486,13 @@ def dashboard():
                 'whmcs_instances': whmcs_instances,
                 'bank_connections': bank_connections,
                 'transactions': transactions,
-                'matches': matches
+                'matches': matches,
+                'stripe_connections': stripe_connections,
+                'stripe_payments': stripe_payments
             },
             recent_verifications=recent_verifications,
             recent_transactions=recent_transactions,
+            recent_stripe_payments=recent_stripe_payments,
             now=now,
             day_delta=day_delta
         )
@@ -389,10 +540,19 @@ def health_check():
     
     # Check GoCardless API connectivity
     try:
-        gocardless_status = "OK" if gocardless_service.check_health() else "Error"
+        gocardless_health = gocardless_service.check_health()
+        gocardless_status = "OK" if gocardless_health.get('status') == 'healthy' else "Error"
     except Exception as e:
         logger.error(f"GoCardless health check failed: {str(e)}")
         gocardless_status = f"Error: {str(e)}"
+    
+    # Check Stripe API connectivity
+    try:
+        stripe_health = stripe_service.check_health()
+        stripe_status = "OK" if stripe_health.get('status') == 'healthy' else "Error"
+    except Exception as e:
+        logger.error(f"Stripe health check failed: {str(e)}")
+        stripe_status = f"Error: {str(e)}"
     
     # Return health status
     return jsonify({
@@ -400,6 +560,7 @@ def health_check():
         "timestamp": datetime.now().isoformat(),
         "checks": {
             "database": db_status,
-            "gocardless_api": gocardless_status
+            "gocardless_api": gocardless_status,
+            "stripe_api": stripe_status
         }
     })
