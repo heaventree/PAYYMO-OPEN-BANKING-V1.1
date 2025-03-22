@@ -65,15 +65,16 @@ def create_checkout_session():
             'success': True,
             'checkout_url': checkout_session.url
         })
-    except Exception as stripe_error:
+    except stripe.error.StripeError as stripe_error:
+        # Handle Stripe-specific errors
         if hasattr(stripe_error, 'http_status'):
-            # Handle Stripe-specific errors
-            return handle_error(APIError(str(stripe_error), status_code=stripe_error.http_status))
-        # Handle other Stripe errors
-        return handle_error(APIError(str(stripe_error), status_code=400))
+            status_code = stripe_error.http_status
+        else:
+            status_code = 400
+        return handle_error(APIError(str(stripe_error), status_code=status_code))
     except Exception as e:
         # Handle other errors
-        return handle_error(e)
+        return handle_error(APIError(str(e), status_code=500))
 
 @checkout_bp.route('/redirect-to-checkout', methods=['POST'])
 def redirect_to_checkout():
@@ -117,9 +118,16 @@ def redirect_to_checkout():
         
         # Redirect to the checkout page
         return redirect(checkout_session.url, code=303)
+    except stripe.error.StripeError as stripe_error:
+        # Handle Stripe-specific errors
+        if hasattr(stripe_error, 'http_status'):
+            status_code = stripe_error.http_status
+        else:
+            status_code = 400
+        return handle_error(APIError(str(stripe_error), status_code=status_code))
     except Exception as e:
-        # Handle errors
-        return handle_error(e)
+        # Handle other errors
+        return handle_error(APIError(str(e), status_code=500))
 
 @checkout_bp.route('/success', methods=['GET'])
 def checkout_success():

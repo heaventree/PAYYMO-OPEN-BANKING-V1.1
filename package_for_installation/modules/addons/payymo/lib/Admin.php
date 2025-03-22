@@ -333,7 +333,7 @@ class Admin {
         $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';
         
         try {
-            $query = Capsule::table('mod_gocardless_logs');
+            $query = Capsule::table('mod_payymo_logs');
             
             // Apply filters
             if ($level) {
@@ -438,7 +438,7 @@ class Admin {
         
         try {
             // Get match details
-            $match = Capsule::table('mod_gocardless_matches')
+            $match = Capsule::table('mod_payymo_matches')
                 ->where('id', $matchId)
                 ->first();
                 
@@ -447,7 +447,7 @@ class Admin {
             }
             
             // Get transaction details
-            $transaction = Capsule::table('mod_gocardless_transactions')
+            $transaction = Capsule::table('mod_payymo_transactions')
                 ->where('id', $match->transaction_id)
                 ->first();
                 
@@ -462,7 +462,7 @@ class Admin {
             
             if ($result['success']) {
                 // Update match status
-                Capsule::table('mod_gocardless_matches')
+                Capsule::table('mod_payymo_matches')
                     ->where('id', $matchId)
                     ->update([
                         'status' => 'approved',
@@ -470,7 +470,7 @@ class Admin {
                     ]);
                     
                 // Update transaction status
-                Capsule::table('mod_gocardless_transactions')
+                Capsule::table('mod_payymo_transactions')
                     ->where('id', $match->transaction_id)
                     ->update([
                         'status' => 'matched',
@@ -508,7 +508,7 @@ class Admin {
         
         try {
             // Update match status
-            Capsule::table('mod_gocardless_matches')
+            Capsule::table('mod_payymo_matches')
                 ->where('id', $matchId)
                 ->update([
                     'status' => 'rejected',
@@ -571,7 +571,7 @@ class Admin {
         
         try {
             // Delete the account
-            Capsule::table('mod_gocardless_accounts')
+            Capsule::table('mod_payymo_accounts')
                 ->where('account_id', $accountId)
                 ->delete();
                 
@@ -596,7 +596,7 @@ class Admin {
             $cutoffDate = date('Y-m-d', strtotime("-$days days"));
             
             // Delete logs older than cutoff date
-            $deleted = Capsule::table('mod_gocardless_logs')
+            $deleted = Capsule::table('mod_payymo_logs')
                 ->where('created_at', '<', $cutoffDate)
                 ->delete();
                 
@@ -657,7 +657,7 @@ class Admin {
         }
         
         // Store message in session
-        $_SESSION['gocardless_message'] = $messageHtml;
+        $_SESSION['payymo_message'] = $messageHtml;
         
         // Return redirect script
         return <<<HTML
