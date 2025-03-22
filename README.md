@@ -17,6 +17,7 @@ Payymo connects your WHMCS installation to over 2400 banks via the GoCardless Op
 - **Manual Review**: Review and approve/reject suggested matches with a simple interface
 - **Detailed Reporting**: Get insights into your payment reconciliation process
 - **Secure OAuth Flow**: Connect to banks and Stripe using secure OAuth connections
+- **Webhook Integration**: Receive real-time updates from GoCardless via secure certificate-verified webhooks
 - **WHMCS Admin Interface**: Manage everything from within your WHMCS admin area
 
 ## Components
@@ -46,6 +47,10 @@ For a quick setup guide and usage instructions, see [docs/usage_guide.md](docs/u
 ## API Reference
 
 Detailed API documentation is available in [docs/api_reference.md](docs/api_reference.md).
+
+## Webhooks
+
+For information on setting up GoCardless webhooks, see [docs/gocardless_webhooks.md](docs/gocardless_webhooks.md).
 
 ## Troubleshooting
 

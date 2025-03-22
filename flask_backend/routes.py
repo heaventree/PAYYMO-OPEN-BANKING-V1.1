@@ -574,7 +574,7 @@ def health_check():
     # Check GoCardless API connectivity
     try:
         gocardless_health = gocardless_service.check_health()
-        gocardless_status = "OK" if gocardless_health.get('status') == 'healthy' else "Error"
+        gocardless_status = "OK" if gocardless_health else "Error"
     except Exception as e:
         logger.error(f"GoCardless health check failed: {str(e)}")
         gocardless_status = f"Error: {str(e)}"
@@ -582,7 +582,7 @@ def health_check():
     # Check Stripe API connectivity
     try:
         stripe_health = stripe_service.check_health()
-        stripe_status = "OK" if stripe_health.get('status') == 'healthy' else "Error"
+        stripe_status = "OK" if stripe_health else "Error"
     except Exception as e:
         logger.error(f"Stripe health check failed: {str(e)}")
         stripe_status = f"Error: {str(e)}"
