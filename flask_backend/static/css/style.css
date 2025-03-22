@@ -608,6 +608,34 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
 }
 
+/* Stripe Integration Styles */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.bg-purple.bg-opacity-10 {
+    background-color: rgba(111, 66, 193, 0.1) !important;
+}
+
+.stripe-connection-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 6px rgba(111, 66, 193, 0.2);
+}
+
+.stripe-logo {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(111, 66, 193, 0.1);
+    border-radius: 50%;
+}
+
 .bank-icon {
     display: flex;
     align-items: center;

@@ -6,6 +6,8 @@
 {% block content %}
 <!-- Quick Insights Widget -->
 {% include 'components/quick_insights_widget.html' %}
+<!-- Stripe Connection Wizard -->
+{% include 'components/stripe_connection_wizard.html' %}
 <!-- Page Header -->
 <div class="page-header mb-4 dashboard-header">
     <div class="row align-items-center">
@@ -231,11 +233,17 @@
                                 <div class="d-flex flex-column align-items-center">
                                     <i data-lucide="inbox" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
                                     <p class="mb-1 fw-semibold">No transactions found</p>
-                                    <p class="text-muted small">Connect to a bank to start importing transactions</p>
-                                    <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#bankConnectionModal">
-                                        <i data-lucide="plus" class="me-1" style="width: 14px; height: 14px;"></i> 
-                                        Add Bank Connection
-                                    </button>
+                                    <p class="text-muted small">Connect to a bank or Stripe to start importing transactions</p>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#bankConnectionModal">
+                                            <i data-lucide="landmark" class="me-1" style="width: 14px; height: 14px;"></i> 
+                                            Add Bank Connection
+                                        </button>
+                                        <button class="btn btn-sm btn-purple" data-bs-toggle="modal" data-bs-target="#stripeConnectionModal">
+                                            <i data-lucide="credit-card" class="me-1" style="width: 14px; height: 14px;"></i> 
+                                            Add Stripe
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
