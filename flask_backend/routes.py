@@ -644,7 +644,8 @@ def health_check():
     """Health check endpoint"""
     # Check database connectivity
     try:
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         db_status = "OK"
     except Exception as e:
         logger.error(f"Database health check failed: {str(e)}")
@@ -676,3 +677,41 @@ def health_check():
             "stripe_api": stripe_status
         }
     })
+    
+@app.route('/api/testing/generate-stripe-data', methods=['POST'])
+def generate_stripe_test_data():
+    """Generate test data for Stripe payments"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            raise APIError("No data provided", status_code=400)
+        
+        license_key = data.get('license_key')
+        domain = data.get('domain')
+        account_id = data.get('account_id')  # Optional
+        num_payments = data.get('num_payments', 10)
+        
+        if not license_key or not domain:
+            raise APIError("Missing required fields", status_code=400)
+        
+        # Verify license first
+        license_valid = license_service.verify_license(
+            license_key=license_key, 
+            domain=domain,
+            ip_address=request.remote_addr
+        )
+        
+        if not license_valid.get('valid', False):
+            raise APIError("Invalid license", status_code=403)
+        
+        # Generate test data
+        result = stripe_service.generate_test_data(
+            domain=domain,
+            account_id=account_id,
+            num_payments=num_payments
+        )
+        
+        return jsonify(result)
+    except Exception as e:
+        return handle_error(e)

@@ -380,6 +380,145 @@ class StripeService:
         except Exception as e:
             logger.error(f"Failed to get account balance: {str(e)}")
             raise
+            
+    def generate_test_data(self, domain, account_id=None, num_payments=10):
+        """
+        Generate test payment data for Stripe 
+        
+        Args:
+            domain: WHMCS instance domain
+            account_id: Optional Stripe account ID (if None, creates a test account)
+            num_payments: Number of payments to generate
+            
+        Returns:
+            Dictionary with generated data information
+        """
+        try:
+            # Find the WHMCS instance
+            whmcs_instance = WhmcsInstance.query.filter_by(domain=domain).first()
+            
+            if not whmcs_instance:
+                raise ValueError(f"WHMCS instance not found for domain: {domain}")
+            
+            # Create a test Stripe connection if account_id not provided
+            if not account_id:
+                # Check if a test connection already exists
+                test_connection = StripeConnection.query.filter_by(
+                    whmcs_instance_id=whmcs_instance.id,
+                    account_id='test_acct_1'
+                ).first()
+                
+                if not test_connection:
+                    test_connection = StripeConnection(
+                        whmcs_instance_id=whmcs_instance.id,
+                        account_id='test_acct_1',
+                        account_name='Test Stripe Account',
+                        account_email='test@example.com',
+                        access_token='test_access_token',
+                        refresh_token='test_refresh_token',
+                        token_expires_at=datetime.utcnow() + timedelta(days=30),
+                        publishable_key='pk_test_123456789',
+                        status='active',
+                        account_type='standard',
+                        account_country='US'
+                    )
+                    db.session.add(test_connection)
+                    db.session.commit()
+                    logger.info(f"Created test Stripe connection for {domain}")
+                
+                stripe_connection = test_connection
+            else:
+                # Find the specified Stripe connection
+                stripe_connection = StripeConnection.query.filter_by(
+                    whmcs_instance_id=whmcs_instance.id,
+                    account_id=account_id
+                ).first()
+                
+                if not stripe_connection:
+                    raise ValueError(f"Stripe connection not found for account: {account_id}")
+            
+            # Generate random payments
+            from random import randint, uniform, choice
+            import string
+            import json
+            
+            created_payments = []
+            currencies = ['USD', 'EUR', 'GBP']
+            payment_methods = ['card', 'bank_transfer', 'sepa_debit']
+            statuses = ['succeeded', 'pending', 'refunded']
+            
+            for i in range(num_payments):
+                # Generate random payment ID
+                payment_id = 'pi_' + ''.join(choice(string.ascii_letters + string.digits) for _ in range(24))
+                
+                # Check if payment already exists
+                existing = StripePayment.query.filter_by(payment_id=payment_id).first()
+                if existing:
+                    continue
+                
+                # Random amount between $10 and $1000
+                amount = round(uniform(10, 1000), 2)
+                
+                # Random date in the last 30 days
+                days_ago = randint(0, 30)
+                payment_date = datetime.utcnow() - timedelta(days=days_ago)
+                
+                # Create customer ID and other fields
+                customer_id = 'cus_' + ''.join(choice(string.ascii_letters + string.digits) for _ in range(14))
+                currency = choice(currencies)
+                payment_method = choice(payment_methods)
+                status = choice(statuses)
+                
+                # Create metadata
+                metadata = {
+                    'invoice_id': f"INVOICE-{randint(10000, 99999)}",
+                    'customer_ref': f"CUST-{randint(1000, 9999)}",
+                    'source': 'test_data'
+                }
+                
+                # Create the payment record
+                payment = StripePayment(
+                    stripe_connection_id=stripe_connection.id,
+                    payment_id=payment_id,
+                    customer_id=customer_id,
+                    customer_name=f"Test Customer {i+1}",
+                    customer_email=f"customer{i+1}@example.com",
+                    amount=amount,
+                    currency=currency,
+                    description=f"Test payment {i+1}",
+                    payment_metadata=json.dumps(metadata),
+                    payment_date=payment_date,
+                    payment_status=status,
+                    payment_method=payment_method
+                )
+                
+                db.session.add(payment)
+                created_payments.append(payment)
+            
+            db.session.commit()
+            
+            return {
+                'success': True,
+                'connection_id': stripe_connection.id,
+                'account_id': stripe_connection.account_id,
+                'payments_created': len(created_payments),
+                'payments': [
+                    {
+                        'id': p.id,
+                        'payment_id': p.payment_id,
+                        'amount': p.amount,
+                        'currency': p.currency,
+                        'payment_date': p.payment_date.isoformat(),
+                        'customer_name': p.customer_name,
+                        'status': p.payment_status
+                    } for p in created_payments
+                ]
+            }
+        
+        except Exception as e:
+            logger.error(f"Failed to generate test data: {str(e)}")
+            db.session.rollback()
+            raise
     
     def _refresh_token(self, stripe_connection):
         """
