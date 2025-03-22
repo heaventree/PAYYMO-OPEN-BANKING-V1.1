@@ -278,12 +278,14 @@ def main():
     # Display helpful commands
     print("\n📋 USEFUL COMMANDS:")
     print("================")
-    print("▶️ Start backup service:      nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+    print("▶️ Start backup service:      nohup python backup_chat.py start > backup_runner.log 2>&1 &")
     print("📦 Create backup now:         python backup_chat.py backup")
+    print("📝 Backup chat history:       python backup_chat.py chat")
     print("💾 Save approved revision:    python save_approved.py \"Name\" \"Description\"")
     print("⏪ Rollback to a revision:    python rollback_to_approved.py")
     print("📜 View backup logs:          cat backup_system.log")
     print("🔍 Check backup status:       python check_backups.py")
+    print("🔄 List revisions:            python backup_chat.py list")
 
 if __name__ == "__main__":
     main()
