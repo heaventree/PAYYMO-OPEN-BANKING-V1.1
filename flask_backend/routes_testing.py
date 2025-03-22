@@ -304,6 +304,162 @@ def run_diagnostic():
     except Exception as e:
         return handle_error(e)
 
+# ============= GoCardless CLI Testing Endpoints =============
+
+@app.route('/api/testing/import-transactions', methods=['POST'])
+def import_test_transactions():
+    """
+    Import test transactions from the GoCardless CLI
+    
+    This endpoint allows importing transactions directly from the GoCardless CLI
+    for testing purposes without going through the full OAuth flow.
+    
+    Example request body:
+    {
+        "domain": "example.com",
+        "transactions": [
+            {
+                "id": "tr_123456",
+                "bank_id": "bank_123",
+                "bank_name": "Test Bank",
+                "account_id": "acc_123",
+                "account_name": "Test Account",
+                "amount": 100.00,
+                "currency": "GBP",
+                "description": "Test Transaction",
+                "reference": "REF123",
+                "date": "2025-03-22"
+            }
+        ]
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            raise APIError("No data provided", status_code=400)
+        
+        # Required fields
+        domain = data.get('domain')
+        transactions = data.get('transactions', [])
+        
+        if not domain or not transactions:
+            raise APIError("Missing required fields", status_code=400)
+        
+        # Find the WHMCS instance
+        instance = WhmcsInstance.query.filter_by(domain=domain).first()
+        if not instance:
+            raise APIError("WHMCS instance not found", status_code=404)
+        
+        from flask_backend.models import Transaction
+        
+        # Import the transactions
+        imported_count = 0
+        for transaction_data in transactions:
+            # Check if transaction already exists
+            existing = Transaction.query.filter_by(transaction_id=transaction_data['id']).first()
+            
+            if existing:
+                # Skip if already exists
+                continue
+            
+            # Create new transaction record
+            transaction = Transaction(
+                transaction_id=transaction_data['id'],
+                bank_id=transaction_data.get('bank_id', 'test_bank'),
+                bank_name=transaction_data.get('bank_name', 'Test Bank'),
+                account_id=transaction_data.get('account_id', 'test_account'),
+                account_name=transaction_data.get('account_name', 'Test Account'),
+                amount=float(transaction_data['amount']),
+                currency=transaction_data.get('currency', 'GBP'),
+                description=transaction_data.get('description', ''),
+                reference=transaction_data.get('reference', ''),
+                transaction_date=datetime.strptime(transaction_data['date'], '%Y-%m-%d')
+            )
+            
+            db.session.add(transaction)
+            imported_count += 1
+        
+        db.session.commit()
+        
+        logger.info(f"Imported {imported_count} test transactions for {domain}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully imported {imported_count} transactions",
+            "imported_count": imported_count
+        })
+    except Exception as e:
+        return handle_error(e)
+
+@app.route('/api/testing/simulated-webhook', methods=['POST'])
+def simulated_webhook():
+    """
+    Process a simulated webhook event from the GoCardless CLI
+    
+    This endpoint simulates a webhook event from GoCardless without requiring
+    certificate validation, making it easier to test webhook handling locally.
+    
+    Example request body:
+    {
+        "domain": "example.com", 
+        "event_type": "transactions.created",
+        "resource_id": "tr_123456",
+        "payload": {
+            "data": {
+                "id": "tr_123456",
+                "amount": 100.00,
+                "description": "Test Payment"
+            }
+        }
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            raise APIError("No data provided", status_code=400)
+        
+        # Required fields
+        domain = data.get('domain')
+        event_type = data.get('event_type')
+        resource_id = data.get('resource_id')
+        payload = data.get('payload')
+        
+        if not domain or not event_type or not resource_id:
+            raise APIError("Missing required fields", status_code=400)
+        
+        # Find the WHMCS instance
+        instance = WhmcsInstance.query.filter_by(domain=domain).first()
+        if not instance:
+            raise APIError("WHMCS instance not found", status_code=404)
+        
+        # Log the webhook
+        logger.info(f"Received simulated webhook for {domain}: {event_type} - {resource_id}")
+        
+        # Process the webhook
+        from flask_backend.services.gocardless_service import GoCardlessService
+        gocardless_service = GoCardlessService()
+        
+        # Skip certificate validation since this is a simulated webhook
+        process_result = gocardless_service.process_webhook(
+            payload or {
+                "event_type": event_type,
+                "resource_id": resource_id,
+                "data": {
+                    "id": resource_id
+                }
+            }
+        )
+        
+        return jsonify({
+            "success": True,
+            "message": "Successfully processed simulated webhook",
+            "process_result": process_result
+        })
+    except Exception as e:
+        return handle_error(e)
+
 # ============= Testing Dashboard Pages =============
 
 @app.route('/testing')
