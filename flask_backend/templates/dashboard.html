@@ -638,7 +638,7 @@
     </div>
     <div class="card-body">
         <div class="row g-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="health-card">
                     <div class="d-flex align-items-center">
                         <div class="health-icon bg-success">
@@ -657,7 +657,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="health-card">
                     <div class="d-flex align-items-center">
                         <div class="health-icon bg-success">
@@ -676,7 +676,26 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="health-card">
+                    <div class="d-flex align-items-center">
+                        <div class="health-icon" style="background-color: #9333EA;">
+                            <i data-lucide="credit-card" class="text-white" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-1">Stripe API</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="health-status me-2">
+                                    <span class="health-dot bg-success"></span>
+                                    <span>Connected</span>
+                                </div>
+                                <span class="text-success small">{{ stats.stripe_connections|default(0) }} accounts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="health-card">
                     <div class="d-flex align-items-center">
                         <div class="health-icon bg-success">
@@ -704,6 +723,7 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/bank_wizard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stripe_wizard.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize animated progress bars
@@ -937,19 +957,19 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: [25, 20, 15, 10, 20, 10],
                 backgroundColor: [
-                    colors.primaryLight,
-                    colors.infoLight,
-                    colors.successLight,
-                    colors.secondaryLight,
-                    colors.secondaryLight,  // Stripe (purple)
+                    'rgba(0, 140, 255, 0.6)',     // Barclays blue
+                    'rgba(220, 0, 60, 0.6)',      // HSBC red
+                    'rgba(5, 173, 0, 0.6)',       // Lloyds green
+                    'rgba(20, 171, 145, 0.6)',    // Monzo teal
+                    'rgba(147, 51, 234, 0.6)',    // Stripe purple
                     colors.darkLight
                 ],
                 borderColor: [
-                    colors.primary,
-                    colors.info,
-                    colors.success,
-                    colors.secondary,
-                    colors.secondary,  // Stripe (purple)
+                    'rgba(0, 140, 255, 1)',       // Barclays blue
+                    'rgba(220, 0, 60, 1)',        // HSBC red
+                    'rgba(5, 173, 0, 1)',         // Lloyds green
+                    'rgba(20, 171, 145, 1)',      // Monzo teal
+                    'rgba(147, 51, 234, 1)',      // Stripe purple
                     colors.dark
                 ],
                 borderWidth: 1,
