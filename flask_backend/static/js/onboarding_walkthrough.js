@@ -69,101 +69,148 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const step = walkthrough.steps[currentStep];
-        const targetElement = document.querySelector(step.target);
+        const targetSelector = step.target;
+        
+        // Special handling for financial goals section to find the correct instance
+        let targetElement;
+        if (targetSelector.includes('financial-goals')) {
+            // Try to find the financial goals element that's actually visible
+            const allGoals = document.querySelectorAll(targetSelector);
+            if (allGoals.length > 0) {
+                // Use the first visible one
+                for (let i = 0; i < allGoals.length; i++) {
+                    const rect = allGoals[i].getBoundingClientRect();
+                    if (rect.width > 0 && rect.height > 0) {
+                        targetElement = allGoals[i];
+                        break;
+                    }
+                }
+                
+                // If none found visible, use the first one
+                if (!targetElement) {
+                    targetElement = allGoals[0];
+                }
+            }
+        } else {
+            targetElement = document.querySelector(targetSelector);
+        }
         
         if (!targetElement) {
-            console.warn(`Target element ${step.target} not found, skipping step`);
+            console.warn(`Target element ${targetSelector} not found, skipping step`);
             currentStep++;
             showCurrentStep();
             return;
         }
 
-        // Position the highlight
+        // Clear any existing popover to avoid stacking
+        if (walkthroughPopover) {
+            walkthroughPopover.remove();
+            walkthroughPopover = null;
+        }
+        
+        // Position the highlight first
         positionHighlight(targetElement);
         
-        // Create popover if it doesn't exist
-        if (!walkthroughPopover) {
+        // Create new popover with a short delay to ensure smooth transitions
+        setTimeout(() => {
             walkthroughPopover = document.createElement('div');
             walkthroughPopover.className = 'walkthrough-popover animate__animated animate__fadeIn';
             document.body.appendChild(walkthroughPopover);
-        }
 
-        // Populate and position popover
-        walkthroughPopover.innerHTML = `
-            <div class="walkthrough-header">
-                <h5>${step.title}</h5>
-                <button type="button" class="btn-close walkthrough-close" aria-label="Close walkthrough"></button>
-            </div>
-            <div class="walkthrough-body">
-                <p>${step.content}</p>
-            </div>
-            <div class="walkthrough-footer">
-                <div class="walkthrough-progress">
-                    <span>${currentStep + 1}/${walkthrough.steps.length}</span>
+            // Populate the popover
+            walkthroughPopover.innerHTML = `
+                <div class="walkthrough-header">
+                    <h5>${step.title}</h5>
+                    <button type="button" class="btn-close walkthrough-close" aria-label="Close walkthrough"></button>
                 </div>
-                <div class="walkthrough-buttons">
-                    <button class="btn btn-sm btn-danger walkthrough-close me-2">Exit Tour</button>
-                    ${currentStep > 0 ? '<button class="btn btn-sm btn-secondary walkthrough-prev">Previous</button>' : ''}
-                    <button class="btn btn-sm btn-primary walkthrough-next">${currentStep < walkthrough.steps.length - 1 ? 'Next' : 'Finish'}</button>
+                <div class="walkthrough-body">
+                    <p>${step.content}</p>
                 </div>
-            </div>
-        `;
+                <div class="walkthrough-footer">
+                    <div class="walkthrough-progress">
+                        <span>${currentStep + 1}/${walkthrough.steps.length}</span>
+                    </div>
+                    <div class="walkthrough-buttons">
+                        <button class="btn btn-sm btn-danger walkthrough-close me-2">Exit Tour</button>
+                        ${currentStep > 0 ? '<button class="btn btn-sm btn-secondary walkthrough-prev me-2">Previous</button>' : ''}
+                        <button class="btn btn-sm btn-primary walkthrough-next">${currentStep < walkthrough.steps.length - 1 ? 'Next' : 'Finish'}</button>
+                    </div>
+                </div>
+            `;
 
-        // Position the popover relative to the target element
-        positionPopover(targetElement, step.position);
+            // Position the popover relative to the target element
+            positionPopover(targetElement, step.position);
 
-        // Add event listeners to all close buttons
-        const closeButtons = walkthroughPopover.querySelectorAll('.walkthrough-close');
-        closeButtons.forEach(button => {
-            button.addEventListener('click', () => endWalkthrough(false));
-        });
-        
-        const nextBtn = walkthroughPopover.querySelector('.walkthrough-next');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', nextStep);
-        }
-        
-        const prevBtn = walkthroughPopover.querySelector('.walkthrough-prev');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', prevStep);
-        }
+            // Add event listeners to all close buttons
+            const closeButtons = walkthroughPopover.querySelectorAll('.walkthrough-close');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => endWalkthrough(false));
+            });
+            
+            const nextBtn = walkthroughPopover.querySelector('.walkthrough-next');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', nextStep);
+            }
+            
+            const prevBtn = walkthroughPopover.querySelector('.walkthrough-prev');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', prevStep);
+            }
 
-        // Add pulse animation to target
-        targetElement.classList.add('walkthrough-target-pulse');
+            // Add pulse animation to target
+            targetElement.classList.add('walkthrough-target-pulse');
+        }, 50); // Short delay for smoother transitions
     }
 
     // Position the highlight overlay around the target element
     function positionHighlight(targetElement) {
         if (!highlightOverlay) return;
         
-        // Scroll element into view with some padding at the top
-        const scrollPadding = 100; // Pixels from top of viewport
-        const elementTop = targetElement.getBoundingClientRect().top + window.scrollY;
-        const targetScrollPosition = elementTop - scrollPadding;
+        // Scroll element into view only if it's not already visible in the viewport
+        const rect = targetElement.getBoundingClientRect();
+        const isInViewport = (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
         
-        // Smooth scroll to the element
-        window.scrollTo({
-            top: targetScrollPosition,
-            behavior: 'smooth'
-        });
+        const scrollPadding = 120; // Pixels from top of viewport
         
-        // After scrolling, position the highlight
+        if (!isInViewport) {
+            const elementTop = rect.top + window.scrollY;
+            const targetScrollPosition = elementTop - scrollPadding;
+            
+            // Smooth scroll to the element
+            const previousScrollPosition = window.scrollY;
+            
+            // Only scroll if we need to move more than 200px to prevent small jumps
+            if (Math.abs(previousScrollPosition - targetScrollPosition) > 200) {
+                window.scrollTo({
+                    top: targetScrollPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+        
+        // Position the highlight with a slight delay to ensure accurate positioning
         setTimeout(() => {
-            const rect = targetElement.getBoundingClientRect();
+            // Get updated position after scrolling
+            const updatedRect = targetElement.getBoundingClientRect();
             const padding = 10; // Extra space around the element
             
             highlightOverlay.style.display = 'block';
             highlightOverlay.innerHTML = `
                 <div class="walkthrough-mask"></div>
                 <div class="walkthrough-highlight" style="
-                    top: ${rect.top - padding + window.scrollY}px;
-                    left: ${rect.left - padding + window.scrollX}px;
-                    width: ${rect.width + padding * 2}px;
-                    height: ${rect.height + padding * 2}px;
+                    top: ${updatedRect.top - padding + window.scrollY}px;
+                    left: ${updatedRect.left - padding + window.scrollX}px;
+                    width: ${updatedRect.width + padding * 2}px;
+                    height: ${updatedRect.height + padding * 2}px;
                     border-radius: 8px;
                 "></div>
             `;
-        }, 300); // Small delay to allow the scroll to complete
+        }, 400); // Slightly longer delay to ensure smooth transition
     }
 
     // Position the popover relative to the target element
@@ -253,10 +300,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Go to next step
     function nextStep() {
-        // Remove pulse from current target
-        const currentTarget = document.querySelector(walkthrough.steps[currentStep].target);
-        if (currentTarget) {
-            currentTarget.classList.remove('walkthrough-target-pulse');
+        // Remove pulse from current target - handle special case for financial goals
+        const targetSelector = walkthrough.steps[currentStep].target;
+        if (targetSelector.includes('financial-goals')) {
+            // Remove pulse from all financial goal elements
+            document.querySelectorAll(targetSelector).forEach(el => {
+                el.classList.remove('walkthrough-target-pulse');
+            });
+        } else {
+            const currentTarget = document.querySelector(targetSelector);
+            if (currentTarget) {
+                currentTarget.classList.remove('walkthrough-target-pulse');
+            }
         }
         
         currentStep++;
@@ -265,10 +320,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Go to previous step
     function prevStep() {
-        // Remove pulse from current target
-        const currentTarget = document.querySelector(walkthrough.steps[currentStep].target);
-        if (currentTarget) {
-            currentTarget.classList.remove('walkthrough-target-pulse');
+        // Remove pulse from current target - handle special case for financial goals
+        const targetSelector = walkthrough.steps[currentStep].target;
+        if (targetSelector.includes('financial-goals')) {
+            // Remove pulse from all financial goal elements
+            document.querySelectorAll(targetSelector).forEach(el => {
+                el.classList.remove('walkthrough-target-pulse');
+            });
+        } else {
+            const currentTarget = document.querySelector(targetSelector);
+            if (currentTarget) {
+                currentTarget.classList.remove('walkthrough-target-pulse');
+            }
         }
         
         currentStep--;
@@ -295,10 +358,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function endWalkthrough(completed = false) {
         walkthroughActive = false;
         
-        // Remove highlight from current target
-        const currentTarget = document.querySelector(walkthrough.steps[currentStep]?.target);
-        if (currentTarget) {
-            currentTarget.classList.remove('walkthrough-target-pulse');
+        // Remove highlight from current target - handle special case for financial goals
+        if (currentStep < walkthrough.steps.length) {
+            const targetSelector = walkthrough.steps[currentStep]?.target;
+            if (targetSelector) {
+                if (targetSelector.includes('financial-goals')) {
+                    // Remove pulse from all financial goal elements
+                    document.querySelectorAll(targetSelector).forEach(el => {
+                        el.classList.remove('walkthrough-target-pulse');
+                    });
+                } else {
+                    const currentTarget = document.querySelector(targetSelector);
+                    if (currentTarget) {
+                        currentTarget.classList.remove('walkthrough-target-pulse');
+                    }
+                }
+            }
         }
         
         // Remove popover with animation
