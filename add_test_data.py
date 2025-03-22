@@ -10,7 +10,7 @@ import random
 from datetime import datetime, timedelta
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, Index
 
 # Base setup
@@ -131,6 +131,36 @@ class StripePayment(db.Model):
     payment_status = Column(String(20), default='succeeded')  # succeeded, pending, failed, refunded
     payment_method = Column(String(20))  # card, bank_transfer, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class InvoiceMatch(db.Model):
+    """Matches between transactions and WHMCS invoices"""
+    __tablename__ = 'invoice_matches'
+
+    id = Column(Integer, primary_key=True)
+    transaction_id = Column(Integer, ForeignKey('transactions.id'))
+    whmcs_invoice_id = Column(Integer, nullable=False)
+    confidence = Column(Float, default=0.0)  # 0.0 to 1.0
+    match_reason = Column(Text)
+    status = Column(String(20), default='pending')  # pending, approved, rejected
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+    
+    transaction = relationship("Transaction", backref="matches")
+
+class StripeInvoiceMatch(db.Model):
+    """Matches between Stripe payments and WHMCS invoices"""
+    __tablename__ = 'stripe_invoice_matches'
+
+    id = Column(Integer, primary_key=True)
+    stripe_payment_id = Column(Integer, ForeignKey('stripe_payments.id'))
+    whmcs_invoice_id = Column(Integer, nullable=False)
+    confidence = Column(Float, default=0.0)  # 0.0 to 1.0
+    match_reason = Column(Text)
+    status = Column(String(20), default='pending')  # pending, approved, rejected
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+    
+    payment = relationship("StripePayment", backref="matches")
 
 # Data generation helpers
 def generate_random_date(start_date, end_date):
@@ -358,15 +388,100 @@ def add_test_data(bank_transactions=15, stripe_payments=10):
             
         # Now we can safely add bank transactions
         print(f"Creating {bank_transactions} bank transactions...")
+        bank_txns = []
         for i in range(bank_transactions):
             transaction = generate_bank_transaction(i)
             db.session.add(transaction)
+            bank_txns.append(transaction)
         
         # Add stripe payments
         print(f"Creating {stripe_payments} Stripe payments...")
+        stripe_pymnts = []
         for i in range(stripe_payments):
             payment = generate_stripe_payment(i, stripe_connection.id)
             db.session.add(payment)
+            stripe_pymnts.append(payment)
+        
+        # Make sure we flush to get the IDs for our transactions and payments
+        db.session.flush()
+        
+        # Randomly match some of the bank transactions to invoices
+        print("Creating invoice matches for bank transactions...")
+        bank_match_count = random.randint(5, min(10, bank_transactions))
+        for i in range(bank_match_count):
+            # Select a random transaction
+            transaction = random.choice(bank_txns)
+            
+            # Generate a random WHMCS invoice ID
+            invoice_id = random.randint(1000, 9999)
+            
+            # Generate confidence score between 0.6 and 0.95
+            confidence = round(random.uniform(0.6, 0.95), 2)
+            
+            # Set a random status with higher chance of 'approved'
+            status_options = ['pending', 'approved', 'approved', 'approved', 'rejected']
+            status = random.choice(status_options)
+            
+            # Create a match reason
+            reason = "Match based on: "
+            if random.random() > 0.3:
+                reason += "Amount matches exactly. "
+            if random.random() > 0.4:
+                reason += "Reference contains invoice number. "
+            if random.random() > 0.5:
+                reason += "Transaction date close to invoice date. "
+            
+            match = InvoiceMatch(
+                transaction_id=transaction.id,
+                whmcs_invoice_id=invoice_id,
+                confidence=confidence,
+                match_reason=reason,
+                status=status,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db.session.add(match)
+        
+        # Randomly match some Stripe payments to invoices
+        print("Creating invoice matches for Stripe payments...")
+        stripe_match_count = random.randint(3, min(8, stripe_payments))
+        for i in range(stripe_match_count):
+            # Select a random payment
+            payment = random.choice(stripe_pymnts)
+            
+            # Only match successful payments
+            if payment.payment_status != 'succeeded':
+                continue
+                
+            # Generate a random WHMCS invoice ID
+            invoice_id = random.randint(1000, 9999)
+            
+            # Generate confidence score between 0.7 and 0.98
+            confidence = round(random.uniform(0.7, 0.98), 2)
+            
+            # Set a random status with higher chance of 'approved'
+            status_options = ['pending', 'approved', 'approved', 'approved', 'rejected']
+            status = random.choice(status_options)
+            
+            # Create a match reason
+            reason = "Match based on: "
+            if random.random() > 0.2:
+                reason += "Amount matches exactly. "
+            if random.random() > 0.3:
+                reason += "Metadata contains invoice reference. "
+            if random.random() > 0.4:
+                reason += "Customer email matches client email. "
+            
+            match = StripeInvoiceMatch(
+                stripe_payment_id=payment.id,
+                whmcs_invoice_id=invoice_id,
+                confidence=confidence,
+                match_reason=reason,
+                status=status,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db.session.add(match)
         
         print("Committing to database...")
         db.session.commit()
