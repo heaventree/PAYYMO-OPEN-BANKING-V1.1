@@ -17,9 +17,26 @@ class GoCardlessService:
         # Get API credentials from environment
         self.client_id = os.environ.get('GOCARDLESS_CLIENT_ID')
         self.client_secret = os.environ.get('GOCARDLESS_CLIENT_SECRET')
-        self.api_base_url = 'https://api.gocardless.com/open-banking'
-        self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
-        self.token_url = 'https://auth.gocardless.com/oauth/token'
+        
+        # Check if we're in sandbox mode
+        self.sandbox_mode = os.environ.get('GOCARDLESS_SANDBOX_MODE', 'true').lower() == 'true'
+        
+        if self.sandbox_mode:
+            logger.info("GoCardless service running in SANDBOX mode")
+            self.api_base_url = 'https://api-sandbox.gocardless.com/open-banking'
+            self.auth_url = 'https://auth-sandbox.gocardless.com/oauth/authorize'
+            self.token_url = 'https://auth-sandbox.gocardless.com/oauth/token'
+            
+            # Use sandbox credentials if not provided
+            if not self.client_id:
+                self.client_id = 'sandbox-client-id'
+            if not self.client_secret:
+                self.client_secret = 'sandbox-client-secret'
+        else:
+            logger.info("GoCardless service running in PRODUCTION mode")
+            self.api_base_url = 'https://api.gocardless.com/open-banking'
+            self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
+            self.token_url = 'https://auth.gocardless.com/oauth/token'
         
         # Get Flask app for configuration (if available)
         try:
@@ -55,6 +72,107 @@ class GoCardlessService:
         except Exception as e:
             logger.error(f"GoCardless health check failed: {str(e)}")
             return False
+            
+    def get_available_banks(self, country=None, limit=50):
+        """
+        Get a list of available banks from GoCardless
+        
+        Args:
+            country: Two-letter country code to filter banks (e.g., 'GB')
+            limit: Maximum number of banks to return
+            
+        Returns:
+            List of bank dictionaries with id, name, logo, etc.
+        """
+        try:
+            headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+            
+            # Set up query parameters
+            params = {'limit': limit}
+            if country:
+                params['country'] = country
+                
+            # In sandbox mode, return some mock banks if API call fails
+            if self.sandbox_mode:
+                try:
+                    # Try to get real banks from sandbox API
+                    response = requests.get(
+                        f"{self.api_base_url}/institutions",
+                        headers=headers,
+                        params=params
+                    )
+                    
+                    if response.status_code == 200:
+                        banks_data = response.json()
+                        banks = banks_data.get('institutions', [])
+                        logger.info(f"Retrieved {len(banks)} banks from GoCardless sandbox API")
+                        return banks
+                except Exception as e:
+                    logger.warning(f"Failed to get banks from sandbox API: {str(e)}")
+                    
+                # If API call fails in sandbox mode, return some sandbox test banks
+                logger.info("Using sandbox test banks")
+                return [
+                    {
+                        'id': 'test-bank-001',
+                        'name': 'Test Bank UK',
+                        'logo': 'https://via.placeholder.com/150x150.png?text=Test+Bank',
+                        'country': 'GB',
+                        'available_payments': True
+                    },
+                    {
+                        'id': 'test-bank-002',
+                        'name': 'Sandbox Bank',
+                        'logo': 'https://via.placeholder.com/150x150.png?text=Sandbox+Bank',
+                        'country': 'GB',
+                        'available_payments': True
+                    },
+                    {
+                        'id': 'test-bank-003',
+                        'name': 'Open Banking Test',
+                        'logo': 'https://via.placeholder.com/150x150.png?text=Open+Banking',
+                        'country': 'GB',
+                        'available_payments': True
+                    },
+                    {
+                        'id': 'test-bank-004',
+                        'name': 'Dev Bank',
+                        'logo': 'https://via.placeholder.com/150x150.png?text=Dev+Bank',
+                        'country': 'GB',
+                        'available_payments': True
+                    },
+                    {
+                        'id': 'test-bank-005',
+                        'name': 'Mock Banking Corp',
+                        'logo': 'https://via.placeholder.com/150x150.png?text=Mock+Bank',
+                        'country': 'GB',
+                        'available_payments': True
+                    }
+                ]
+            
+            # Production mode - get real banks from API
+            response = requests.get(
+                f"{self.api_base_url}/institutions",
+                headers=headers,
+                params=params
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Failed to get banks: {response.text}")
+                raise ValueError("Failed to get available banks from GoCardless")
+            
+            banks_data = response.json()
+            banks = banks_data.get('institutions', [])
+            
+            logger.info(f"Retrieved {len(banks)} banks from GoCardless API")
+            return banks
+            
+        except Exception as e:
+            logger.error(f"Error getting available banks: {str(e)}")
+            raise ValueError(f"Error getting available banks: {str(e)}")
     
     def get_authorization_url(self, domain, redirect_uri):
         """
