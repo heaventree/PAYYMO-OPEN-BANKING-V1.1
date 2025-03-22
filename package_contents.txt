@@ -1,0 +1,64 @@
+# Payymo Installation Package Contents
+
+## Documentation
+- README.md
+- INSTALL.md
+- CHANGELOG.md
+- docs/api_reference.md
+- docs/troubleshooting.md
+- docs/usage_guide.md
+
+## WHMCS Module
+- whmcs_module/modules/addons/gocardless_openbanking/gocardless_openbanking.php
+- whmcs_module/modules/addons/gocardless_openbanking/hooks.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/Admin.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/ApiClient.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/CronJob.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/Database.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/Helper.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/Invoice.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/License.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/Logger.php
+- whmcs_module/modules/addons/gocardless_openbanking/lib/Matcher.php
+- whmcs_module/modules/addons/gocardless_openbanking/templates/admin/configuration.tpl
+- whmcs_module/modules/addons/gocardless_openbanking/templates/admin/license.tpl
+- whmcs_module/modules/addons/gocardless_openbanking/templates/admin/logs.tpl
+- whmcs_module/modules/addons/gocardless_openbanking/templates/admin/matches.tpl
+- whmcs_module/modules/addons/gocardless_openbanking/templates/admin/overview.tpl
+- whmcs_module/modules/addons/gocardless_openbanking/templates/admin/transactions.tpl
+- whmcs_module/modules/widgets/gocardless_transactions.php
+
+## Backend Service
+- flask_backend/app.py
+- flask_backend/main.py
+- flask_backend/models.py
+- flask_backend/routes.py
+- flask_backend/routes_testing.py
+- flask_backend/cron/fetch_transactions.py
+- flask_backend/cron/process_matches.py
+- flask_backend/services/gocardless_service.py
+- flask_backend/services/invoice_matching_service.py
+- flask_backend/services/license_service.py
+- flask_backend/services/stripe_service.py
+- flask_backend/services/whmcs_test_service.py
+- flask_backend/static/css/style.css
+- flask_backend/static/js/bank_wizard.js
+- flask_backend/static/js/main.js
+- flask_backend/static/js/onboarding_walkthrough.js
+- flask_backend/static/js/quick_insights.js
+- flask_backend/static/js/stripe_wizard.js
+- flask_backend/templates/dashboard.html
+- flask_backend/templates/layout.html
+- flask_backend/templates/login.html
+- flask_backend/templates/testing_dashboard.html
+- flask_backend/templates/testing_instance_detail.html
+- flask_backend/utils/db.py
+- flask_backend/utils/error_handler.py
+- flask_backend/utils/logger.py
+
+## Installation Scripts
+- install_backend.sh
+- requirements.txt
+
+## Other Files
+- pyproject.toml (for reference only)

@@ -1,57 +1,109 @@
-# Payymo Development - Next Steps
+# Payymo Development Roadmap: Next Steps
 
-## Primary Tasks
-1. **Finalize Walkthrough Refinements**
-   - Make onboarding walkthrough easier to close
-   - Add "skip tutorial" button at the beginning
-   - Reduce repetitive tooltip explanations
+This document outlines the planned enhancements and future features for the Payymo WHMCS integration. These items are prioritized based on user feedback and development feasibility.
 
-2. **Implement Client-Side Portal**
-   - Create customer-facing view for reconciliation
-   - Add payment confirmation capabilities
-   - Implement invoice viewing/selection
+## High Priority
 
-3. **Enhanced Analytics**
-   - Build detailed financial reporting dashboard
-   - Add transaction trend visualization
-   - Implement payment source breakdown charts
+### 1. Enhanced Transaction Matching Engine
+- **Goal**: Improve match confidence and reduce manual intervention
+- **Tasks**:
+  - Implement machine learning algorithm for match prediction
+  - Add support for fuzzy matching on transaction references
+  - Create custom matching rules per WHMCS instance
+  - Add weight adjustment for different matching criteria
 
-4. **Advanced Matching Algorithms**
-   - Improve confidence scoring for invoice matching
-   - Add fuzzy matching for references
-   - Implement ML-based recognition for recurring patterns
+### 2. Client Area Integration
+- **Goal**: Allow clients to view and manage their bank connections
+- **Tasks**:
+  - Create client area pages for viewing connected banks
+  - Add ability for clients to initiate new bank connections
+  - Display transaction history in client area
+  - Show payment status on invoice views
 
-## Secondary Tasks
-1. **UI Refinements**
-   - Complete the Stripe payment table implementation
-   - Improve mobile responsiveness
-   - Add dark/light theme toggle option
+### 3. Multi-Currency Support Enhancements
+- **Goal**: Improve handling of transactions in different currencies
+- **Tasks**:
+  - Automatic currency conversion using WHMCS exchange rates
+  - Support for currency-specific matching rules
+  - Handle multi-currency accounts from a single bank
 
-2. **System Administration**
-   - Create admin dashboard for system monitoring
-   - Add license management capabilities
-   - Implement usage statistics collection and reporting
+## Medium Priority
 
-3. **Documentation**
-   - Create comprehensive user guide
-   - Document API endpoints
-   - Add developer documentation for further customization
+### 4. Advanced Reporting Dashboard
+- **Goal**: Provide better insights into payment patterns and reconciliation metrics
+- **Tasks**:
+  - Create visual payment timeline reports
+  - Add reconciliation efficiency metrics
+  - Generate monthly/quarterly reconciliation reports
+  - Add export functionality for all reports
 
-4. **Testing & Integration**
-   - Maintain a "demo mode" version for showcasing with dummy data
-   - Create a testing API communication system between Payymo and WHMCS
-   - Develop error reporting and debugging tools for live installations
-   - Add support for real-world testing with actual bank and Stripe accounts
+### 5. Batch Operations
+- **Goal**: Improve efficiency for managing large volumes of transactions
+- **Tasks**:
+  - Implement bulk approval/rejection of matches
+  - Add batch transaction import/export
+  - Create scheduled batch processing of matches
 
-## Priority Order (Based on Prior Discussions)
-1. Client-Side Portal development
-2. Walkthrough refinements
-3. Analytics enhancements
-4. Matching algorithm improvements
-5. UI refinements
+### 6. Tax Handling Improvements
+- **Goal**: Better support for various tax scenarios
+- **Tasks**:
+  - Automatically handle partial payments with tax calculations
+  - Support for tax-exclusive vs. tax-inclusive payment handling
+  - Region-specific tax rule implementation
 
-## Notes for Next Session
-- Continue with maintaining the approved UI style
-- Focus on next feature based on your priorities
-- All code changes maintain compatibility with WHMCS integration
-- Stripe integration should continue to focus on transaction retrieval for reconciliation
+## Lower Priority
+
+### 7. Additional Payment Provider Integrations
+- **Goal**: Expand beyond GoCardless and Stripe
+- **Tasks**:
+  - Integrate with PayPal for transaction reconciliation
+  - Add support for regional payment providers
+  - Implement cryptocurrency transaction tracking
+
+### 8. Advanced User Management
+- **Goal**: Better handle multi-user access to the reconciliation system
+- **Tasks**:
+  - Create role-based access controls
+  - Add audit logging for user actions
+  - Implement approval workflows for sensitive operations
+
+### 9. Mobile Companion App
+- **Goal**: Allow management on-the-go
+- **Tasks**:
+  - Create mobile-friendly API endpoints
+  - Develop progressive web app for management
+  - Implement push notifications for important events
+
+## Technical Debt & Infrastructure
+
+### 10. Performance Optimizations
+- **Goal**: Ensure scalability for high-volume WHMCS installations
+- **Tasks**:
+  - Database query optimization
+  - Implement caching layer
+  - Add database indexing strategy
+
+### 11. Testing Framework
+- **Goal**: Improve reliability through automated testing
+- **Tasks**:
+  - Implement unit test suite
+  - Create integration tests for API endpoints
+  - Add automated UI testing
+
+### 12. Documentation Improvements
+- **Goal**: Enhance user and developer documentation
+- **Tasks**:
+  - Create video tutorials
+  - Improve API documentation
+  - Add developer contribution guidelines
+
+## Feedback Process
+
+We actively welcome feedback on this roadmap. To suggest features or changes:
+
+1. Contact our support team at support@payymo.com
+2. Specify which feature you're providing feedback about
+3. Describe your use case and requirements
+4. Provide any relevant examples or screenshots
+
+The roadmap is reviewed quarterly and updated based on user feedback and market trends.

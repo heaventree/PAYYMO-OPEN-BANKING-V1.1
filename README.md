@@ -1,48 +1,67 @@
 # Payymo - WHMCS Open Banking & Stripe Integration
 
+![Payymo Logo](generated-icon.png)
+
+Payymo is a comprehensive payment integration for WHMCS that combines the power of Open Banking (via GoCardless) and Stripe to automate payment reconciliation, reduce manual work, and improve cash flow.
+
 ## Overview
 
-Payymo is a comprehensive financial integration platform for WHMCS that connects to approximately 2400 banks via the GoCardless Open Banking API and integrates with Stripe for payment processing. This solution enables automated payment processing, invoice detection, and transaction matching for WHMCS-powered businesses.
+Payymo connects your WHMCS installation to over 2400 banks via the GoCardless Open Banking API and integrates with Stripe to provide a complete payment reconciliation solution. The system automatically matches incoming bank transactions and Stripe payments with unpaid invoices in WHMCS, saving you hours of manual reconciliation work.
 
-## Key Features
+### Key Features
 
-- **Open Banking Integration**: Connect to thousands of banks across Europe through the GoCardless API
-- **Stripe Integration**: Process payments and retrieve transaction data from Stripe
-- **Automated Invoice Matching**: Intelligently match incoming bank transactions to unpaid invoices
-- **Secure Bank Connections**: OAuth-based secure connections to banking APIs
-- **Real-time Transaction Syncing**: Keep your financial data up-to-date automatically
-- **Transaction Reconciliation**: Simplify accounting with automatic reconciliation
-- **Seamless WHMCS Integration**: Works within your existing WHMCS installation
-- **Comprehensive Dashboard**: Monitor all financial connections in one place
+- **Bank Connectivity**: Connect to over 2400 banks across Europe via GoCardless
+- **Stripe Integration**: Retrieve and reconcile Stripe payments with WHMCS invoices
+- **Automatic Matching**: Advanced algorithm matches transactions to invoices using reference, amount, date, and client information
+- **Confidence Scoring**: Each match is assigned a confidence score to help identify reliable matches
+- **Manual Review**: Review and approve/reject suggested matches with a simple interface
+- **Detailed Reporting**: Get insights into your payment reconciliation process
+- **Secure OAuth Flow**: Connect to banks and Stripe using secure OAuth connections
+- **WHMCS Admin Interface**: Manage everything from within your WHMCS admin area
 
 ## Components
 
-This package contains two main components:
+The Payymo integration consists of two main components:
 
-1. **WHMCS Module**: The addon module that integrates directly with your WHMCS installation
-2. **Backend Service**: A Flask-based Python service that handles API communication and data processing
+1. **WHMCS Addon Module**: Integrates directly into your WHMCS installation, providing a user interface for managing connections, viewing transactions, and handling matches.
 
-## Installation
+2. **Backend Service**: Python-based Flask application that handles communication with GoCardless and Stripe APIs, stores transaction data, and performs the matching algorithm.
 
-Please refer to the included `INSTALL.md` file for detailed installation instructions.
+## Use Cases
 
-Quick start:
-1. Install the WHMCS module in your WHMCS installation
-2. Set up the backend service using the included `install_backend.sh` script
-3. Configure your connections in the WHMCS admin area
+Payymo is ideal for WHMCS users who:
 
-## Documentation
+- Process a high volume of bank transfers or Stripe payments
+- Spend significant time manually reconciling payments with invoices
+- Want to improve cash flow by quickly identifying and applying payments
+- Need a secure and compliant way to connect to customer bank accounts
+- Want to offer customers the option to pay directly from their bank account
 
-Complete documentation is available in the `docs` directory, covering:
-- Installation and configuration
-- Usage guides
-- API reference
-- Troubleshooting
+## Installation & Configuration
 
-## Support
+For detailed installation instructions, see [INSTALL.md](INSTALL.md).
 
-For technical support, please contact support@payymo.com or visit our support portal at https://support.payymo.com.
+For a quick setup guide and usage instructions, see [docs/usage_guide.md](docs/usage_guide.md).
+
+## API Reference
+
+Detailed API documentation is available in [docs/api_reference.md](docs/api_reference.md).
+
+## Troubleshooting
+
+For common issues and their solutions, see [docs/troubleshooting.md](docs/troubleshooting.md).
+
+## Version History
+
+For a full version history, see [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-This software is licensed according to the terms of your service agreement. Unauthorized distribution is prohibited.
+Payymo is licensed software. A valid license key is required for use.
+
+## Support
+
+Need help? Contact our support team:
+
+- Email: support@payymo.com
+- Support Portal: https://support.payymo.com

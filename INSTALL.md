@@ -1,88 +1,236 @@
-# Payymo - WHMCS Open Banking & Stripe Integration
+# Payymo Installation Guide
 
-## Installation Guide
+This document provides detailed instructions for installing both components of the Payymo integration:
+1. The WHMCS addon module
+2. The backend service
 
-This document provides instructions for installing and configuring the Payymo integration for WHMCS, which combines Open Banking (via GoCardless) and Stripe payment processing functionality.
+## Prerequisites
 
-## System Requirements
+### System Requirements
+- WHMCS 8.0 or later
+- PHP 7.4 or later
+- PostgreSQL 12 or later
+- Python 3.8 or later
+- Web server with SSL (Apache or Nginx recommended)
 
-- WHMCS 8.0 or higher
-- PHP 7.4 or higher
-- Python 3.8 or higher
-- PostgreSQL database
-- Web server with mod_rewrite enabled (Apache, Nginx, etc.)
-- SSL certificate (required for secure API communication)
+### Required Services
+- GoCardless Open Banking API access (for bank connections)
+- Stripe account (for Stripe payment processing)
+- Valid Payymo license key
 
-## Installation Steps
+## 1. WHMCS Module Installation
 
-### 1. WHMCS Module Installation
+### Step 1: Upload Module Files
+1. Extract the module files from the package
+2. Upload the contents of the `whmcs_module` directory to your WHMCS root directory
+3. Ensure all files are uploaded to the correct locations (see below):
 
-1. Upload the `modules` folder from this package to your WHMCS root directory, merging with the existing modules folder.
-2. Log in to your WHMCS admin area.
-3. Navigate to **Setup** > **Addon Modules**.
-4. Find "GoCardless Open Banking" in the list and click **Activate**.
-5. On the same page, configure the module access control permissions for admin roles.
-6. Click **Save Changes**.
+```
+modules/addons/gocardless_openbanking/
+├── gocardless_openbanking.php
+├── hooks.php
+├── lib/
+│   ├── Admin.php
+│   ├── ApiClient.php
+│   ├── CronJob.php
+│   ├── Database.php
+│   ├── Helper.php
+│   ├── Invoice.php
+│   ├── License.php
+│   ├── Logger.php
+│   └── Matcher.php
+└── templates/
+    └── admin/
+        ├── configuration.tpl
+        ├── license.tpl
+        ├── logs.tpl
+        ├── matches.tpl
+        ├── overview.tpl
+        └── transactions.tpl
+```
 
-### 2. Backend Service Installation
+### Step 2: Activate the Module
+1. Log in to your WHMCS admin area
+2. Navigate to `Setup > Addon Modules`
+3. Find "GoCardless Open Banking" in the list
+4. Click "Activate"
 
-The backend service handles API communication with financial institutions and transaction matching.
+### Step 3: Configure Module Settings
+1. After activation, click "Configure"
+2. Enter your Payymo license key
+3. Configure the backend service URL (e.g., `https://payymo-backend.yourdomain.com`)
+4. Save the settings
 
-1. Set up a Python environment on your server or use a separate hosting service for the backend.
-2. Create a PostgreSQL database for the backend service.
-3. Copy the `flask_backend` folder to your desired location.
-4. Install the required Python dependencies:
+## 2. Backend Service Installation
+
+The backend service can be installed in two ways:
+- **Option A**: Using the automated installation script (recommended)
+- **Option B**: Manual installation
+
+### Option A: Automated Installation
+
+1. Upload the entire `flask_backend` directory to your server
+2. Make the installation script executable:
    ```
-   pip install flask flask-sqlalchemy gunicorn psycopg2-binary requests stripe email-validator
+   chmod +x install_backend.sh
    ```
-5. Configure the database connection in environment variables:
+3. Run the installation script:
    ```
-   DATABASE_URL=postgresql://username:password@hostname:port/database
+   ./install_backend.sh
    ```
-6. Set up additional environment variables:
+4. Follow the on-screen prompts to complete the installation
+
+### Option B: Manual Installation
+
+#### Step 1: Set Up PostgreSQL Database
+1. Create a new PostgreSQL database:
    ```
-   SESSION_SECRET=your_secure_random_string
-   STRIPE_SECRET_KEY=your_stripe_secret_key
+   sudo -u postgres createuser -P payymo_user
+   sudo -u postgres createdb -O payymo_user payymo_db
+   ```
+2. Note the database connection details for later use
+
+#### Step 2: Install Python Dependencies
+1. Create a virtual environment:
+   ```
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+2. Install the required packages:
+   ```
+   pip install -r payymo_requirements.txt
+   ```
+
+#### Step 3: Configure Environment Variables
+1. Create a `.env` file in the `flask_backend` directory:
+   ```
+   DATABASE_URL=postgresql://payymo_user:password@localhost:5432/payymo_db
    STRIPE_CLIENT_ID=your_stripe_client_id
+   STRIPE_SECRET_KEY=your_stripe_secret_key
+   GOCARDLESS_CLIENT_ID=your_gocardless_client_id
+   GOCARDLESS_CLIENT_SECRET=your_gocardless_client_secret
+   SESSION_SECRET=random_secure_string
    ```
-7. Start the backend service:
+
+#### Step 4: Set Up the Application as a Service
+1. Create a systemd service file:
    ```
-   gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+   sudo nano /etc/systemd/system/payymo-backend.service
    ```
-8. Configure your web server to proxy requests to the backend service (recommended).
+2. Add the following content:
+   ```
+   [Unit]
+   Description=Payymo Backend Service
+   After=network.target postgresql.service
 
-### 3. Configure the WHMCS Module
+   [Service]
+   User=www-data
+   Group=www-data
+   WorkingDirectory=/path/to/flask_backend
+   Environment="PATH=/path/to/venv/bin"
+   EnvironmentFile=/path/to/flask_backend/.env
+   ExecStart=/path/to/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 4 main:app
 
-1. In your WHMCS admin area, navigate to **Addons** > **GoCardless Open Banking**.
-2. Enter your license key (if applicable).
-3. Configure the connection to the backend service by specifying the API URL.
-4. Save your settings.
+   [Install]
+   WantedBy=multi-user.target
+   ```
+3. Enable and start the service:
+   ```
+   sudo systemctl daemon-reload
+   sudo systemctl enable payymo-backend
+   sudo systemctl start payymo-backend
+   ```
 
-### 4. Setting Up Bank Connections
+#### Step 5: Configure Web Server (Nginx example)
+1. Create a new Nginx site configuration:
+   ```
+   sudo nano /etc/nginx/sites-available/payymo-backend
+   ```
+2. Add the following content:
+   ```
+   server {
+       listen 443 ssl;
+       server_name payymo-backend.yourdomain.com;
 
-1. Navigate to the **Open Banking** tab in the WHMCS admin area.
-2. Click on **Add Bank Connection**.
-3. Follow the prompts to connect to your bank account through GoCardless.
-4. Once connected, your bank transactions will begin syncing automatically.
+       ssl_certificate /path/to/ssl/certificate.crt;
+       ssl_certificate_key /path/to/ssl/private.key;
 
-### 5. Setting Up Stripe Integration
+       location / {
+           proxy_pass http://127.0.0.1:5000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+3. Enable the site:
+   ```
+   sudo ln -s /etc/nginx/sites-available/payymo-backend /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
 
-1. Navigate to the **Stripe Integration** section in the Open Banking module.
-2. Click on **Connect Stripe Account**.
-3. Follow the OAuth flow to authorize access to your Stripe account.
-4. Once connected, Stripe payments will be synchronized for reconciliation.
+## 3. Testing the Installation
+
+### Verify Backend Service
+1. Check that the backend service is running:
+   ```
+   sudo systemctl status payymo-backend
+   ```
+2. Test the API endpoint:
+   ```
+   curl https://payymo-backend.yourdomain.com/api/health-check
+   ```
+   Should return: `{"status":"ok"}`
+
+### Verify WHMCS Module
+1. Log in to your WHMCS admin area
+2. Navigate to `Addons > GoCardless Open Banking`
+3. You should see the dashboard with no errors
+4. Go to Settings and verify that the connection to the backend service is successful
+
+## 4. Configuring OAuth Credentials
+
+### GoCardless Configuration
+1. Register a developer account at GoCardless
+2. Create a new application
+3. Configure the redirect URI: `https://payymo-backend.yourdomain.com/api/gocardless/callback`
+4. Copy the Client ID and Client Secret
+5. Add these credentials to your `.env` file
+
+### Stripe Configuration
+1. Create a Stripe application in the Stripe Dashboard
+2. Configure the redirect URI: `https://payymo-backend.yourdomain.com/api/stripe/callback`
+3. Copy the Client ID and Secret Key
+4. Add these credentials to your `.env` file
+
+## 5. Setting Up Cron Jobs
+
+Create cron jobs to automatically sync transactions and process matches:
+
+```
+# Sync transactions every hour
+0 * * * * cd /path/to/flask_backend && /path/to/venv/bin/python cron/fetch_transactions.py
+
+# Process matches every 15 minutes
+*/15 * * * * cd /path/to/flask_backend && /path/to/venv/bin/python cron/process_matches.py
+```
 
 ## Troubleshooting
 
-- Check the module logs in **Utilities** > **System** > **Module Debug Log**.
-- Verify that the backend service is running properly.
-- Ensure your API credentials are correctly configured.
-- Check database connectivity from the backend service.
+For common issues and their solutions, please refer to the [Troubleshooting Guide](docs/troubleshooting.md).
+
+## Next Steps
+
+After completing the installation, refer to the [Usage Guide](docs/usage_guide.md) for instructions on:
+- Connecting bank accounts
+- Setting up Stripe integration
+- Managing transactions
+- Configuring automatic matching rules
 
 ## Support
 
-For technical support, please contact support@payymo.com or visit our support portal at https://support.payymo.com.
-
-## License
-
-This software is licensed according to the terms of your service agreement. Unauthorized distribution is prohibited.
+If you encounter any issues during installation, please contact our support team:
+- Email: support@payymo.com
+- Support Portal: https://support.payymo.com
