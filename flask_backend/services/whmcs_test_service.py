@@ -117,6 +117,12 @@ class WhmcsTestService:
             }
             
             # Make request with timeout
+            params = {
+                'identifier': api_identifier,
+                'secret': api_secret,
+                'action': 'GetSystemInfo',
+                'responsetype': 'json',
+            }
             start_time = time.time()
             response = requests.post(api_url, data=params, timeout=10)
             end_time = time.time()
@@ -168,10 +174,17 @@ class WhmcsTestService:
                 
         except requests.exceptions.Timeout:
             # Log timeout error
+            # Ensure params is defined even in timeout case
+            params_data = params if 'params' in locals() else {
+                'identifier': api_identifier,
+                'secret': api_secret,
+                'action': 'GetSystemInfo',
+                'responsetype': 'json',
+            }
             self._log_api_interaction(
                 endpoint=f"https://{domain}/includes/api.php",
                 method="POST",
-                request_data=json.dumps(params),
+                request_data=json.dumps(params_data),
                 response_data="Request timed out",
                 status_code=408,
                 duration_ms=10000,
@@ -184,10 +197,17 @@ class WhmcsTestService:
             }
         except requests.exceptions.ConnectionError:
             # Log connection error
+            # Ensure params is defined even in connection error case
+            params_data = params if 'params' in locals() else {
+                'identifier': api_identifier,
+                'secret': api_secret,
+                'action': 'GetSystemInfo',
+                'responsetype': 'json',
+            }
             self._log_api_interaction(
                 endpoint=f"https://{domain}/includes/api.php",
                 method="POST",
-                request_data=json.dumps(params),
+                request_data=json.dumps(params_data),
                 response_data="Connection error",
                 status_code=503,
                 duration_ms=0,

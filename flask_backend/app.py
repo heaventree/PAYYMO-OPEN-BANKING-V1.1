@@ -37,6 +37,7 @@ db.init_app(app)
 with app.app_context():
     # Import routes and models here to avoid circular imports
     from flask_backend.routes import *
+    from flask_backend.routes_testing import *
     import flask_backend.models
     
     # Create all database tables
