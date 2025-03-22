@@ -10,6 +10,7 @@ Run in the background with: nohup python3 backup_chat.py &
 import json
 import os
 import re
+import sys
 import time
 import datetime
 import shutil
@@ -426,7 +427,12 @@ def list_available_revisions():
 
 def main():
     """Main function to run the backup process at regular intervals"""
-    logger.info(f"Starting backup service. Will save backups every {INTERVAL_SECONDS//60} minutes.")
+    # Create PID file to track the service
+    pid = os.getpid()
+    with open("backup_pid.txt", "w") as f:
+        f.write(str(pid))
+    
+    logger.info(f"Starting backup service (PID: {pid}). Will save backups every {INTERVAL_SECONDS//60} minutes.")
     
     # Create an initial backup and revision
     try:
@@ -441,8 +447,26 @@ def main():
         logger.error(f"Error during initialization: {e}")
     
     try:
+        # Register signal handlers for better cleanup
+        import signal
+        def signal_handler(sig, frame):
+            logger.info(f"Received signal {sig}. Stopping backup service.")
+            try:
+                os.remove("backup_pid.txt")
+            except:
+                pass
+            sys.exit(0)
+        
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        
         while True:
             try:
+                # Check if we should still be running
+                if not os.path.exists("backup_pid.txt"):
+                    logger.info("PID file removed. Stopping backup service.")
+                    break
+                
                 backup_dir = create_backup()
                 logger.info(f"Created backup: {backup_dir}")
                 
@@ -460,6 +484,12 @@ def main():
         logger.info("Backup service stopped by user.")
     except Exception as e:
         logger.error(f"Error in backup service: {e}")
+    
+    # Clean up PID file
+    try:
+        os.remove("backup_pid.txt")
+    except:
+        pass
 
 def parse_args():
     """Parse command line arguments for the backup tool"""

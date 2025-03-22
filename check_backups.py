@@ -9,11 +9,11 @@ This utility script displays the status of the backup system, including:
 """
 
 import os
+import sys
 import time
 import json
 import datetime
 import subprocess
-import sys
 
 # Configuration
 BACKUP_DIR = "backups"
@@ -190,24 +190,55 @@ def check_backup_service():
     print("\n🔄 BACKUP SERVICE STATUS")
     print("=====================")
     
+    pid_file = "backup_pid.txt"
+    
     try:
-        # Check for the backup process
-        result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
-        output = result.stdout
-        
-        backup_processes = [line for line in output.split('\n') if 'run_backup_loop.sh' in line and 'grep' not in line]
-        
-        if backup_processes:
-            print("✅ Backup service is RUNNING")
-            for proc in backup_processes:
-                parts = proc.split()
-                if len(parts) > 9:
-                    pid = parts[1]
-                    start_time = parts[9]
-                    print(f"   PID: {pid}, Start time: {start_time}")
+        # First check if we have a PID file
+        if os.path.exists(pid_file):
+            with open(pid_file, 'r') as f:
+                pid = f.read().strip()
+            
+            # Check if the process is actually running
+            try:
+                # This will raise an exception if the process is not running
+                os.kill(int(pid), 0)
+                print(f"✅ Backup service is RUNNING (PID: {pid})")
+                
+                # Get process info
+                result = subprocess.run(['ps', '-p', pid, '-o', 'start,cmd'], capture_output=True, text=True)
+                output = result.stdout
+                lines = output.strip().split('\n')
+                if len(lines) > 1:
+                    print(f"   Started: {lines[1].split()[0]}")
+                    print(f"   Command: python backup_chat.py start")
+            except (ProcessLookupError, PermissionError):
+                print("❌ Backup service is NOT RUNNING (stale PID file found)")
+                print("   To start it, run: nohup python backup_chat.py start > backup_runner.log 2>&1 &")
         else:
-            print("❌ Backup service is NOT RUNNING")
-            print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+            # Check for any running python backup processes
+            result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
+            output = result.stdout
+            
+            backup_processes = [line for line in output.split('\n') if 'python' in line and 'backup_chat.py' in line and 'start' in line and 'grep' not in line]
+            
+            if backup_processes:
+                print("✅ Backup service is RUNNING (no PID file)")
+                for proc in backup_processes:
+                    parts = proc.split()
+                    if len(parts) > 9:
+                        pid = parts[1]
+                        start_time = parts[9]
+                        print(f"   PID: {pid}, Start time: {start_time}")
+                print("   (Creating new PID file for tracking)")
+                # Create PID file for the first process found
+                if len(backup_processes) > 0:
+                    parts = backup_processes[0].split()
+                    if len(parts) > 1:
+                        with open(pid_file, 'w') as f:
+                            f.write(parts[1])
+            else:
+                print("❌ Backup service is NOT RUNNING")
+                print("   To start it, run: nohup python backup_chat.py start > backup_runner.log 2>&1 &")
         
         # Check for recent activity in the log file
         if os.path.exists(LOG_FILE):
