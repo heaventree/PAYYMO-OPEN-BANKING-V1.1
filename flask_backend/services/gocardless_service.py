@@ -7,6 +7,10 @@ from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from flask_backend.app import db
 from flask_backend.models import BankConnection, WhmcsInstance, Transaction, ApiLog
+from flask_backend.utils.gocardless_errors import (
+    GoCardlessError, GoCardlessAuthError, GoCardlessBankConnectionError,
+    GoCardlessTransactionError, GoCardlessWebhookError, parse_error_response
+)
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +264,9 @@ class GoCardlessService:
         
         if token_response.status_code != 200:
             logger.error(f"Failed to exchange code for token: {token_response.text}")
-            raise ValueError("Failed to exchange authorization code for token")
+            # Parse error response and raise appropriate exception
+            error = parse_error_response(token_response, "OAuth token exchange failed")
+            raise error
         
         tokens = token_response.json()
         
@@ -312,7 +318,12 @@ class GoCardlessService:
         
         if response.status_code != 200:
             logger.error(f"Failed to get bank account info: {response.text}")
-            raise ValueError("Failed to get bank account information")
+            error = parse_error_response(response, "Failed to get bank account information")
+            raise GoCardlessBankConnectionError(
+                message=f"Could not retrieve account information: {error.message}",
+                error_response=error.error_response,
+                http_status=response.status_code
+            )
         
         data = response.json()
         
@@ -392,7 +403,12 @@ class GoCardlessService:
         
         if response.status_code != 200:
             logger.error(f"Failed to fetch transactions: {response.text}")
-            raise ValueError("Failed to fetch transactions from GoCardless")
+            error = parse_error_response(response, "Failed to fetch transactions")
+            raise GoCardlessTransactionError(
+                message=f"Could not retrieve transactions: {error.message}",
+                error_response=error.error_response,
+                http_status=response.status_code
+            )
         
         transactions_data = response.json().get('transactions', [])
         
@@ -473,9 +489,17 @@ class GoCardlessService:
         
         if token_response.status_code != 200:
             logger.error(f"Failed to refresh token: {token_response.text}")
+            # Update connection status
             bank_connection.status = 'expired'
             db.session.commit()
-            raise ValueError("Failed to refresh access token")
+            
+            # Parse error response and raise appropriate exception
+            error = parse_error_response(token_response, "OAuth token refresh failed")
+            raise GoCardlessAuthError(
+                message=f"Could not refresh access token: {error.message}",
+                error_response=error.error_response,
+                http_status=token_response.status_code
+            )
         
         tokens = token_response.json()
         
