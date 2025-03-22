@@ -188,7 +188,7 @@
                         <th>Date</th>
                         <th>Reference</th>
                         <th>Amount</th>
-                        <th>Bank</th>
+                        <th>Source</th>
                         <th>Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -415,7 +415,7 @@
         </div>
     </div>
     
-    <!-- Match Rate & Bank Distribution Charts -->
+    <!-- Match Rate & Source Distribution Charts -->
     <div class="col-xl-4">
         <div class="card mb-4 shadow-sm">
             <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
@@ -449,12 +449,12 @@
         
         <div class="card mb-4 shadow-sm">
             <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Bank Distribution</h5>
+                <h5 class="card-title mb-0">Source Distribution</h5>
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-icon btn-outline-secondary" id="bankDistOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-icon btn-outline-secondary" id="sourceDistOptions" data-bs-toggle="dropdown" aria-expanded="false">
                         <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bankDistOptions">
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sourceDistOptions">
                         <li><a class="dropdown-item" href="#"><i data-lucide="eye" class="me-2" style="width: 16px; height: 16px;"></i> View Details</a></li>
                         <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export Data</a></li>
                     </ul>
@@ -462,7 +462,7 @@
             </div>
             <div class="card-body py-3">
                 <div class="chart-container" style="height: 200px;">
-                    <canvas id="bankDistributionChart"></canvas>
+                    <canvas id="sourceDistributionChart"></canvas>
                 </div>
             </div>
         </div>
@@ -499,7 +499,7 @@
                                 <th>Date</th>
                                 <th>Reference</th>
                                 <th>Amount</th>
-                                <th>Bank</th>
+                                <th>Source</th>
                                 <th>Status</th>
                                 <th class="text-end">Actions</th>
                             </tr>
