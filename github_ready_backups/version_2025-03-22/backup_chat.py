@@ -519,6 +519,9 @@ def parse_args():
     # Backup chat history
     chat_parser = subparsers.add_parser("chat", help="Backup chat history")
     
+    # Create GitHub-ready backup
+    github_parser = subparsers.add_parser("github", help="Create a GitHub-ready backup of core files")
+    
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -552,5 +555,8 @@ if __name__ == "__main__":
     elif args.command == "chat":
         chat_file = backup_chat_history()
         print(f"Chat history backed up to: {chat_file}")
+    elif args.command == "github":
+        github_dir = create_github_backup()
+        print(f"GitHub-ready backup created at: {github_dir}")
     else:
         main()
