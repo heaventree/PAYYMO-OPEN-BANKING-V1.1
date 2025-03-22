@@ -21,9 +21,18 @@ class GoCardlessService:
         self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
         self.token_url = 'https://auth.gocardless.com/oauth/token'
         
-        # Certificate paths for webhook verification
-        self.webhook_cert_path = os.environ.get('GOCARDLESS_WEBHOOK_CERT_PATH')
-        self.webhook_key_path = os.environ.get('GOCARDLESS_WEBHOOK_KEY_PATH')
+        # Get Flask app for configuration (if available)
+        try:
+            from flask import current_app
+            # Certificate paths for webhook verification from app config
+            self.webhook_cert_path = current_app.config.get('GOCARDLESS_WEBHOOK_CERT_PATH')
+            self.webhook_key_path = current_app.config.get('GOCARDLESS_WEBHOOK_KEY_PATH')
+            logger.info(f"Using certificate paths from app config: {self.webhook_cert_path}, {self.webhook_key_path}")
+        except Exception as e:
+            # Fallback to environment variables if Flask app context is not available
+            logger.warning(f"Could not get paths from app config: {str(e)}")
+            self.webhook_cert_path = os.environ.get('GOCARDLESS_WEBHOOK_CERT_PATH')
+            self.webhook_key_path = os.environ.get('GOCARDLESS_WEBHOOK_KEY_PATH')
         
         # Dictionary to store state parameters for OAuth flow
         self.oauth_states = {}
