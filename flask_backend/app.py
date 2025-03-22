@@ -20,10 +20,10 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 
 # Set secret key from environment variable or use a default for development
-app.secret_key = os.environ.get("SESSION_SECRET", "gocardless_dev_secret_key")
+app.secret_key = os.environ.get("SESSION_SECRET", "payymo_dev_secret_key")
 
 # Configure database - PostgreSQL in production, SQLite for development
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///gocardless.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///payymo.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,

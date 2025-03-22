@@ -321,10 +321,12 @@ def testing_dashboard():
         ApiLog.method == "ERROR"
     ).order_by(ApiLog.created_at.desc()).limit(10).all()
     
+    from datetime import datetime
     return render_template(
         'testing_dashboard.html',
         instances=instances,
-        recent_errors=recent_errors
+        recent_errors=recent_errors,
+        now=datetime.utcnow()
     )
 
 @app.route('/testing/instance/<int:instance_id>')
@@ -348,9 +350,11 @@ def testing_instance_detail(instance_id):
         ApiLog.endpoint.like(f"%{instance.domain}%")
     ).order_by(ApiLog.created_at.desc()).limit(50).all()
     
+    from datetime import datetime
     return render_template(
         'testing_instance_detail.html',
         instance=instance,
         instance_errors=instance_errors,
-        api_logs=api_logs
+        api_logs=api_logs,
+        now=datetime.utcnow()
     )
