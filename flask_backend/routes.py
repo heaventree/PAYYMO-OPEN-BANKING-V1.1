@@ -9,7 +9,7 @@ from flask_backend.models import (
     LicenseKey, LicenseVerification, Transaction, InvoiceMatch,
     WhmcsInstance, BankConnection, ApiLog, StripeConnection, StripePayment
 )
-from flask_backend.services.gocardless_service import GoCardlessService
+from flask_backend.services.gocardless_service_updated import GoCardlessService
 from flask_backend.services.license_service import LicenseService
 from flask_backend.services.invoice_matching_service import InvoiceMatchingService
 from flask_backend.services.stripe_service import StripeService
