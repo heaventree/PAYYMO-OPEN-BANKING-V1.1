@@ -1,109 +1,149 @@
-# Testing with GoCardless CLI
+# Testing GoCardless Webhooks with the GoCardless CLI
 
-The GoCardless CLI (`gc-cli`) is a powerful tool for testing the GoCardless API integration without going through the full OAuth flow. This guide explains how to use it with Payymo.
+This guide explains how to test GoCardless webhooks against your development environment using the GoCardless Command-Line Interface (CLI) tool.
 
-## Installation
+## Prerequisites
 
-To install the GoCardless CLI:
+1. Install the GoCardless CLI tool (requires Node.js)
+   ```
+   npm install -g @gocardless/cli
+   ```
 
-```bash
-npm install -g @gocardless/developer-tools
-```
+2. You need to have a valid webhook endpoint available for testing:
+   - For local development, you can use a tool like ngrok to expose your local webhook endpoint
+   - For Replit, use your application's public URL
 
-Or visit the [GoCardless Developer Tools](https://developer.gocardless.com/developer-tools/gc-cli) page for alternative installation methods.
+3. Make sure your webhook endpoint is configured to receive and validate GoCardless webhooks
 
-## Configuration
+## Setup for Webhook Testing
 
-1. After installation, set up the CLI with your GoCardless credentials:
+1. **Export your GoCardless API keys**:
+   ```bash
+   export GC_ACCESS_TOKEN=your_access_token
+   export GC_SECRET=your_webhook_signing_secret
+   ```
 
-```bash
-gc-cli setup
-```
+2. **Configure your webhook endpoint**:
+   ```bash
+   gocardless webhook:configure https://your-domain.com/api/gocardless/webhook
+   ```
 
-2. When prompted, enter your Client ID and Client Secret from the GoCardless Partner Portal.
+## Sending Test Webhooks
 
-## Testing Bank Connections
-
-### 1. List Available Test Banks
-
-```bash
-gc-cli open-banking list-banks
-```
-
-This shows all available test banks in the GoCardless sandbox.
-
-### 2. Simulate a Bank Connection
+### Test a Basic Webhook
 
 ```bash
-gc-cli open-banking create-requisition \
-  --institution-id={BANK_ID} \
-  --redirect-url=http://localhost:5000/api/gocardless/callback \
-  --reference="Payymo Test Connection"
+gocardless webhook:trigger \
+  --url https://your-domain.com/api/gocardless/webhook \
+  --type test
 ```
 
-This will initiate a connection with a test bank and provide a link to complete authentication.
+### Test a Specific Event Type
 
-### 3. Get Accounts for a Connection
-
-Once a connection is established:
+For testing a specific event type such as a new transaction:
 
 ```bash
-gc-cli open-banking list-accounts --requisition-id={REQUISITION_ID}
+gocardless webhook:trigger \
+  --url https://your-domain.com/api/gocardless/webhook \
+  --type transaction \
+  --resource-id trn_12345 \
+  --action created
 ```
 
-### 4. Simulate Transactions
+### Create a Custom Webhook Payload
 
-For testing with mock transactions:
+For more complex testing scenarios:
 
 ```bash
-gc-cli open-banking list-transactions \
-  --account-id={ACCOUNT_ID} \
-  --date-from=2025-01-01 \
-  --date-to=2025-03-22
+# Create a JSON file with your custom payload
+cat > custom_payload.json << EOF
+{
+  "events": [
+    {
+      "id": "EV123456",
+      "created_at": "2025-03-22T12:00:00.000Z",
+      "resource_type": "transactions",
+      "action": "created",
+      "links": {
+        "transaction": "TR123456"
+      },
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_created",
+        "description": "Test transaction created"
+      }
+    }
+  ]
+}
+EOF
+
+# Send the custom webhook payload
+gocardless webhook:trigger \
+  --url https://your-domain.com/api/gocardless/webhook \
+  --payload-file custom_payload.json
 ```
 
-## Testing Webhooks
+## Verifying Webhook Receipt
 
-The GoCardless CLI can also simulate webhook events:
+After sending a test webhook, check your application logs to confirm that:
+
+1. The webhook was received
+2. The signature validation passed
+3. The webhook was processed correctly
+
+Look for log entries similar to:
+
+```
+Received GoCardless webhook
+Webhook signature verified successfully
+Processing webhook event: EV123456
+```
+
+## Troubleshooting
+
+If your webhook tests fail, check the following:
+
+1. **Signature Verification Issues**:
+   - Verify the webhook secret is correct
+   - Check if the request is being modified in transit
+   - Ensure clock synchronization between systems
+
+2. **SSL/TLS Certificate Issues**:
+   - Make sure your webhook endpoint supports the TLS version required by GoCardless
+   - Verify certificate validity
+
+3. **Request Format Problems**:
+   - Check if your webhook handler expects a specific content type
+   - Ensure your handler can parse the received JSON correctly
+
+4. **Authorization Issues**:
+   - Confirm your webhook endpoint doesn't require additional authentication that may block the GoCardless webhook
+
+## Example Workflow
+
+For a complete testing workflow:
 
 ```bash
-gc-cli webhooks send \
-  --url=https://your-payymo-instance.replit.app/api/gocardless/webhook \
-  --cert-path=./certs/webhook_cert.pem \
-  --key-path=./certs/webhook_key.pem \
-  --event-type=transactions.created \
-  --payload='{"data": {"id": "tr_123456", "amount": 50.00, "currency": "GBP", "description": "Test Payment"}}'
+# 1. Configure webhook
+gocardless webhook:configure https://your-domain.com/api/gocardless/webhook
+
+# 2. Send a test webhook
+gocardless webhook:trigger \
+  --url https://your-domain.com/api/gocardless/webhook \
+  --type test
+
+# 3. Check application logs for the result
+# 4. Send a more specific test webhook
+gocardless webhook:trigger \
+  --url https://your-domain.com/api/gocardless/webhook \
+  --type transaction \
+  --action created
+
+# 5. Verify the application processed it correctly
 ```
-
-This sends a mock webhook event to your webhook endpoint using your certificates.
-
-## Integration with Payymo's Test Environment
-
-When testing with gc-cli, you can bypass the OAuth flow and directly feed test data into Payymo:
-
-1. Create test transactions using gc-cli
-2. Use the Payymo API to manually add these transactions using the included test files:
-
-```bash
-# Import test transactions
-curl -X POST https://your-payymo-instance.replit.app/api/testing/import-transactions \
-  -H "Content-Type: application/json" \
-  -d @docs/test-transactions.json
-
-# Simulate a webhook event
-curl -X POST https://your-payymo-instance.replit.app/api/testing/simulated-webhook \
-  -H "Content-Type: application/json" \
-  -d @docs/test-webhook.json
-```
-
-We've included sample test files in the `docs` directory:
-- `test-transactions.json`: Sample bank transactions for testing
-- `test-webhook.json`: Sample webhook event for testing
-
-> Note: Payymo's testing API endpoints are only available in development mode.
 
 ## Additional Resources
 
-- [GoCardless Developer Documentation](https://developer.gocardless.com/api-reference)
-- [GoCardless CLI GitHub Repository](https://github.com/gocardless/developer-tools)
-- [GoCardless Open Banking Sandbox Guide](https://developer.gocardless.com/open-banking/integration-guide/sandbox-testing)
+- [GoCardless API Documentation](https://developer.gocardless.com/api-reference)
+- [GoCardless CLI Documentation](https://developer.gocardless.com/resources/testing-webhooks-cli)
+- [Webhook Security Best Practices](https://developer.gocardless.com/resources/webhook-security)

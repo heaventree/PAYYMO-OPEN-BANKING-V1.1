@@ -1,101 +1,140 @@
-# GoCardless Webhook Integration
+# GoCardless Webhooks Integration Guide
 
-This document explains how to set up and use GoCardless webhooks with Payymo.
+This document explains how the Payymo application integrates with GoCardless webhooks to receive real-time updates about bank transactions and account status changes.
 
 ## Overview
 
-Webhooks allow GoCardless to send real-time notifications to Payymo when events occur, such as:
-- New transactions being created
-- Bank account details being updated
-- Connections being revoked
+GoCardless sends webhook notifications to our application whenever important events occur, such as:
+- New transactions being processed
+- Changes to bank account connections
+- Authorization status updates
+- Error notifications
 
-By implementing webhook support, Payymo can receive updates in real-time rather than having to poll the GoCardless API for changes.
+These webhooks allow our application to maintain up-to-date transaction information without constantly polling the GoCardless API.
 
-## Setup Requirements
+## Webhook Security
 
-To set up GoCardless webhooks, you'll need:
+GoCardless secures its webhooks using:
 
-1. A PEM-encoded TLS client certificate and associated PEM-encoded private key
-2. A publicly accessible endpoint for GoCardless to send webhook events to
+1. **Client Certificates**: GoCardless sends webhooks with client certificates that our application verifies to ensure the webhook comes from GoCardless.
 
-## Configuration
+2. **Signature Verification**: Each webhook includes a signature that our application validates using our webhook secret.
 
-### Environment Variables
+## Implementation in Payymo
 
-Set the following environment variables to configure webhook support:
+### Webhook Endpoint
 
+Our webhook endpoint is located at:
 ```
-GOCARDLESS_WEBHOOK_CERT_PATH=/path/to/your/certificate.pem
-GOCARDLESS_WEBHOOK_KEY_PATH=/path/to/your/private_key.pem
-```
-
-In development mode, certificate verification can be bypassed by setting:
-
-```
-FLASK_ENV=development
+/api/gocardless/webhook
 ```
 
-### GoCardless Partner Portal
+This endpoint is configured to:
+1. Verify the client certificate from GoCardless
+2. Validate the webhook signature
+3. Process the webhook payload
+4. Return appropriate responses to GoCardless
 
-1. Log in to the [GoCardless Partner Portal](https://developer.gocardless.com/partner-admin/)
-2. Navigate to your application settings
-3. Add the webhook endpoint URL: `https://your-domain.com/api/gocardless/webhook`
-4. Upload your client certificate
+### Certificate Verification
+
+GoCardless webhooks come with a client certificate that our application verifies:
+
+```python
+# Extract client certificate from the request
+client_cert = request.environ.get('SSL_CLIENT_CERT')
+
+# Verify the certificate
+if not gocardless_service.verify_webhook_certificate(client_cert):
+    logger.warning("Invalid GoCardless webhook certificate")
+    raise APIError("Invalid certificate", status_code=403)
+```
+
+### Webhook Processing
+
+After verification, our application processes the webhook payload:
+
+```python
+# Parse the webhook payload
+webhook_data = request.get_json()
+if not webhook_data:
+    raise APIError("Invalid webhook payload", status_code=400)
+
+# Process the webhook data
+result = gocardless_service.process_webhook(webhook_data)
+```
+
+## Webhook Events and Handling
+
+### Supported Webhook Events
+
+Our application handles the following webhook events:
+
+1. **New Transactions**
+   - Event: `transaction.created`
+   - Action: Store new transaction and trigger matching process
+
+2. **Bank Connection Status**
+   - Event: `connection.revoked`
+   - Action: Update bank connection status to revoked
+
+3. **Authorization Changes**
+   - Event: `authorization.updated`
+   - Action: Update access token status
+
+### Webhook Response Format
+
+In all cases, our application responds with:
+
+```json
+{
+  "status": "success",
+  "message": "Webhook processed successfully"
+}
+```
+
+For error cases, the application returns appropriate HTTP status codes and error messages.
+
+## Webhook Configuration
+
+To receive webhooks from GoCardless, you need to:
+
+1. Register your webhook URL in the GoCardless Partner Portal
+2. Upload your webhook certificate and key
+3. Set the appropriate webhook events you want to receive
+4. Configure your security settings (IP restrictions, etc.)
 
 ## Testing Webhooks
 
-To test webhook functionality:
-
-1. Use GoCardless's webhook testing tool in the Partner Portal
-2. Monitor Payymo's logs for webhook processing messages
-3. Verify that webhook data is being correctly stored in the database
-
-### Using Self-Signed Certificates for Testing
-
-For development and testing purposes, you can use self-signed certificates. We've included a self-signed certificate and private key in the repository:
-
-```
-flask_backend/certs/webhook_cert.pem
-flask_backend/certs/webhook_key.pem
-```
-
-These files are automatically detected and used by the application in development mode.
-
-To generate your own self-signed certificate for testing:
-
-```bash
-openssl req -x509 -newkey rsa:4096 -keyout webhook_key.pem -out webhook_cert.pem -days 365 -nodes -subj "/C=GB/ST=London/L=London/O=YourCompany/OU=Development/CN=webhook.yourdomain.com"
-```
-
-**Note:** Self-signed certificates should only be used for development and testing. For production, use a certificate issued by a trusted Certificate Authority.
-
-## Webhook Event Types
-
-Payymo handles the following webhook event types:
-
-| Resource Type | Event Type | Description |
-|---------------|------------|-------------|
-| transactions  | created    | New transaction has been created |
-| accounts      | updated    | Bank account details have been updated |
-| connections   | revoked    | Bank connection has been revoked |
-
-## Security Considerations
-
-- Webhook URLs should always use HTTPS
-- Client certificate verification should be enabled in production
-- Webhook payloads should be validated before processing
+For details on testing webhooks, see our companion document:
+[Testing with GoCardless CLI](testing_with_gocardless_cli.md)
 
 ## Troubleshooting
 
-If webhooks are not being received:
+### Common Webhook Issues
 
-1. Check that the webhook URL is correctly registered in the GoCardless Partner Portal
-2. Verify that the certificate and private key paths are correctly set
-3. Check server logs for any webhook processing errors
-4. Ensure the webhook endpoint is publicly accessible
+1. **Certificate Validation Failures**
+   - Problem: GoCardless webhook rejected due to certificate issues
+   - Solution: Verify certificate paths and format
 
-If webhooks are received but not processed:
+2. **Signature Verification Failures**
+   - Problem: Invalid signature in webhook payload
+   - Solution: Verify webhook secret and signature calculation
 
-1. Check for certificate validation errors in the logs
-2. Verify that the webhook payload format matches what's expected
-3. Check for any database errors when storing webhook data
+3. **Missing Events**
+   - Problem: Not receiving expected webhooks
+   - Solution: Check webhook configuration in GoCardless portal
+
+## Production Setup
+
+For production environments:
+
+1. Ensure your webhook endpoint is accessible via HTTPS
+2. Configure IP restrictions if possible
+3. Set up monitoring for webhook failures
+4. Implement retry logic for failed webhook processing
+
+## References
+
+- [GoCardless Webhook Documentation](https://developer.gocardless.com/api-reference#webhooks)
+- [Webhook Security Best Practices](https://developer.gocardless.com/resources/webhook-security)
+- [GoCardless Partner Portal](https://manage.gocardless.com/partner)
