@@ -1,22 +1,22 @@
 <?php
 /**
- * GoCardless Open Banking Admin Controller
+ * Payymo Financial Toolbox Admin Controller
  *
- * @copyright Copyright (c) 2023
+ * @copyright Copyright (c) 2025
  * @license https://opensource.org/licenses/MIT MIT License
  */
 
-namespace GoCardlessOpenBanking;
+namespace Payymo;
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
 
 use WHMCS\Database\Capsule;
-use GoCardlessOpenBanking\Logger;
-use GoCardlessOpenBanking\Helper;
-use GoCardlessOpenBanking\ApiClient;
-use GoCardlessOpenBanking\License;
+use Payymo\Logger;
+use Payymo\Helper;
+use Payymo\ApiClient;
+use Payymo\License;
 
 /**
  * Admin Controller Class
@@ -83,19 +83,19 @@ class Admin {
         // Get dashboard statistics
         try {
             // Get recent transactions
-            $transactions = Capsule::table('mod_gocardless_transactions')
+            $transactions = Capsule::table('mod_payymo_transactions')
                 ->orderBy('transaction_date', 'desc')
                 ->limit(10)
                 ->get();
                 
             // Get pending matches
-            $pendingMatches = Capsule::table('mod_gocardless_matches')
+            $pendingMatches = Capsule::table('mod_payymo_matches')
                 ->where('status', 'pending')
                 ->limit(10)
                 ->get();
                 
             // Calculate daily transactions - last 7 days
-            $dailyStats = Capsule::table('mod_gocardless_transactions')
+            $dailyStats = Capsule::table('mod_payymo_transactions')
                 ->selectRaw('DATE(transaction_date) as date, COUNT(*) as count, SUM(amount) as amount')
                 ->where('transaction_date', '>=', date('Y-m-d', strtotime('-7 days')))
                 ->groupBy('date')
@@ -114,11 +114,11 @@ class Admin {
             }
             
             // Get matching stats
-            $matchedCount = Capsule::table('mod_gocardless_transactions')
+            $matchedCount = Capsule::table('mod_payymo_transactions')
                 ->where('status', 'matched')
                 ->count();
                 
-            $unmatchedCount = Capsule::table('mod_gocardless_transactions')
+            $unmatchedCount = Capsule::table('mod_payymo_transactions')
                 ->where('status', 'unmatched')
                 ->count();
                 
@@ -127,7 +127,7 @@ class Admin {
                 round(($matchedCount / $totalTransactions) * 100) : 0;
                 
             // Get connected banks count
-            $banksCount = Capsule::table('mod_gocardless_accounts')
+            $banksCount = Capsule::table('mod_payymo_accounts')
                 ->where('status', 'active')
                 ->count();
                 
@@ -165,7 +165,7 @@ class Admin {
         $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';
         
         try {
-            $query = Capsule::table('mod_gocardless_transactions');
+            $query = Capsule::table('mod_payymo_transactions');
             
             // Apply filters
             if ($status) {
@@ -231,27 +231,27 @@ class Admin {
         $status = isset($_REQUEST['status']) ? $_REQUEST['status'] : 'pending';
         
         try {
-            $query = Capsule::table('mod_gocardless_matches')
-                ->join('mod_gocardless_transactions', 'mod_gocardless_matches.transaction_id', '=', 'mod_gocardless_transactions.id')
+            $query = Capsule::table('mod_payymo_matches')
+                ->join('mod_payymo_transactions', 'mod_payymo_matches.transaction_id', '=', 'mod_payymo_transactions.id')
                 ->select([
-                    'mod_gocardless_matches.*',
-                    'mod_gocardless_transactions.transaction_id as transaction_ref',
-                    'mod_gocardless_transactions.amount',
-                    'mod_gocardless_transactions.currency',
-                    'mod_gocardless_transactions.bank_name',
-                    'mod_gocardless_transactions.transaction_date'
+                    'mod_payymo_matches.*',
+                    'mod_payymo_transactions.transaction_id as transaction_ref',
+                    'mod_payymo_transactions.amount',
+                    'mod_payymo_transactions.currency',
+                    'mod_payymo_transactions.bank_name',
+                    'mod_payymo_transactions.transaction_date'
                 ]);
             
             // Apply filters
             if ($status) {
-                $query->where('mod_gocardless_matches.status', $status);
+                $query->where('mod_payymo_matches.status', $status);
             }
             
             // Get total count for pagination
             $totalRecords = $query->count();
             
             // Get paginated results
-            $matches = $query->orderBy('mod_gocardless_matches.created_at', 'desc')
+            $matches = $query->orderBy('mod_payymo_matches.created_at', 'desc')
                 ->offset($offset)
                 ->limit($limit)
                 ->get();
@@ -303,7 +303,7 @@ class Admin {
     protected function showConfiguration() {
         // Get list of connected bank accounts
         try {
-            $accounts = Capsule::table('mod_gocardless_accounts')
+            $accounts = Capsule::table('mod_payymo_accounts')
                 ->orderBy('bank_name', 'asc')
                 ->get();
                 
