@@ -45,7 +45,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
@@ -54,12 +54,26 @@
                     </div>
                     <h5 class="card-title mb-0">Bank Connections</h5>
                 </div>
-                <h2 class="mb-0">{{ instances|sum(attribute='bank_connections'|length) }}</h2>
-                <p class="text-muted small">Total bank account connections</p>
+                <h2 class="mb-0">{{ instances|map(attribute='bank_connections')|map('length')|sum }}</h2>
+                <p class="text-muted small">Total bank connections</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-2 me-3">
+                        <i data-lucide="credit-card" style="width: 24px; height: 24px;" class="text-info"></i>
+                    </div>
+                    <h5 class="card-title mb-0">Stripe Connections</h5>
+                </div>
+                <h2 class="mb-0">{{ instances|map(attribute='stripe_connections')|map('length')|sum }}</h2>
+                <p class="text-muted small">Total Stripe connections</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
@@ -69,7 +83,7 @@
                     <h5 class="card-title mb-0">Error Count</h5>
                 </div>
                 <h2 class="mb-0">{{ recent_errors|length }}</h2>
-                <p class="text-muted small">Recent errors in the last 24 hours</p>
+                <p class="text-muted small">Recent errors</p>
             </div>
         </div>
     </div>
