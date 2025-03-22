@@ -190,55 +190,85 @@ def check_backup_service():
     print("\n🔄 BACKUP SERVICE STATUS")
     print("=====================")
     
-    pid_file = "backup_pid.txt"
+    python_pid_file = "backup_pid.txt"
+    runner_pid_file = "backup_runner_pid.txt"
     
     try:
-        # First check if we have a PID file
-        if os.path.exists(pid_file):
-            with open(pid_file, 'r') as f:
-                pid = f.read().strip()
+        if os.path.exists(runner_pid_file):
+            with open(runner_pid_file, 'r') as f:
+                runner_pid = f.read().strip()
             
-            # Check if the process is actually running
+            # Check if the shell script process is actually running
             try:
                 # This will raise an exception if the process is not running
-                os.kill(int(pid), 0)
-                print(f"✅ Backup service is RUNNING (PID: {pid})")
+                os.kill(int(runner_pid), 0)
+                print(f"✅ Backup service is RUNNING (Runner PID: {runner_pid})")
                 
                 # Get process info
-                result = subprocess.run(['ps', '-p', pid, '-o', 'start,cmd'], capture_output=True, text=True)
+                result = subprocess.run(['ps', '-p', runner_pid, '-o', 'start,cmd'], capture_output=True, text=True)
                 output = result.stdout
                 lines = output.strip().split('\n')
                 if len(lines) > 1:
                     print(f"   Started: {lines[1].split()[0]}")
-                    print(f"   Command: python backup_chat.py start")
+                    print(f"   Command: bash run_backup_loop.sh")
+                    
+                    # Check when next backup will happen
+                    log_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(LOG_FILE))
+                    now = datetime.datetime.now()
+                    delta = now - log_mtime
+                    
+                    # If last log update was within 15 minutes, calculate time to next backup
+                    if delta.total_seconds() < 15*60:
+                        minutes_remaining = 15 - (delta.total_seconds() // 60)
+                        print(f"   Next backup in approximately {int(minutes_remaining)} minute(s)")
             except (ProcessLookupError, PermissionError):
-                print("❌ Backup service is NOT RUNNING (stale PID file found)")
-                print("   To start it, run: nohup python backup_chat.py start > backup_runner.log 2>&1 &")
+                print("❌ Backup service is NOT RUNNING (stale runner PID file found)")
+                print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+                # Try to clean up the stale PID file
+                try:
+                    os.remove(runner_pid_file)
+                    print("   Removed stale runner PID file.")
+                except:
+                    pass
+        elif os.path.exists(python_pid_file):
+            with open(python_pid_file, 'r') as f:
+                pid = f.read().strip()
+            
+            # Check if the Python process is actually running
+            try:
+                os.kill(int(pid), 0)
+                print(f"✅ Python backup process is RUNNING (PID: {pid}) but backup runner is not found")
+                print("   This is unusual. Consider restarting the service with:")
+                print("   nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+            except (ProcessLookupError, PermissionError):
+                print("❌ Backup service is NOT RUNNING (stale Python PID file found)")
+                print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+                # Try to clean up the stale PID file
+                try:
+                    os.remove(python_pid_file)
+                    print("   Removed stale Python PID file.")
+                except:
+                    pass
         else:
-            # Check for any running python backup processes
+            # Check for any running backup processes
             result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
             output = result.stdout
             
-            backup_processes = [line for line in output.split('\n') if 'python' in line and 'backup_chat.py' in line and 'start' in line and 'grep' not in line]
+            backup_processes = [line for line in output.split('\n') if 'run_backup_loop.sh' in line and 'grep' not in line]
             
             if backup_processes:
-                print("✅ Backup service is RUNNING (no PID file)")
+                print("✅ Backup service appears to be RUNNING (PID file missing)")
                 for proc in backup_processes:
                     parts = proc.split()
                     if len(parts) > 9:
                         pid = parts[1]
                         start_time = parts[9]
                         print(f"   PID: {pid}, Start time: {start_time}")
-                print("   (Creating new PID file for tracking)")
-                # Create PID file for the first process found
-                if len(backup_processes) > 0:
-                    parts = backup_processes[0].split()
-                    if len(parts) > 1:
-                        with open(pid_file, 'w') as f:
-                            f.write(parts[1])
+                print("   Consider restarting for proper tracking: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
             else:
+                # Completely not running
                 print("❌ Backup service is NOT RUNNING")
-                print("   To start it, run: nohup python backup_chat.py start > backup_runner.log 2>&1 &")
+                print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
         
         # Check for recent activity in the log file
         if os.path.exists(LOG_FILE):
@@ -250,15 +280,33 @@ def check_backup_service():
             try:
                 with open(LOG_FILE, 'r') as f:
                     lines = f.readlines()
-                    last_lines = lines[-5:] if len(lines) > 5 else lines
+                    last_lines = lines[-7:] if len(lines) > 7 else lines
                     
                     print("\nRecent log entries:")
                     for line in last_lines:
                         print(f"   {line.strip()}")
             except Exception as e:
                 print(f"Error reading log file: {e}")
+                
+            # Also check for runner log
+            runner_log = "backup_runner.log"
+            if os.path.exists(runner_log):
+                try:
+                    log_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(runner_log))
+                    time_ago = format_time_ago(log_mtime.isoformat())
+                    print(f"\nRunner log last updated: {time_ago}")
+                    
+                    with open(runner_log, 'r') as f:
+                        lines = f.readlines()
+                        last_lines = lines[-5:] if len(lines) > 5 else lines
+                        
+                        print("\nRecent runner log entries:")
+                        for line in last_lines:
+                            print(f"   {line.strip()}")
+                except Exception as e:
+                    print(f"Error reading runner log: {e}")
         else:
-            print("\nNo log file found.")
+            print("\nNo log files found.")
     except Exception as e:
         print(f"Error checking backup service status: {e}")
 
@@ -278,7 +326,7 @@ def main():
     # Display helpful commands
     print("\n📋 USEFUL COMMANDS:")
     print("================")
-    print("▶️ Start backup service:      nohup python backup_chat.py start > backup_runner.log 2>&1 &")
+    print("▶️ Start backup service:      nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
     print("📦 Create backup now:         python backup_chat.py backup")
     print("📝 Backup chat history:       python backup_chat.py chat")
     print("💾 Save approved revision:    python save_approved.py \"Name\" \"Description\"")
@@ -286,6 +334,7 @@ def main():
     print("📜 View backup logs:          cat backup_system.log")
     print("🔍 Check backup status:       python check_backups.py")
     print("🔄 List revisions:            python backup_chat.py list")
+    print("❌ Stop backup service:       rm backup_runner_pid.txt")
 
 if __name__ == "__main__":
     main()
