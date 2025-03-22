@@ -167,6 +167,11 @@
     <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Recent Transactions</h5>
         <div class="btn-group">
+            <div class="btn-group me-2" role="group" aria-label="Transaction filters">
+                <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+                <button type="button" class="btn btn-sm btn-outline-success" data-filter="bank">Bank</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="stripe">Stripe</button>
+            </div>
             <button class="btn btn-sm btn-outline-secondary" data-refresh-target="transactions-table">
                 <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
                 Refresh
@@ -175,7 +180,6 @@
                 Actions
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionActions">
-                <li><a class="dropdown-item" href="#"><i data-lucide="filter" class="me-2" style="width: 16px; height: 16px;"></i> Filter View</a></li>
                 <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export CSV</a></li>
             </ul>
         </div>
@@ -492,6 +496,13 @@
         <div class="tab-content" id="activityTabsContent">
             <!-- Transactions Tab -->
             <div class="tab-pane fade show active" id="transactions-tab-pane" role="tabpanel" aria-labelledby="transactions-tab" tabindex="0">
+                <div class="p-2 d-flex justify-content-end">
+                    <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Transaction source filters">
+                        <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-success" data-filter="bank">Bank</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="stripe">Stripe</button>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 dashboard-table">
                         <thead>
@@ -513,10 +524,22 @@
                                     <td><span class="fw-semibold">{{ "%.2f"|format(transaction.amount) }}</span> <small class="text-muted">{{ transaction.currency }}</small></td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                                <i data-lucide="landmark" style="width: 14px; height: 14px;"></i>
-                                            </div>
-                                            {{ transaction.bank_name }}
+                                            {% if transaction.bank_name is defined and transaction.bank_name %}
+                                                <div class="source-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                    <i data-lucide="landmark" style="width: 14px; height: 14px;"></i>
+                                                </div>
+                                                <span>{{ transaction.bank_name }}</span>
+                                            {% elif transaction.payment_method is defined %}
+                                                <div class="source-icon me-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; background-color: rgba(147, 51, 234, 0.2);">
+                                                    <i data-lucide="credit-card" style="width: 14px; height: 14px; color: #9333EA;"></i>
+                                                </div>
+                                                <span>Stripe{% if transaction.payment_method %} ({{ transaction.payment_method }}){% endif %}</span>
+                                            {% else %}
+                                                <div class="source-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                    <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
+                                                </div>
+                                                <span>Unknown Source</span>
+                                            {% endif %}
                                         </div>
                                     </td>
                                     <td>
@@ -960,6 +983,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+    });
+    
+    // Transaction filter functionality
+    const filterButtons = document.querySelectorAll('[data-filter]');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filterType = this.dataset.filter;
+            const parentGroup = this.closest('.btn-group');
+            
+            // Update active state
+            parentGroup.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Apply filter to transaction rows
+            const tableContainer = this.closest('.card, .tab-pane').querySelector('table');
+            const rows = tableContainer.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                if (row.querySelector('td[colspan]')) {
+                    // Skip empty state row
+                    return;
+                }
+                
+                const source = row.querySelector('td:nth-child(4)').textContent.trim().toLowerCase();
+                const isBank = source.includes('bank');
+                const isStripe = source.includes('stripe');
+                
+                switch(filterType) {
+                    case 'all':
+                        row.style.display = '';
+                        break;
+                    case 'bank':
+                        row.style.display = isBank ? '' : 'none';
+                        break;
+                    case 'stripe':
+                        row.style.display = isStripe ? '' : 'none';
+                        break;
+                }
+            });
+            
+            // Check if there are any visible rows after filtering
+            let visibleRows = 0;
+            rows.forEach(row => {
+                if (row.style.display !== 'none' && !row.querySelector('td[colspan]')) {
+                    visibleRows++;
+                }
+            });
+            
+            // Show empty state if no visible rows
+            const emptyStateRow = tableContainer.querySelector('tbody tr.empty-filter-state');
+            
+            if (visibleRows === 0) {
+                if (!emptyStateRow) {
+                    const tbody = tableContainer.querySelector('tbody');
+                    const colCount = tableContainer.querySelectorAll('thead th').length;
+                    const newEmptyRow = document.createElement('tr');
+                    newEmptyRow.className = 'empty-filter-state';
+                    newEmptyRow.innerHTML = `
+                        <td colspan="${colCount}" class="text-center py-4">
+                            <div class="empty-state">
+                                <i data-lucide="filter-x" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
+                                <p class="mb-0">No ${filterType} transactions found</p>
+                                <p class="text-muted small">Try another filter</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(newEmptyRow);
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                } else {
+                    emptyStateRow.style.display = '';
+                    const messageEl = emptyStateRow.querySelector('p');
+                    if (messageEl) {
+                        messageEl.textContent = `No ${filterType} transactions found`;
+                    }
+                }
+            } else if (emptyStateRow) {
+                emptyStateRow.style.display = 'none';
+            }
+        });
     });
 });
 </script>
