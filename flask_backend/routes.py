@@ -15,6 +15,10 @@ from flask_backend.services.invoice_matching_service import InvoiceMatchingServi
 from flask_backend.services.stripe_service import StripeService
 from flask_backend.utils.error_handler import handle_error, APIError
 from flask_backend.utils.logger import log_api_request
+from flask_backend.utils.gocardless_errors import (
+    GoCardlessError, GoCardlessAuthError, GoCardlessBankConnectionError,
+    GoCardlessTransactionError, GoCardlessWebhookError, handle_gocardless_error
+)
 
 # Initialize services
 license_service = LicenseService()
@@ -125,6 +129,9 @@ def gocardless_auth():
         )
         
         return jsonify({"auth_url": auth_url})
+    except GoCardlessError as e:
+        # Handle specific GoCardless errors with detailed information
+        return handle_gocardless_error(e)
     except Exception as e:
         return handle_error(e)
 
@@ -148,6 +155,17 @@ def gocardless_callback():
         result = gocardless_service.process_callback(code, state)
         
         return jsonify(result)
+    except GoCardlessAuthError as e:
+        # Handle OAuth-specific errors
+        logger.error(f"GoCardless OAuth error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessBankConnectionError as e:
+        # Handle bank connection errors
+        logger.error(f"GoCardless bank connection error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessError as e:
+        # Handle other GoCardless errors
+        return handle_gocardless_error(e)
     except Exception as e:
         return handle_error(e)
 
@@ -164,6 +182,13 @@ def get_available_banks():
             'success': True,
             'banks': banks
         })
+    except GoCardlessBankConnectionError as e:
+        # Handle bank connection errors
+        logger.error(f"GoCardless bank connection error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessError as e:
+        # Handle other GoCardless errors
+        return handle_gocardless_error(e)
     except Exception as e:
         return handle_error(e)
 
@@ -185,17 +210,40 @@ def gocardless_webhook():
         # Verify the webhook using the client certificate
         if not gocardless_service.verify_webhook_certificate(client_cert):
             logger.warning("Invalid GoCardless webhook certificate")
-            raise APIError("Invalid certificate", status_code=403)
+            raise GoCardlessWebhookError(
+                message="Invalid webhook certificate", 
+                error_type="cert_verification_failed", 
+                http_status=403
+            )
         
         # Parse the webhook payload
         webhook_data = request.get_json()
         if not webhook_data:
-            raise APIError("Invalid webhook payload", status_code=400)
+            raise GoCardlessWebhookError(
+                message="Invalid webhook payload - missing JSON data", 
+                error_type="invalid_payload", 
+                http_status=400
+            )
+        
+        # Validate required webhook fields
+        if not webhook_data.get('event_type') or not webhook_data.get('resource_type'):
+            raise GoCardlessWebhookError(
+                message="Invalid webhook format - missing required fields", 
+                error_type="invalid_format", 
+                http_status=400
+            )
         
         # Process the webhook data
         result = gocardless_service.process_webhook(webhook_data)
         
         return jsonify({"status": "success", "message": "Webhook processed successfully"})
+    except GoCardlessWebhookError as e:
+        # Handle webhook-specific errors
+        logger.error(f"GoCardless webhook error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessError as e:
+        # Handle other GoCardless errors
+        return handle_gocardless_error(e)
     except Exception as e:
         logger.error(f"Error processing GoCardless webhook: {str(e)}")
         return handle_error(e)
@@ -237,6 +285,21 @@ def fetch_transactions():
         )
         
         return jsonify({"transactions": transactions})
+    except GoCardlessAuthError as e:
+        # Handle authentication errors (e.g., expired tokens)
+        logger.error(f"GoCardless authentication error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessTransactionError as e:
+        # Handle transaction-specific errors
+        logger.error(f"GoCardless transaction error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessBankConnectionError as e:
+        # Handle bank connection errors
+        logger.error(f"GoCardless bank connection error: {e.message}")
+        return handle_gocardless_error(e)
+    except GoCardlessError as e:
+        # Handle other GoCardless errors
+        return handle_gocardless_error(e)
     except Exception as e:
         return handle_error(e)
 
