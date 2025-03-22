@@ -143,28 +143,28 @@
 <div class="card mb-4 shadow-sm">
     <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Recent Transactions</h5>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary" data-refresh-target="transactions-table">
-                <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
-                Refresh
-            </button>
-            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="transactionActions" data-bs-toggle="dropdown" aria-expanded="false">
-                Actions
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionActions">
-                <li><a class="dropdown-item" href="#"><i data-lucide="filter" class="me-2" style="width: 16px; height: 16px;"></i> Filter View</a></li>
-                <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export CSV</a></li>
-            </ul>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="p-2 d-flex justify-content-end">
-            <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Transaction source filters">
+        <div class="d-flex align-items-center">
+            <div class="btn-group btn-group-sm me-2" role="group" aria-label="Transaction source filters">
                 <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
                 <button type="button" class="btn btn-sm btn-outline-success" data-filter="bank">Bank</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="stripe">Stripe</button>
             </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary" data-refresh-target="transactions-table">
+                    <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
+                    Refresh
+                </button>
+                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="transactionActions" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionActions">
+                    <li><a class="dropdown-item" href="#"><i data-lucide="filter" class="me-2" style="width: 16px; height: 16px;"></i> Filter View</a></li>
+                    <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export CSV</a></li>
+                </ul>
+            </div>
         </div>
+    </div>
+    <div class="card-body p-0">
         <div class="table-responsive" id="transactions-table">
             <table class="table table-hover mb-0 dashboard-table">
                 <thead>
@@ -458,156 +458,6 @@
 </div>
 
 
-<!-- Recent Activity Tabs -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-header border-0 bg-transparent">
-        <ul class="nav nav-tabs card-header-tabs" id="activityTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions-tab-pane" type="button" role="tab" aria-controls="transactions-tab-pane" aria-selected="true">
-                    <i data-lucide="credit-card" class="me-2" style="width: 16px; height: 16px;"></i>
-                    Recent Transactions
-                </button>
-            </li>
-
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches-tab-pane" type="button" role="tab" aria-controls="matches-tab-pane" aria-selected="false">
-                    <i data-lucide="link" class="me-2" style="width: 16px; height: 16px;"></i>
-                    Recent Matches
-                </button>
-            </li>
-        </ul>
-    </div>
-    <div class="card-body p-0">
-        <div class="tab-content" id="activityTabsContent">
-            <!-- Transactions Tab -->
-            <div class="tab-pane fade show active" id="transactions-tab-pane" role="tabpanel" aria-labelledby="transactions-tab" tabindex="0">
-                <div class="p-2 d-flex justify-content-end">
-                    <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Transaction source filters">
-                        <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
-                        <button type="button" class="btn btn-sm btn-outline-success" data-filter="bank">Bank</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="stripe">Stripe</button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Reference</th>
-                                <th>Amount</th>
-                                <th>Source</th>
-                                <th>Status</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if recent_transactions %}
-                                {% for transaction in recent_transactions %}
-                                <tr>
-                                    <td>{{ transaction.transaction_date.strftime('%Y-%m-%d') }}</td>
-                                    <td>{{ transaction.reference or transaction.transaction_id[:8] }}</td>
-                                    <td><span class="fw-semibold">{{ "%.2f"|format(transaction.amount) }}</span> <small class="text-muted">{{ transaction.currency }}</small></td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if transaction.bank_name is defined and transaction.bank_name %}
-                                                <div class="source-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                                    <i data-lucide="landmark" style="width: 14px; height: 14px;"></i>
-                                                </div>
-                                                <span>{{ transaction.bank_name }}</span>
-                                            {% elif transaction.payment_method is defined %}
-                                                <div class="source-icon me-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; background-color: rgba(147, 51, 234, 0.2);">
-                                                    <i data-lucide="credit-card" style="width: 14px; height: 14px; color: #9333EA;"></i>
-                                                </div>
-                                                <span>Stripe{% if transaction.payment_method %} ({{ transaction.payment_method }}){% endif %}</span>
-                                            {% else %}
-                                                <div class="source-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                                    <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
-                                                </div>
-                                                <span>Unknown Source</span>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if transaction.matches %}
-                                        <span class="badge bg-success">Matched</span>
-                                        {% else %}
-                                        <span class="badge bg-warning">Unmatched</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
-                                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                            </button>
-                                            {% if not transaction.matches %}
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-success" data-bs-toggle="tooltip" title="Match Transaction">
-                                                <i data-lucide="link" style="width: 14px; height: 14px;"></i>
-                                            </button>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center py-4">
-                                        <div class="empty-state">
-                                            <i data-lucide="inbox" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
-                                            <p class="mb-0">No transactions found</p>
-                                            <button class="btn btn-sm btn-outline-primary mt-3">
-                                                <i data-lucide="refresh-cw" class="me-2" style="width: 14px; height: 14px;"></i>
-                                                Fetch Transactions
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="small text-muted">Showing {{ recent_transactions|length if recent_transactions else 0 }} of {{ stats.transactions }} transactions</span>
-                    <a href="#transactions" class="btn btn-sm btn-outline-primary">View All Transactions</a>
-                </div>
-            </div>
-            
-
-            
-            <!-- Matches Tab -->
-            <div class="tab-pane fade" id="matches-tab-pane" role="tabpanel" aria-labelledby="matches-tab" tabindex="0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Transaction</th>
-                                <th>Invoice</th>
-                                <th>Amount</th>
-                                <th>Confidence</th>
-                                <th>Status</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="7" class="text-center py-4">
-                                    <div class="empty-state">
-                                        <i data-lucide="unlink" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
-                                        <p class="mb-0">No recent matches found</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="small text-muted">Showing 0 of {{ stats.matches }} matches</span>
-                    <a href="#matches" class="btn btn-sm btn-outline-primary">View All Matches</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Financial Goals - Animated Progress Bars -->
 {% include 'components/financial_goals.html' %}
