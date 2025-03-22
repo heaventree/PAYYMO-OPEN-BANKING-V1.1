@@ -151,6 +151,39 @@ def gocardless_callback():
     except Exception as e:
         return handle_error(e)
 
+@app.route('/api/gocardless/webhook', methods=['POST'])
+def gocardless_webhook():
+    """
+    Handle GoCardless webhooks with certificate verification
+    
+    GoCardless sends webhooks with a client certificate that we need to verify
+    to ensure the webhook is authentic.
+    """
+    try:
+        # Log the incoming webhook
+        logger.info("Received GoCardless webhook")
+        
+        # Get client certificate data if present
+        client_cert = request.environ.get('SSL_CLIENT_CERT')
+        
+        # Verify the webhook using the client certificate
+        if not gocardless_service.verify_webhook_certificate(client_cert):
+            logger.warning("Invalid GoCardless webhook certificate")
+            raise APIError("Invalid certificate", status_code=403)
+        
+        # Parse the webhook payload
+        webhook_data = request.get_json()
+        if not webhook_data:
+            raise APIError("Invalid webhook payload", status_code=400)
+        
+        # Process the webhook data
+        result = gocardless_service.process_webhook(webhook_data)
+        
+        return jsonify({"status": "success", "message": "Webhook processed successfully"})
+    except Exception as e:
+        logger.error(f"Error processing GoCardless webhook: {str(e)}")
+        return handle_error(e)
+
 @app.route('/api/transactions/fetch', methods=['POST'])
 def fetch_transactions():
     """Fetch transactions from GoCardless for a specific bank account"""

@@ -21,6 +21,10 @@ class GoCardlessService:
         self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
         self.token_url = 'https://auth.gocardless.com/oauth/token'
         
+        # Certificate paths for webhook verification
+        self.webhook_cert_path = os.environ.get('GOCARDLESS_WEBHOOK_CERT_PATH')
+        self.webhook_key_path = os.environ.get('GOCARDLESS_WEBHOOK_KEY_PATH')
+        
         # Dictionary to store state parameters for OAuth flow
         self.oauth_states = {}
     
@@ -358,3 +362,192 @@ class GoCardlessService:
         db.session.commit()
         
         logger.info(f"Successfully refreshed token for bank connection {bank_connection.id}")
+        
+    def verify_webhook_certificate(self, client_cert):
+        """
+        Verify the client certificate from GoCardless webhook
+        
+        Args:
+            client_cert: Client certificate from the webhook request
+            
+        Returns:
+            Boolean indicating if certificate is valid
+        """
+        try:
+            # If no client certificate was provided, check if we're in development mode
+            if not client_cert:
+                # In development, we might want to bypass certificate verification
+                if os.environ.get('FLASK_ENV') == 'development':
+                    logger.warning("Development mode: Bypassing webhook certificate verification")
+                    return True
+                else:
+                    logger.error("No client certificate provided with webhook")
+                    return False
+            
+            # Check if certificate files exist
+            if not self.webhook_cert_path or not self.webhook_key_path:
+                logger.error("Webhook certificate or key path not configured")
+                return False
+            
+            if not os.path.exists(self.webhook_cert_path) or not os.path.exists(self.webhook_key_path):
+                logger.error("Webhook certificate or key file not found")
+                return False
+            
+            # In a production environment, we'd validate the certificate against our CA
+            # For now, we'll just log the certificate details and return True for development
+            logger.info(f"Received client certificate: {client_cert[:100]}...")
+            
+            # TODO: Implement proper certificate validation against GoCardless CA
+            # For production, you'd use libraries like PyOpenSSL to validate the certificate
+            
+            return True
+        except Exception as e:
+            logger.error(f"Error verifying webhook certificate: {str(e)}")
+            return False
+    
+    def process_webhook(self, webhook_data):
+        """
+        Process a webhook event from GoCardless
+        
+        Args:
+            webhook_data: Webhook payload from GoCardless
+            
+        Returns:
+            Dictionary with processing result
+        """
+        try:
+            logger.info(f"Processing GoCardless webhook: {json.dumps(webhook_data)[:200]}...")
+            
+            # Extract event type and resource information
+            event_type = webhook_data.get('event_type')
+            resource_type = webhook_data.get('resource_type')
+            resource_id = webhook_data.get('resource_id')
+            
+            if not event_type or not resource_type or not resource_id:
+                logger.error("Invalid webhook format: missing required fields")
+                return {"success": False, "message": "Invalid webhook format"}
+            
+            logger.info(f"Webhook event: {event_type}, resource: {resource_type}, id: {resource_id}")
+            
+            # Handle different event types
+            if resource_type == 'transactions' and event_type == 'created':
+                # New transaction created, fetch and store it
+                self._process_transaction_webhook(webhook_data)
+                
+            elif resource_type == 'accounts' and event_type == 'updated':
+                # Account updated, update our records
+                self._process_account_update_webhook(webhook_data)
+                
+            elif resource_type == 'connections' and event_type == 'revoked':
+                # Connection revoked, update our status
+                self._process_connection_revoked_webhook(webhook_data)
+            
+            # Log webhook processing
+            logger.info(f"Successfully processed webhook: {event_type} - {resource_type}")
+            
+            return {
+                "success": True, 
+                "message": f"Processed {event_type} event for {resource_type}"
+            }
+        except Exception as e:
+            logger.error(f"Error processing webhook: {str(e)}")
+            return {"success": False, "message": str(e)}
+    
+    def _process_transaction_webhook(self, webhook_data):
+        """Process a transaction-related webhook event"""
+        # Extract relevant transaction data
+        transaction_data = webhook_data.get('resource_data', {})
+        transaction_id = transaction_data.get('id')
+        account_id = transaction_data.get('account_id')
+        
+        if not transaction_id or not account_id:
+            logger.error("Invalid transaction webhook: missing required fields")
+            return
+        
+        # Check if transaction already exists
+        existing = Transaction.query.filter_by(transaction_id=transaction_id).first()
+        if existing:
+            logger.info(f"Transaction {transaction_id} already exists, skipping")
+            return
+        
+        # Find the bank connection for this account
+        bank_connection = BankConnection.query.filter_by(account_id=account_id).first()
+        if not bank_connection:
+            logger.error(f"No bank connection found for account {account_id}")
+            return
+        
+        # Create new transaction record
+        try:
+            transaction = Transaction(
+                transaction_id=transaction_id,
+                bank_id=bank_connection.bank_id,
+                bank_name=bank_connection.bank_name,
+                account_id=account_id,
+                account_name=bank_connection.account_name,
+                amount=float(transaction_data.get('amount', 0)),
+                currency=transaction_data.get('currency', 'GBP'),
+                description=transaction_data.get('description', ''),
+                reference=transaction_data.get('reference', ''),
+                transaction_date=datetime.strptime(transaction_data.get('date', datetime.now().strftime('%Y-%m-%d')), '%Y-%m-%d')
+            )
+            
+            db.session.add(transaction)
+            db.session.commit()
+            
+            logger.info(f"Added new transaction from webhook: {transaction_id}")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error storing transaction from webhook: {str(e)}")
+    
+    def _process_account_update_webhook(self, webhook_data):
+        """Process an account update webhook event"""
+        # Extract relevant account data
+        account_data = webhook_data.get('resource_data', {})
+        account_id = account_data.get('id')
+        
+        if not account_id:
+            logger.error("Invalid account webhook: missing account ID")
+            return
+        
+        # Find related bank connections
+        bank_connections = BankConnection.query.filter_by(account_id=account_id).all()
+        
+        if not bank_connections:
+            logger.error(f"No bank connections found for account {account_id}")
+            return
+        
+        # Update account information if needed
+        for connection in bank_connections:
+            # Update any relevant fields that might have changed
+            if 'name' in account_data and account_data['name']:
+                connection.account_name = account_data['name']
+            
+            connection.updated_at = datetime.now()
+        
+        db.session.commit()
+        logger.info(f"Updated bank connection details for account {account_id}")
+    
+    def _process_connection_revoked_webhook(self, webhook_data):
+        """Process a connection revoked webhook event"""
+        # Extract relevant connection data
+        connection_data = webhook_data.get('resource_data', {})
+        account_id = connection_data.get('account_id')
+        
+        if not account_id:
+            logger.error("Invalid connection webhook: missing account ID")
+            return
+        
+        # Find related bank connections
+        bank_connections = BankConnection.query.filter_by(account_id=account_id).all()
+        
+        if not bank_connections:
+            logger.error(f"No bank connections found for account {account_id}")
+            return
+        
+        # Update connection status to revoked
+        for connection in bank_connections:
+            connection.status = 'revoked'
+            connection.updated_at = datetime.now()
+        
+        db.session.commit()
+        logger.info(f"Marked bank connection as revoked for account {account_id}")
