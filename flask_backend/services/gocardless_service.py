@@ -27,7 +27,9 @@ class GoCardlessService:
         
         if self.sandbox_mode:
             logger.info("GoCardless service running in SANDBOX mode")
-            self.api_base_url = 'https://api-sandbox.gocardless.com/open-banking'
+            self.api_base_url = 'https://api-sandbox.gocardless.com'
+            self.api_version = '2023-04-06'  # Use the latest API version
+            self.banks_endpoint = f"{self.api_base_url}/institutions"  # Updated endpoint structure
             self.auth_url = 'https://auth-sandbox.gocardless.com/oauth/authorize'
             self.token_url = 'https://auth-sandbox.gocardless.com/oauth/token'
             
@@ -38,7 +40,9 @@ class GoCardlessService:
                 self.client_secret = 'sandbox-client-secret'
         else:
             logger.info("GoCardless service running in PRODUCTION mode")
-            self.api_base_url = 'https://api.gocardless.com/open-banking'
+            self.api_base_url = 'https://api.gocardless.com'
+            self.api_version = '2023-04-06'  # Use the latest API version
+            self.banks_endpoint = f"{self.api_base_url}/institutions"  # Updated endpoint structure
             self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
             self.token_url = 'https://auth.gocardless.com/oauth/token'
         
@@ -64,15 +68,21 @@ class GoCardlessService:
             # Perform a simple API request to check connectivity
             headers = {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'GoCardless-Version': self.api_version
             }
             
             response = requests.get(
-                f"{self.api_base_url}/institutions",
+                self.banks_endpoint,
                 headers=headers
             )
             
-            return response.status_code == 200
+            if response.status_code == 200:
+                logger.info("GoCardless API health check succeeded")
+                return True
+            else:
+                logger.warning(f"GoCardless API health check failed with status {response.status_code}: {response.text}")
+                return False
         except Exception as e:
             logger.error(f"GoCardless health check failed: {str(e)}")
             return False
@@ -91,7 +101,8 @@ class GoCardlessService:
         try:
             headers = {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'GoCardless-Version': self.api_version
             }
             
             # Set up query parameters
@@ -104,16 +115,24 @@ class GoCardlessService:
                 try:
                     # Try to get real banks from sandbox API
                     response = requests.get(
-                        f"{self.api_base_url}/institutions",
+                        self.banks_endpoint,
                         headers=headers,
                         params=params
                     )
                     
                     if response.status_code == 200:
                         banks_data = response.json()
-                        banks = banks_data.get('institutions', [])
+                        # Check for different response formats
+                        if 'institutions' in banks_data:
+                            banks = banks_data.get('institutions', [])
+                        else:
+                            # Direct list of institutions
+                            banks = banks_data
+                            
                         logger.info(f"Retrieved {len(banks)} banks from GoCardless sandbox API")
                         return banks
+                    else:
+                        logger.warning(f"Failed to get banks from sandbox API: Status {response.status_code}, Response: {response.text}")
                 except Exception as e:
                     logger.warning(f"Failed to get banks from sandbox API: {str(e)}")
                     
@@ -159,24 +178,45 @@ class GoCardlessService:
             
             # Production mode - get real banks from API
             response = requests.get(
-                f"{self.api_base_url}/institutions",
+                self.banks_endpoint,
                 headers=headers,
                 params=params
             )
             
             if response.status_code != 200:
-                logger.error(f"Failed to get banks: {response.text}")
-                raise ValueError("Failed to get available banks from GoCardless")
+                error_msg = f"Failed to get banks: Status {response.status_code}, Response: {response.text}"
+                logger.error(error_msg)
+                
+                # Parse error and raise proper exception
+                error = parse_error_response(response, "Failed to get available banks")
+                raise GoCardlessBankConnectionError(
+                    message=f"Could not retrieve banks: {error.message}",
+                    error_type="bank_list_error",
+                    http_status=response.status_code,
+                    details={"country": country}
+                )
             
             banks_data = response.json()
-            banks = banks_data.get('institutions', [])
+            # Check for different response formats
+            if 'institutions' in banks_data:
+                banks = banks_data.get('institutions', [])
+            else:
+                # Direct list of institutions
+                banks = banks_data
             
             logger.info(f"Retrieved {len(banks)} banks from GoCardless API")
             return banks
             
+        except GoCardlessError:
+            # Re-raise GoCardless errors
+            raise
         except Exception as e:
             logger.error(f"Error getting available banks: {str(e)}")
-            raise ValueError(f"Error getting available banks: {str(e)}")
+            raise GoCardlessBankConnectionError(
+                message=f"Error getting available banks: {str(e)}",
+                error_type="bank_list_error",
+                http_status=500
+            )
     
     def get_authorization_url(self, domain, redirect_uri):
         """
@@ -308,11 +348,15 @@ class GoCardlessService:
         """
         headers = {
             'Authorization': f'Bearer {access_token}',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'GoCardless-Version': self.api_version
         }
         
+        # Updated endpoint for accounts
+        accounts_endpoint = f"{self.api_base_url}/accounts"
+        
         response = requests.get(
-            f"{self.api_base_url}/accounts",
+            accounts_endpoint,
             headers=headers
         )
         
@@ -321,21 +365,51 @@ class GoCardlessService:
             error = parse_error_response(response, "Failed to get bank account information")
             raise GoCardlessBankConnectionError(
                 message=f"Could not retrieve account information: {error.message}",
-                error_response=error.error_response,
-                http_status=response.status_code
+                error_type="account_access_error",
+                http_status=response.status_code,
+                details={"response": response.text}
             )
         
         data = response.json()
         
-        if not data.get('accounts') or not len(data['accounts']):
-            raise ValueError("No bank accounts found")
+        # Check for different response formats
+        accounts = []
+        if isinstance(data, list):
+            # Direct list of accounts
+            accounts = data
+        elif 'accounts' in data:
+            # Object with accounts property
+            accounts = data.get('accounts', [])
+        else:
+            # Single account object
+            accounts = [data]
+            
+        if not accounts or len(accounts) == 0:
+            raise GoCardlessBankConnectionError(
+                message="No bank accounts found",
+                error_type="no_accounts",
+                http_status=404
+            )
         
-        account = data['accounts'][0]
+        account = accounts[0]
+        
+        # Handle different property names in API response
+        account_id = account.get('id', account.get('account_id'))
+        institution_id = account.get('institution_id', account.get('bank_id'))
+        institution_name = account.get('institution_name', account.get('bank_name'))
+        
+        if not account_id or not institution_id:
+            raise GoCardlessBankConnectionError(
+                message="Invalid account data returned from API",
+                error_type="invalid_account_data",
+                http_status=500,
+                details={"account": account}
+            )
         
         return {
-            'account_id': account['id'],
-            'bank_id': account['institution_id'],
-            'bank_name': account['institution_name'],
+            'account_id': account_id,
+            'bank_id': institution_id,
+            'bank_name': institution_name,
             'account_name': account.get('name', 'Account'),
             'currency': account.get('currency', 'GBP')
         }
@@ -387,7 +461,8 @@ class GoCardlessService:
         # Fetch transactions from GoCardless
         headers = {
             'Authorization': f'Bearer {bank_connection.access_token}',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'GoCardless-Version': self.api_version
         }
         
         params = {
@@ -395,8 +470,11 @@ class GoCardlessService:
             'to_date': to_date
         }
         
+        # Updated transactions endpoint
+        transactions_endpoint = f"{self.api_base_url}/accounts/{account_id}/transactions"
+        
         response = requests.get(
-            f"{self.api_base_url}/accounts/{account_id}/transactions",
+            transactions_endpoint,
             headers=headers,
             params=params
         )
@@ -406,11 +484,26 @@ class GoCardlessService:
             error = parse_error_response(response, "Failed to fetch transactions")
             raise GoCardlessTransactionError(
                 message=f"Could not retrieve transactions: {error.message}",
+                error_type="transaction_fetch_error",
                 error_response=error.error_response,
-                http_status=response.status_code
+                http_status=response.status_code,
+                details={"account_id": account_id, "date_range": f"{from_date} to {to_date}"}
             )
         
-        transactions_data = response.json().get('transactions', [])
+        # Get transactions data, handling different API response formats
+        response_data = response.json()
+        transactions_data = []
+        
+        # Check for different response formats
+        if isinstance(response_data, list):
+            # Direct list of transactions
+            transactions_data = response_data
+        elif 'transactions' in response_data:
+            # Object with transactions property
+            transactions_data = response_data.get('transactions', [])
+        elif 'items' in response_data:
+            # Object with items property (for paged results)
+            transactions_data = response_data.get('items', [])
         
         # Store transactions in database and return the list
         stored_transactions = []

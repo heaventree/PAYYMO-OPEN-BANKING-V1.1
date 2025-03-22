@@ -11,12 +11,13 @@ logger = logging.getLogger(__name__)
 class GoCardlessError(Exception):
     """Base exception for GoCardless API errors"""
     
-    def __init__(self, message, error_type=None, error_code=None, error_response=None, http_status=None):
+    def __init__(self, message, error_type=None, error_code=None, error_response=None, http_status=None, details=None):
         self.message = message
         self.error_type = error_type
         self.error_code = error_code
         self.error_response = error_response
         self.http_status = http_status
+        self.details = details or {}
         super().__init__(self.message)
     
     def to_dict(self):
@@ -26,7 +27,8 @@ class GoCardlessError(Exception):
             'message': self.message,
             'error_type': self.error_type,
             'error_code': self.error_code,
-            'http_status': self.http_status
+            'http_status': self.http_status,
+            'details': self.details
         }
 
 class GoCardlessAuthError(GoCardlessError):
