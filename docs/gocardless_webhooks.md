@@ -50,6 +50,25 @@ To test webhook functionality:
 2. Monitor Payymo's logs for webhook processing messages
 3. Verify that webhook data is being correctly stored in the database
 
+### Using Self-Signed Certificates for Testing
+
+For development and testing purposes, you can use self-signed certificates. We've included a self-signed certificate and private key in the repository:
+
+```
+flask_backend/certs/webhook_cert.pem
+flask_backend/certs/webhook_key.pem
+```
+
+These files are automatically detected and used by the application in development mode.
+
+To generate your own self-signed certificate for testing:
+
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout webhook_key.pem -out webhook_cert.pem -days 365 -nodes -subj "/C=GB/ST=London/L=London/O=YourCompany/OU=Development/CN=webhook.yourdomain.com"
+```
+
+**Note:** Self-signed certificates should only be used for development and testing. For production, use a certificate issued by a trusted Certificate Authority.
+
 ## Webhook Event Types
 
 Payymo handles the following webhook event types:
