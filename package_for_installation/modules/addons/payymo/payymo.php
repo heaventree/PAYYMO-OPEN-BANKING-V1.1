@@ -129,8 +129,8 @@ function payymo_activate() {
         }
 
         // Create bank accounts table
-        if (!Capsule::schema()->hasTable('mod_gocardless_accounts')) {
-            Capsule::schema()->create('mod_gocardless_accounts', function ($table) {
+        if (!Capsule::schema()->hasTable('mod_payymo_accounts')) {
+            Capsule::schema()->create('mod_payymo_accounts', function ($table) {
                 $table->increments('id');
                 $table->string('account_id', 100)->unique();
                 $table->string('bank_id', 100);
@@ -145,8 +145,8 @@ function payymo_activate() {
         }
 
         // Create matching suggestions table
-        if (!Capsule::schema()->hasTable('mod_gocardless_matches')) {
-            Capsule::schema()->create('mod_gocardless_matches', function ($table) {
+        if (!Capsule::schema()->hasTable('mod_payymo_matches')) {
+            Capsule::schema()->create('mod_payymo_matches', function ($table) {
                 $table->increments('id');
                 $table->integer('transaction_id');
                 $table->integer('invoice_id');
@@ -159,8 +159,8 @@ function payymo_activate() {
         }
 
         // Create logs table
-        if (!Capsule::schema()->hasTable('mod_gocardless_logs')) {
-            Capsule::schema()->create('mod_gocardless_logs', function ($table) {
+        if (!Capsule::schema()->hasTable('mod_payymo_logs')) {
+            Capsule::schema()->create('mod_payymo_logs', function ($table) {
                 $table->increments('id');
                 $table->string('level', 20);
                 $table->text('message');
@@ -171,7 +171,7 @@ function payymo_activate() {
 
         return [
             'status' => 'success',
-            'description' => 'GoCardless Open Banking module activated successfully.',
+            'description' => 'Payymo Financial Toolbox module activated successfully.',
         ];
     } catch (\Exception $e) {
         return [
@@ -186,14 +186,14 @@ function payymo_activate() {
  *
  * @return array
  */
-function gocardless_openbanking_deactivate() {
+function payymo_deactivate() {
     try {
         // We don't drop tables on deactivation to preserve data
         // Tables will be removed only if user chooses to uninstall
 
         return [
             'status' => 'success',
-            'description' => 'GoCardless Open Banking module deactivated successfully. Database tables have been preserved.',
+            'description' => 'Payymo Financial Toolbox module deactivated successfully. Database tables have been preserved.',
         ];
     } catch (\Exception $e) {
         return [
@@ -209,7 +209,7 @@ function gocardless_openbanking_deactivate() {
  * @param array $vars Module configuration parameters
  * @return array
  */
-function gocardless_openbanking_upgrade($vars) {
+function payymo_upgrade($vars) {
     $version = $vars['version'];
 
     // Handle version-specific upgrades here
@@ -221,7 +221,7 @@ function gocardless_openbanking_upgrade($vars) {
 
     return [
         'status' => 'success',
-        'description' => 'GoCardless Open Banking module upgraded successfully.',
+        'description' => 'Payymo Financial Toolbox module upgraded successfully.',
     ];
 }
 
@@ -231,10 +231,10 @@ function gocardless_openbanking_upgrade($vars) {
  * @param array $vars Module configuration parameters
  * @return string HTML output
  */
-function gocardless_openbanking_output($vars) {
+function payymo_output($vars) {
     require_once __DIR__ . '/lib/Admin.php';
     
-    $admin = new GoCardlessOpenBanking\Admin();
+    $admin = new Payymo\Admin();
     return $admin->dispatch($vars);
 }
 
@@ -244,7 +244,7 @@ function gocardless_openbanking_output($vars) {
  * @param array $vars Module configuration parameters
  * @return array Sidebar items
  */
-function gocardless_openbanking_sidebar($vars) {
+function payymo_sidebar($vars) {
     $moduleLink = $vars['modulelink'];
     
     return [
@@ -287,12 +287,12 @@ function gocardless_openbanking_sidebar($vars) {
  * @param array $vars Module configuration parameters
  * @return array Client area output template and variables
  */
-function gocardless_openbanking_clientarea($vars) {
+function payymo_clientarea($vars) {
     // This module doesn't have client area functionality
     return [
-        'pagetitle' => 'GoCardless Open Banking',
+        'pagetitle' => 'Payymo Financial Toolbox',
         'breadcrumb' => [
-            'index.php?m=gocardless_openbanking' => 'GoCardless Open Banking',
+            'index.php?m=payymo' => 'Payymo Financial Toolbox',
         ],
         'templatefile' => 'clientarea',
         'requirelogin' => true,
