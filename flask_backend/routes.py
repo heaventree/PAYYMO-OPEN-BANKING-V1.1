@@ -151,6 +151,22 @@ def gocardless_callback():
     except Exception as e:
         return handle_error(e)
 
+@app.route('/api/gocardless/banks', methods=['GET'])
+def get_available_banks():
+    """Get a list of available banks from GoCardless"""
+    try:
+        country = request.args.get('country')
+        limit = request.args.get('limit', 50, type=int)
+        
+        banks = gocardless_service.get_available_banks(country=country, limit=limit)
+        
+        return jsonify({
+            'success': True,
+            'banks': banks
+        })
+    except Exception as e:
+        return handle_error(e)
+
 @app.route('/api/gocardless/webhook', methods=['POST'])
 def gocardless_webhook():
     """
