@@ -905,19 +905,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Bank distribution chart
-    var ctxBank = document.getElementById('bankDistributionChart').getContext('2d');
-    new Chart(ctxBank, {
+    // Source distribution chart
+    var ctxSource = document.getElementById('sourceDistributionChart').getContext('2d');
+    new Chart(ctxSource, {
         type: 'pie',
         data: {
-            labels: ['Barclays', 'HSBC', 'Lloyds', 'Monzo', 'Other'],
+            labels: ['Barclays', 'HSBC', 'Lloyds', 'Monzo', 'Stripe', 'Other'],
             datasets: [{
-                data: [30, 25, 20, 15, 10],
+                data: [25, 20, 15, 10, 20, 10],
                 backgroundColor: [
                     colors.primaryLight,
                     colors.infoLight,
                     colors.successLight,
                     colors.secondaryLight,
+                    colors.secondaryLight,  // Stripe (purple)
                     colors.darkLight
                 ],
                 borderColor: [
@@ -925,6 +926,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     colors.info,
                     colors.success,
                     colors.secondary,
+                    colors.secondary,  // Stripe (purple)
                     colors.dark
                 ],
                 borderWidth: 1,
