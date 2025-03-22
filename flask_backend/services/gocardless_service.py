@@ -29,7 +29,7 @@ class GoCardlessService:
             logger.info("GoCardless service running in SANDBOX mode")
             self.api_base_url = 'https://api-sandbox.gocardless.com'
             # Use a supported API version for the GoCardless Open Banking API
-            self.api_version = '2020-10-19'  # Updated to a known working version
+            self.api_version = '2023-09-04'  # Updated to the latest documented stable version
             # Update endpoint to match GoCardless API structure 
             self.banks_endpoint = f"{self.api_base_url}/institutions"
             self.auth_url = 'https://auth-sandbox.gocardless.com/oauth/authorize'
@@ -44,7 +44,7 @@ class GoCardlessService:
             logger.info("GoCardless service running in PRODUCTION mode")
             self.api_base_url = 'https://api.gocardless.com'
             # Use a supported API version for the GoCardless Open Banking API
-            self.api_version = '2020-10-19'  # Updated to a known working version
+            self.api_version = '2023-09-04'  # Updated to the latest documented stable version
             # Update endpoint to match GoCardless API structure
             self.banks_endpoint = f"{self.api_base_url}/institutions"
             self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
