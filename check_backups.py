@@ -190,11 +190,51 @@ def check_backup_service():
     print("\n🔄 BACKUP SERVICE STATUS")
     print("=====================")
     
+    # First check for the new simple backup service
+    simple_backup_pid_file = "backup_service.pid"
     python_pid_file = "backup_pid.txt"
     runner_pid_file = "backup_runner_pid.txt"
     
     try:
-        if os.path.exists(runner_pid_file):
+        # 1. First check for simple_backup_service
+        if os.path.exists(simple_backup_pid_file):
+            try:
+                with open(simple_backup_pid_file, 'r') as f:
+                    pid = f.read().strip()
+                
+                # Check if the process is actually running
+                try:
+                    os.kill(int(pid), 0)
+                    print(f"✅ Simple Backup Service is RUNNING (PID: {pid})")
+                    
+                    # Get process info
+                    result = subprocess.run(['ps', '-p', pid, '-o', 'start,etime,cmd'], capture_output=True, text=True)
+                    output = result.stdout
+                    lines = output.strip().split('\n')
+                    if len(lines) > 1:
+                        parts = lines[1].split()
+                        if len(parts) >= 2:
+                            print(f"   Started: {parts[0]}")
+                            print(f"   Running time: {parts[1]}")
+                    
+                    # Get status directly from simple backup service
+                    print("\n   Running status check...")
+                    subprocess.run(['python', 'simple_backup_service.py', 'status'])
+                    return
+                except (ProcessLookupError, PermissionError, ValueError):
+                    print("❌ Simple Backup Service is NOT RUNNING (stale PID file found)")
+                    print("   To restart it, run: python simple_backup_service.py start")
+                    # Try to clean up the stale PID file
+                    try:
+                        os.remove(simple_backup_pid_file)
+                        print("   Removed stale PID file.")
+                    except:
+                        pass
+            except Exception as e:
+                print(f"Error reading PID file: {e}")
+            
+        # 2. Check for runner_pid_file (old backup service)
+        elif os.path.exists(runner_pid_file):
             with open(runner_pid_file, 'r') as f:
                 runner_pid = f.read().strip()
             
@@ -202,7 +242,9 @@ def check_backup_service():
             try:
                 # This will raise an exception if the process is not running
                 os.kill(int(runner_pid), 0)
-                print(f"✅ Backup service is RUNNING (Runner PID: {runner_pid})")
+                print(f"✅ Old Backup Service is RUNNING (Runner PID: {runner_pid})")
+                print("   Note: Consider migrating to the new Simple Backup Service")
+                print("   To start new service: python simple_backup_service.py start")
                 
                 # Get process info
                 result = subprocess.run(['ps', '-p', runner_pid, '-o', 'start,cmd'], capture_output=True, text=True)
@@ -221,15 +263,17 @@ def check_backup_service():
                     if delta.total_seconds() < 15*60:
                         minutes_remaining = 15 - (delta.total_seconds() // 60)
                         print(f"   Next backup in approximately {int(minutes_remaining)} minute(s)")
-            except (ProcessLookupError, PermissionError):
-                print("❌ Backup service is NOT RUNNING (stale runner PID file found)")
-                print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+            except (ProcessLookupError, PermissionError, ValueError):
+                print("❌ Old Backup Service is NOT RUNNING (stale runner PID file found)")
+                print("   To start the new service, run: python simple_backup_service.py start")
                 # Try to clean up the stale PID file
                 try:
                     os.remove(runner_pid_file)
                     print("   Removed stale runner PID file.")
                 except:
                     pass
+        
+        # 3. Check for python_pid_file (old backup service)
         elif os.path.exists(python_pid_file):
             with open(python_pid_file, 'r') as f:
                 pid = f.read().strip()
@@ -237,12 +281,12 @@ def check_backup_service():
             # Check if the Python process is actually running
             try:
                 os.kill(int(pid), 0)
-                print(f"✅ Python backup process is RUNNING (PID: {pid}) but backup runner is not found")
-                print("   This is unusual. Consider restarting the service with:")
-                print("   nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
-            except (ProcessLookupError, PermissionError):
-                print("❌ Backup service is NOT RUNNING (stale Python PID file found)")
-                print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+                print(f"✅ Python backup process is RUNNING (PID: {pid}) but the runner is not found")
+                print("   This is unusual. Consider using the new simple backup service:")
+                print("   python simple_backup_service.py start")
+            except (ProcessLookupError, PermissionError, ValueError):
+                print("❌ Old Backup Service is NOT RUNNING (stale Python PID file found)")
+                print("   To use the new service, run: python simple_backup_service.py start")
                 # Try to clean up the stale PID file
                 try:
                     os.remove(python_pid_file)
@@ -250,25 +294,35 @@ def check_backup_service():
                 except:
                     pass
         else:
-            # Check for any running backup processes
+            # 4. Check for any running backup processes
             result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
             output = result.stdout
             
-            backup_processes = [line for line in output.split('\n') if 'run_backup_loop.sh' in line and 'grep' not in line]
+            simple_backup_processes = [line for line in output.split('\n') if 'simple_backup_service.py' in line and 'grep' not in line and 'status' not in line]
+            old_backup_processes = [line for line in output.split('\n') if 'run_backup_loop.sh' in line and 'grep' not in line]
             
-            if backup_processes:
-                print("✅ Backup service appears to be RUNNING (PID file missing)")
-                for proc in backup_processes:
+            if simple_backup_processes:
+                print("✅ Simple Backup Service appears to be RUNNING (PID file missing)")
+                for proc in simple_backup_processes:
                     parts = proc.split()
                     if len(parts) > 9:
                         pid = parts[1]
                         start_time = parts[9]
                         print(f"   PID: {pid}, Start time: {start_time}")
-                print("   Consider restarting for proper tracking: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+                print("   Consider restarting for proper tracking: python simple_backup_service.py start")
+            elif old_backup_processes:
+                print("✅ Old Backup Service appears to be RUNNING (PID file missing)")
+                for proc in old_backup_processes:
+                    parts = proc.split()
+                    if len(parts) > 9:
+                        pid = parts[1]
+                        start_time = parts[9]
+                        print(f"   PID: {pid}, Start time: {start_time}")
+                print("   Consider using the new simple backup service: python simple_backup_service.py start")
             else:
                 # Completely not running
                 print("❌ Backup service is NOT RUNNING")
-                print("   To start it, run: nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+                print("   To start the new service, run: python simple_backup_service.py start")
         
         # Check for recent activity in the log file
         if os.path.exists(LOG_FILE):
@@ -326,7 +380,10 @@ def main():
     # Display helpful commands
     print("\n📋 USEFUL COMMANDS:")
     print("================")
-    print("▶️ Start backup service:      nohup bash run_backup_loop.sh > backup_runner.log 2>&1 &")
+    print("▶️ Start backup service:      python simple_backup_service.py start")
+    print("🛑 Stop backup service:       python simple_backup_service.py stop")
+    print("📊 Check service status:      python simple_backup_service.py status")
+    print("🔄 Run backup once:           python simple_backup_service.py once")
     print("📦 Create backup now:         python backup_chat.py backup")
     print("📝 Backup chat history:       python backup_chat.py chat")
     print("💾 Save approved revision:    python save_approved.py \"Name\" \"Description\"")
@@ -334,7 +391,6 @@ def main():
     print("📜 View backup logs:          cat backup_system.log")
     print("🔍 Check backup status:       python check_backups.py")
     print("🔄 List revisions:            python backup_chat.py list")
-    print("❌ Stop backup service:       rm backup_runner_pid.txt")
 
 if __name__ == "__main__":
     main()
