@@ -355,6 +355,13 @@
         </div>
     </div>
     <div class="card-body p-0">
+        <div class="p-2 d-flex justify-content-end">
+            <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Transaction source filters">
+                <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+                <button type="button" class="btn btn-sm btn-outline-success" data-filter="bank">Bank</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="stripe">Stripe</button>
+            </div>
+        </div>
         <div class="table-responsive" id="transactions-table">
             <table class="table table-hover mb-0 dashboard-table">
                 <thead>
