@@ -161,7 +161,7 @@ class StripeConnection(db.Model):
         return f"<StripeConnection {self.account_id} - {self.account_name}>"
 
 class StripePayment(db.Model):
-    """Stripe payment data"""
+    """Stripe transaction data for reconciliation"""
     __tablename__ = 'stripe_payments'
 
     id = Column(Integer, primary_key=True)

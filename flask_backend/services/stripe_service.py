@@ -1,6 +1,7 @@
 """
-Stripe integration service for connecting and interacting with Stripe accounts
-Handles OAuth flows, payment retrieval, and account management
+Stripe integration service for connecting and retrieving transaction data from Stripe accounts
+Handles OAuth flows, transaction retrieval, and account connection management
+Focuses purely on retrieving transaction records for reconciliation, not on payment processing
 """
 import os
 import json

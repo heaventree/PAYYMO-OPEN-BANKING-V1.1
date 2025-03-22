@@ -360,9 +360,9 @@ def stripe_callback():
     except Exception as e:
         return handle_error(e)
 
-@app.route('/api/stripe/payments/fetch', methods=['POST'])
-def fetch_stripe_payments():
-    """Fetch payments from Stripe for a specific account"""
+@app.route('/api/stripe/transactions/fetch', methods=['POST'])
+def fetch_stripe_transactions():
+    """Fetch transaction records from Stripe for a specific account"""
     try:
         data = request.get_json()
         
