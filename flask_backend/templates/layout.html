@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coinest - Finance Management - {% block title %}Dashboard{% endblock %}</title>
+    <title>Payymo - Open Banking for WHMCS - {% block title %}Dashboard{% endblock %}</title>
     
-    <!-- Bootstrap CSS (using Replit-themed bootstrap CSS as per guidelines) -->
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
-    
-    <!-- Google Fonts - Inter (Used in Figma design) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS (Light Theme) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- jQuery (required for plugins) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -29,148 +26,111 @@
     <!-- Animate.css for animations -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     
-    <!-- Original CSS (for compatibility) -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <!-- Coinest Figma-inspired CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/coinest.css') }}">
     
     {% block styles %}{% endblock %}
 </head>
-<body>
-    <div class="d-flex">
-        <!-- Left Sidebar - Exactly as in Figma -->
-        <div class="coinest-sidebar d-none d-lg-flex flex-column">
-            <!-- Logo -->
-            <a href="{{ url_for('dashboard') }}" class="sidebar-logo">
-                <div class="d-flex align-items-center">
-                    <i data-lucide="bar-chart-2" style="width: 24px; height: 24px; color: #4de182;" class="me-2"></i>
-                    <span class="fs-5 fw-semibold">COINEST</span>
-                </div>
-            </a>
-            
-            <!-- Navigation -->
-            <ul class="sidebar-nav">
-                <li class="sidebar-nav-item">
-                    <a href="{{ url_for('dashboard') }}" class="sidebar-nav-link {% if request.path == url_for('dashboard') %}active{% endif %}">
-                        <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#transactions" class="sidebar-nav-link">
-                        <i data-lucide="repeat" style="width: 20px; height: 20px;"></i>
-                        <span>Transactions</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#analytics" class="sidebar-nav-link">
-                        <i data-lucide="bar-chart-2" style="width: 20px; height: 20px;"></i>
-                        <span>Analytics</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#budgeting" class="sidebar-nav-link">
-                        <i data-lucide="wallet" style="width: 20px; height: 20px;"></i>
-                        <span>Budgeting</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#account" class="sidebar-nav-link">
-                        <i data-lucide="user" style="width: 20px; height: 20px;"></i>
-                        <span>Account</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#settings" class="sidebar-nav-link">
-                        <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-            
-            <!-- Bottom logout -->
-            <div class="mt-auto text-center mb-4">
-                <a href="{{ url_for('logout') }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
-                    <i data-lucide="log-out" style="width: 18px; height: 18px;" class="me-2"></i>
-                    <span>Log Out</span>
+<body data-bs-theme="light">
+    {% if session.authenticated %}
+    <div class="container-fluid">
+        <!-- Top Navigation Bar (WHMCS-style) -->
+        <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                    <i data-lucide="landmark" style="width: 24px; height: 24px;" class="me-2"></i>
+                    <span class="fs-5 fw-semibold">Payymo</span>
+                    <span class="ms-2 text-muted small">Open Banking for WHMCS</span>
                 </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == url_for('dashboard') %}active{% endif %}">
+                                <i data-lucide="layout-dashboard" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#settings" class="nav-link">
+                                <i data-lucide="settings" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#transactions" class="nav-link">
+                                <i data-lucide="credit-card" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Transactions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#matches" class="nav-link">
+                                <i data-lucide="link" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Matches
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#banks" class="nav-link">
+                                <i data-lucide="landmark" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Banks
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <!-- Help Dropdown -->
+                        <div class="dropdown me-2">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i data-lucide="help-circle" class="me-1" style="width: 16px; height: 16px;"></i>
+                                Help
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end help-menu" aria-labelledby="helpDropdown">
+                                <li><button class="dropdown-item" type="button"><i class="fas fa-book me-2"></i> Documentation</button></li>
+                                <li><button class="dropdown-item" type="button"><i class="fas fa-question-circle me-2"></i> Support</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <!-- Walkthrough button will be added by JS -->
+                            </ul>
+                        </div>
+                        
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                            <i data-lucide="log-out" class="me-1" style="width: 16px; height: 16px;"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
+        </nav>
         
         <!-- Main Content -->
-        <div class="flex-grow-1 px-4 py-4" style="margin-left: 220px;">
-            <!-- Top Header Bar -->
-            <div class="row mb-4 align-items-center">
-                <div class="col-md-6">
-                    <h1 class="mb-0 fw-bold">Dashboard</h1>
-                </div>
-                <div class="col-md-6 d-flex justify-content-end align-items-center">
-                    <!-- Search -->
-                    <div class="position-relative me-3">
-                        <input type="text" class="search-input" placeholder="Search...">
-                        <i data-lucide="search" class="search-icon" style="width: 18px; height: 18px;"></i>
-                    </div>
-                    
-                    <!-- Notifications -->
-                    <div class="notification-icon me-3">
-                        <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
-                        <span class="notification-badge">2</span>
-                    </div>
-                    
-                    <!-- User Profile -->
-                    <div class="user-profile">
-                        <div class="d-flex flex-column align-items-end me-2">
-                            <span class="fw-semibold">Andrew Forbist</span>
-                            <small class="text-muted">Admin</small>
-                        </div>
-                        <div class="user-avatar">
-                            <span>A</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Page Content -->
-            <div class="dashboard-content">
-                {% block content %}{% endblock %}
-            </div>
+        <div class="container-fluid px-md-4">
+            <!-- Page content -->
+            {% block content %}{% endblock %}
             
             <!-- Footer -->
-            <footer class="pt-4 mt-5 text-muted">
+            <footer class="pt-3 mt-4 text-muted border-top">
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-0">© 2025 <a href="#" class="text-decoration-none text-muted">Coinest</a> - Finance Management Dashboard</p>
+                        <p class="mb-0">© 2025 <a href="https://payymo.com" target="_blank" class="text-decoration-none text-muted">Payymo</a> - Open Banking for WHMCS</p>
                     </div>
                     <div class="col-md-6 text-md-end">
-                        <p class="mb-0">Version 1.0</p>
+                        <p class="mb-0">Version 1.0.0</p>
                     </div>
                 </div>
             </footer>
         </div>
     </div>
-    
-    <!-- Mobile Nav (Visible on small screens) -->
-    <div class="d-lg-none position-fixed bottom-0 start-0 end-0 bg-white border-top py-2">
-        <div class="d-flex justify-content-around">
-            <a href="{{ url_for('dashboard') }}" class="text-center text-decoration-none {% if request.path == url_for('dashboard') %}text-primary{% else %}text-muted{% endif %}">
-                <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
-                <div class="small">Dashboard</div>
-            </a>
-            <a href="#transactions" class="text-center text-decoration-none text-muted">
-                <i data-lucide="repeat" style="width: 20px; height: 20px;"></i>
-                <div class="small">Transactions</div>
-            </a>
-            <a href="#analytics" class="text-center text-decoration-none text-muted">
-                <i data-lucide="bar-chart-2" style="width: 20px; height: 20px;"></i>
-                <div class="small">Analytics</div>
-            </a>
-            <a href="#account" class="text-center text-decoration-none text-muted">
-                <i data-lucide="user" style="width: 20px; height: 20px;"></i>
-                <div class="small">Account</div>
-            </a>
-        </div>
+    {% else %}
+    <div class="container">
+        <main class="py-4">
+            {% block login_content %}{% endblock %}
+        </main>
+        
+        <footer class="mt-auto py-3 text-center text-muted">
+            <p class="mb-0">© 2025 <a href="https://payymo.com" target="_blank" class="text-decoration-none text-muted">Payymo</a> - Open Banking for WHMCS</p>
+        </footer>
     </div>
+    {% endif %}
     
     <script>
         // Initialize Lucide icons
@@ -178,139 +138,62 @@
             // Create standard icons
             lucide.createIcons();
             
-            // Set up chart.js global defaults
-            Chart.defaults.font.family = "'Inter', sans-serif";
-            Chart.defaults.color = '#626262';
-            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-            Chart.defaults.plugins.tooltip.titleColor = '#0e150e';
-            Chart.defaults.plugins.tooltip.bodyColor = '#0e150e';
-            Chart.defaults.plugins.tooltip.borderColor = '#e5e7eb';
-            Chart.defaults.plugins.tooltip.borderWidth = 1;
-            Chart.defaults.plugins.tooltip.padding = 10;
-            Chart.defaults.plugins.tooltip.boxPadding = 6;
+            // Fix missing icons with appropriate alternatives
+            const iconReplacements = {
+                'building-bank': 'building',
+                'landmark': 'home',
+                'layout-dashboard': 'layout',
+                'link-off': 'unlink'
+            };
             
-            // Initialize cashflow chart if it exists
-            const cashflowChartElem = document.getElementById('cashflowChart');
-            if (cashflowChartElem) {
-                const ctx = cashflowChartElem.getContext('2d');
-                const gradient1 = ctx.createLinearGradient(0, 0, 0, 250);
-                gradient1.addColorStop(0, 'rgba(77, 225, 130, 0.2)');
-                gradient1.addColorStop(1, 'rgba(77, 225, 130, 0)');
+            // Apply icon replacements
+            Object.entries(iconReplacements).forEach(([original, replacement]) => {
+                document.querySelectorAll(`[data-lucide="${original}"]`).forEach(icon => {
+                    icon.setAttribute('data-lucide', replacement);
+                });
+            });
+            
+            // Replace trending-up icons in the financial goals component
+            document.querySelectorAll('.goal-card [data-lucide="trending-up"]').forEach(icon => {
+                icon.setAttribute('data-lucide', 'arrow-up-right');
+            });
+            
+            // Create icons again to apply changes
+            lucide.createIcons();
+            
+            // Initialize progress bars if they exist
+            const initProgressBars = () => {
+                const progressBars = document.querySelectorAll('.animated-progress .progress-bar');
+                if (progressBars.length === 0) return;
                 
-                const gradient2 = ctx.createLinearGradient(0, 0, 0, 250);
-                gradient2.addColorStop(0, 'rgba(225, 77, 81, 0.2)');
-                gradient2.addColorStop(1, 'rgba(225, 77, 81, 0)');
+                progressBars.forEach((bar, index) => {
+                    setTimeout(() => {
+                        const value = bar.getAttribute('aria-valuenow');
+                        bar.style.width = value + '%';
+                    }, 300 * index);
+                });
                 
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                        datasets: [
-                            {
-                                label: 'Income',
-                                data: [6000, 5500, 6800, 7200, 6500, 7500, 6800, 7000, 7800, 8000, 7500, 8200],
-                                backgroundColor: '#4de182',
-                                borderRadius: 4,
-                                barPercentage: 0.6,
-                                categoryPercentage: 0.7
-                            },
-                            {
-                                label: 'Expenses',
-                                data: [-4200, -3800, -4500, -4100, -3900, -4800, -4300, -4600, -5000, -4800, -5200, -5500],
-                                backgroundColor: '#e14d51',
-                                borderRadius: 4,
-                                barPercentage: 0.6,
-                                categoryPercentage: 0.7
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                grid: {
-                                    borderDash: [4, 4]
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return '$' + Math.abs(value / 1000) + 'k';
-                                    }
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.raw < 0) {
-                                            label += '-$' + Math.abs(context.raw).toLocaleString();
-                                        } else {
-                                            label += '$' + context.raw.toLocaleString();
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
-                        }
+                const glowElements = document.querySelectorAll('.progress-glow');
+                glowElements.forEach((glow, index) => {
+                    glow.style.animationDelay = (0.5 * index) + 's';
+                });
+            };
+            
+            // Run on initial load and whenever content changes
+            initProgressBars();
+            
+            // Add an observer to detect when the dashboard content is loaded
+            const contentObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.addedNodes.length) {
+                        initProgressBars();
                     }
                 });
-            }
+            });
             
-            // Initialize donut chart if it exists
-            const donutChartElem = document.getElementById('expenseDonutChart');
-            if (donutChartElem) {
-                const ctx = donutChartElem.getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Rent & Living', 'Investment', 'Education', 'Food & Drink', 'Entertainment'],
-                        datasets: [{
-                            data: [2100, 525, 400, 280, 175],
-                            backgroundColor: [
-                                '#4d8be1',
-                                '#4de182',
-                                '#e1ca4d',
-                                '#8b5cf6',
-                                '#e14d51'
-                            ],
-                            borderWidth: 0,
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '75%',
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.raw;
-                                        const percentage = (context.raw / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
-                                        return `${label}: $${value} (${percentage}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+            const contentContainer = document.querySelector('.container-fluid.px-md-4');
+            if (contentContainer) {
+                contentObserver.observe(contentContainer, { childList: true, subtree: true });
             }
         });
     </script>
