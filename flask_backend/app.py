@@ -50,6 +50,7 @@ with app.app_context():
     # Import routes and models here to avoid circular imports
     from flask_backend.routes import *
     from flask_backend.routes_testing import *
+    from flask_backend.routes_test_data import *
     from flask_backend.checkout import checkout_bp
     import flask_backend.models
     

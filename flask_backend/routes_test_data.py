@@ -123,8 +123,8 @@ def generate_gocardless_test_data():
     except Exception as e:
         return handle_error(e)
         
-@app.route('/api/testing/generate-stripe-data', methods=['POST'])
-def generate_stripe_test_data():
+@app.route('/api/testing/generate-stripe-test-data', methods=['POST'])
+def generate_stripe_test_data_extended():
     """Generate test data for Stripe payments"""
     try:
         data = request.get_json()

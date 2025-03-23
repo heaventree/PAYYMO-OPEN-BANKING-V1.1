@@ -639,7 +639,7 @@ def logout():
 
 # ============= Health Check =============
 
-@app.route('/health')
+@app.route('/api/health')
 def health_check():
     """Health check endpoint"""
     # Check database connectivity
