@@ -323,3 +323,226 @@ export function Icon({ icon: Icon, size = 'md', className }: IconProps) {
 5. Maintain a component library
 
 Remember to adapt these guidelines based on your specific project needs and requirements.
+
+## Section Identifier System
+
+### Overview
+The Section Identifier System is a visual debugging and development tool that helps identify different components and sections of the UI by displaying numbered indicators. This system is particularly useful for:
+
+1. Debugging layout issues
+2. Identifying specific containers for targeted CSS modifications
+3. Communicating about specific UI areas during development
+4. Making the component structure visually apparent
+
+### Implementation Details
+
+#### HTML Structure
+```html
+<!-- Add the section-container class and unique ID to any component container -->
+<div class="card mb-4 shadow-sm section-container" id="section-7">
+    <div class="card-header border-0 bg-transparent">
+        <h5 class="card-title mb-0">Financial Goals</h5>
+    </div>
+    <!-- Component content -->
+</div>
+```
+
+#### CSS Implementation
+```css
+/* Base container styles */
+.section-container {
+  position: relative;
+  border: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+/* Base identifier styles */
+.section-identifier {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #6c757d;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide identifiers by default */
+.section-identifier {
+  display: none;
+}
+
+/* Show identifiers when enabled */
+body.show-section-identifiers .section-identifier {
+  display: inline-flex;
+  opacity: 1;
+}
+
+/* Add subtle highlight to container when identifiers are enabled */
+body.show-section-identifiers .section-container {
+  border-color: rgba(108, 117, 125, 0.15);
+  border-radius: 4px;
+}
+
+/* Tooltip for section identifiers */
+body.show-section-identifiers .section-container:hover::before {
+  content: "Section ID: " attr(id);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  z-index: 1000;
+}
+```
+
+#### JavaScript Implementation (section-identifiers.js)
+```javascript
+/**
+ * Section Identifiers Manager
+ * Provides a modular system for adding numbered section identifiers to UI elements
+ * Can be toggled on/off and persists state via cookies
+ */
+
+const SectionIdentifiers = {
+    // Configuration
+    enabled: false,
+    cookieName: 'section_identifiers_enabled',
+    cookieExpireDays: 30,
+    
+    // Initialize the system
+    init: function() {
+        // Check saved preference
+        this.loadPreference();
+        
+        // Setup toggle switch in navbar
+        this.setupToggleSwitch();
+        
+        // Set initial state based on preference
+        this.applyState();
+        
+        // Set up mutation observer to handle dynamically loaded content
+        this.setupObserver();
+    },
+    
+    // Create and add identifiers to sections
+    setupIdentifiers: function() {
+        // Remove any existing identifiers first
+        document.querySelectorAll('.section-identifier').forEach(el => el.remove());
+        
+        // If not enabled, don't add new ones
+        if (!this.enabled) return;
+        
+        // Select elements with section-container class
+        const containers = document.querySelectorAll('.section-container');
+        
+        // Add numbered badges
+        containers.forEach((container, index) => {
+            const identifier = document.createElement('span');
+            identifier.className = 'section-identifier badge';
+            identifier.textContent = (index + 1).toString();
+            container.prepend(identifier);
+            
+            // Add section ID as attribute if it doesn't exist
+            if (!container.id || !container.id.startsWith('section-')) {
+                container.id = `section-${index + 1}`;
+            }
+        });
+    },
+    
+    // Toggle identifiers on/off
+    toggle: function() {
+        this.enabled = !this.enabled;
+        this.savePreference();
+        this.applyState();
+    },
+    
+    // Apply current state
+    applyState: function() {
+        // Add or remove the body class
+        if (this.enabled) {
+            document.body.classList.add('show-section-identifiers');
+        } else {
+            document.body.classList.remove('show-section-identifiers');
+        }
+        
+        // Setup or remove identifiers
+        this.setupIdentifiers();
+        
+        // Update toggle switch state
+        const toggleSwitch = document.getElementById('sectionIdentifiersToggle');
+        if (toggleSwitch) {
+            toggleSwitch.checked = this.enabled;
+        }
+    },
+    
+    // Save preference to cookie
+    savePreference: function() {
+        const expires = new Date();
+        expires.setDate(expires.getDate() + this.cookieExpireDays);
+        document.cookie = `${this.cookieName}=${this.enabled}; expires=${expires.toUTCString()}; path=/`;
+    },
+    
+    // Load preference from cookie
+    loadPreference: function() {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(this.cookieName + '='));
+            
+        if (cookieValue) {
+            this.enabled = cookieValue.split('=')[1] === 'true';
+        }
+    }
+};
+
+// Initialize when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize with a small delay to allow other scripts to load
+    setTimeout(() => SectionIdentifiers.init(), 500);
+});
+```
+
+#### Navbar Toggle Implementation
+```html
+<!-- Add this in your navbar or top controls area -->
+<div class="form-check form-switch ms-3">
+    <input class="form-check-input" type="checkbox" id="sectionIdentifiersToggle">
+    <label class="form-check-label small" for="sectionIdentifiersToggle">
+        <i data-lucide="layout" class="me-1" style="width: 14px; height: 14px;"></i>
+        Show Sections
+    </label>
+</div>
+```
+
+### Section ID Guidelines
+
+1. Each major UI component should have a unique section ID
+2. Use sequential numbering (1, 2, 3...) for consistency
+3. Main components to include:
+   - Dashboard overview cards (section-1)
+   - Charts and analytics (section-2, section-3)
+   - Transaction lists (section-4)
+   - Connection wizards (section-5)
+   - System health (section-6)
+   - Financial goals (section-7)
+   - Settings panels (section-8)
+
+### Development Usage
+
+1. When referring to a UI component in documentation or discussions, include its section ID
+2. Enable section identifiers during development to visualize component boundaries
+3. Use section IDs when reporting layout issues or making CSS adjustments
+4. Ensure each new component gets a unique section ID assigned
