@@ -1,6 +1,6 @@
 # Payymo Open Banking Integration - Version 2025-03-23
 
-Generated: 2025-03-23T01:44:35.525521
+Generated: 2025-03-23T01:45:56.903451
 
 ## Files Included
 
