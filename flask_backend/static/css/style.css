@@ -716,7 +716,7 @@ body {
     padding: 1.5rem;
 }
 
-/* Card accent variations */
+/* Card accent variations - these create colored borders at the top */
 .card.card-primary {
     border-top: 3px solid var(--color-primary);
 }
@@ -739,6 +739,11 @@ body {
 
 .card.card-error {
     border-top: 3px solid var(--color-error);
+}
+
+/* Clean consistent card style without colored top borders */
+.card.card-clean {
+    border-top: none;
 }
 
 /* Special card styling for dashboards */
