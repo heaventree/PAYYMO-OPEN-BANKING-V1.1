@@ -1,0 +1,655 @@
+{% extends "layout.html" %}
+
+{% block title %}Testing Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">WHMCS Integration Testing</h1>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerInstanceModal">
+                <i data-lucide="plus-circle" class="me-1" style="width: 18px; height: 18px;"></i>
+                Register Test Instance
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                        <i data-lucide="server" style="width: 24px; height: 24px;" class="text-primary"></i>
+                    </div>
+                    <h5 class="card-title mb-0">Total Instances</h5>
+                </div>
+                <h2 class="mb-0">{{ instances|length }}</h2>
+                <p class="text-muted small">Registered WHMCS instances</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3">
+                        <i data-lucide="check-circle" style="width: 24px; height: 24px;" class="text-success"></i>
+                    </div>
+                    <h5 class="card-title mb-0">Active Instances</h5>
+                </div>
+                <h2 class="mb-0">{{ instances|selectattr('last_seen', 'defined')|selectattr('last_seen', 'ne', None)|list|length }}</h2>
+                <p class="text-muted small">Recently active in the last 24 hours</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-3">
+                        <i data-lucide="landmark" style="width: 24px; height: 24px;" class="text-warning"></i>
+                    </div>
+                    <h5 class="card-title mb-0">Bank Connections</h5>
+                </div>
+                <h2 class="mb-0">{{ instances|map(attribute='bank_connections')|map('length')|sum }}</h2>
+                <p class="text-muted small">Total bank connections</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-2 me-3">
+                        <i data-lucide="credit-card" style="width: 24px; height: 24px;" class="text-info"></i>
+                    </div>
+                    <h5 class="card-title mb-0">Stripe Connections</h5>
+                </div>
+                <h2 class="mb-0">{{ instances|map(attribute='stripe_connections')|map('length')|sum }}</h2>
+                <p class="text-muted small">Total Stripe connections</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-3">
+                        <i data-lucide="alert-triangle" style="width: 24px; height: 24px;" class="text-danger"></i>
+                    </div>
+                    <h5 class="card-title mb-0">Error Count</h5>
+                </div>
+                <h2 class="mb-0">{{ recent_errors|length }}</h2>
+                <p class="text-muted small">Recent errors</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- WHMCS Instances Table -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Registered WHMCS Instances</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshInstancesBtn">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Domain</th>
+                                <th>Last Seen</th>
+                                <th>License Key</th>
+                                <th>Bank Connections</th>
+                                <th>Stripe Connections</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if instances %}
+                                {% for instance in instances %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('testing_instance_detail', instance_id=instance.id) }}" class="text-decoration-none">
+                                            {{ instance.domain }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if instance.last_seen %}
+                                            <span title="{{ instance.last_seen.strftime('%Y-%m-%d %H:%M:%S') }}">
+                                                {{ (now - instance.last_seen).total_seconds() // 3600 }} hours ago
+                                            </span>
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if instance.license_key %}
+                                            <span class="badge bg-success">Valid</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Not Set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ instance.bank_connections|length }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ instance.stripe_connections|length }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('testing_instance_detail', instance_id=instance.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary test-webhook-btn" data-domain="{{ instance.domain }}">
+                                                <i data-lucide="webhook" style="width: 16px; height: 16px;"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-success verify-connection-btn" data-domain="{{ instance.domain }}" 
+                                                    data-api-id="{{ instance.api_identifier }}" data-api-secret="{{ instance.api_secret }}">
+                                                <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted mb-3">
+                                            <i data-lucide="server-off" style="width: 48px; height: 48px;"></i>
+                                        </div>
+                                        <h5>No WHMCS instances registered</h5>
+                                        <p class="text-muted">Register a test instance to begin integration testing</p>
+                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#registerInstanceModal">
+                                            <i data-lucide="plus-circle" class="me-1" style="width: 16px; height: 16px;"></i>
+                                            Register Instance
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Errors -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Errors</h5>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshErrorsBtn">
+                    <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                    Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Domain</th>
+                                <th>Error Type</th>
+                                <th>Message</th>
+                                <th>Status Code</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_errors %}
+                                {% for error in recent_errors %}
+                                <tr>
+                                    <td>{{ error.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if '/' in error.endpoint %}
+                                            {{ error.endpoint.split('/')[0] }}
+                                        {% else %}
+                                            {{ error.endpoint }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if '/' in error.endpoint %}
+                                            <span class="badge bg-warning">{{ error.endpoint.split('/')[-1] }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">unknown</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 300px;" title="{{ error.error }}">
+                                        {{ error.error }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ error.status_code }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="text-muted mb-3">
+                                            <i data-lucide="check-circle" style="width: 48px; height: 48px;"></i>
+                                        </div>
+                                        <h5>No errors found</h5>
+                                        <p class="text-muted">All systems are running smoothly</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Register Test Instance Modal -->
+<div class="modal fade" id="registerInstanceModal" tabindex="-1" aria-labelledby="registerInstanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="registerInstanceModalLabel">Register Test WHMCS Instance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="registerInstanceForm">
+                    <div class="mb-3">
+                        <label for="domain" class="form-label">WHMCS Domain</label>
+                        <div class="input-group">
+                            <span class="input-group-text">https://</span>
+                            <input type="text" class="form-control" id="domain" name="domain" placeholder="yourdomain.com" required>
+                        </div>
+                        <div class="form-text">Enter the domain without http:// or https://</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="api_identifier" class="form-label">API Identifier</label>
+                            <input type="text" class="form-control" id="api_identifier" name="api_identifier" placeholder="API Identifier" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="api_secret" class="form-label">API Secret</label>
+                            <input type="password" class="form-control" id="api_secret" name="api_secret" placeholder="API Secret" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="admin_user" class="form-label">Admin Username (Optional)</label>
+                        <input type="text" class="form-control" id="admin_user" name="admin_user" placeholder="Admin Username">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="license_key" class="form-label">License Key (Optional)</label>
+                        <input type="text" class="form-control" id="license_key" name="license_key" placeholder="License Key">
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i data-lucide="info" class="me-2" style="width: 18px; height: 18px;"></i>
+                        <strong>Important:</strong> Make sure the API credentials have sufficient permissions to access WHMCS API endpoints.
+                    </div>
+                </form>
+                
+                <div id="registerResult" class="mt-3 d-none">
+                    <div class="alert" role="alert">
+                        <div class="message"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="verifyConnectionBtn">Verify Connection</button>
+                <button type="button" class="btn btn-success" id="registerInstanceBtn">Register Instance</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Register instance form submission
+    const registerInstanceBtn = document.getElementById('registerInstanceBtn');
+    const verifyConnectionBtn = document.getElementById('verifyConnectionBtn');
+    const registerInstanceForm = document.getElementById('registerInstanceForm');
+    const registerResult = document.getElementById('registerResult');
+    
+    if (registerInstanceBtn) {
+        registerInstanceBtn.addEventListener('click', function() {
+            // Get form data
+            const formData = new FormData(registerInstanceForm);
+            const jsonData = {};
+            
+            for (const [key, value] of formData.entries()) {
+                jsonData[key] = value;
+            }
+            
+            // Clear previous results
+            registerResult.classList.add('d-none');
+            
+            // Show loading state
+            registerInstanceBtn.disabled = true;
+            registerInstanceBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Registering...';
+            
+            // Make API request
+            fetch('/api/testing/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display result
+                registerResult.classList.remove('d-none');
+                const alertElement = registerResult.querySelector('.alert');
+                const messageElement = registerResult.querySelector('.message');
+                
+                if (data.success) {
+                    alertElement.className = 'alert alert-success';
+                    messageElement.innerHTML = `
+                        <h5><i data-lucide="check-circle" class="me-2" style="width: 18px; height: 18px;"></i> Success!</h5>
+                        <p>${data.message}</p>
+                        <div class="d-flex align-items-center mb-2">
+                            <strong class="me-2">Webhook Secret:</strong>
+                            <code class="bg-light p-2 rounded">${data.webhook_secret}</code>
+                        </div>
+                        <small class="text-muted">Use this webhook secret in your WHMCS module configuration.</small>
+                    `;
+                    
+                    // Reset form
+                    registerInstanceForm.reset();
+                    
+                    // Refresh the page after 3 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    alertElement.className = 'alert alert-danger';
+                    messageElement.innerHTML = `
+                        <h5><i data-lucide="alert-circle" class="me-2" style="width: 18px; height: 18px;"></i> Error</h5>
+                        <p>${data.message}</p>
+                    `;
+                }
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Reset button
+                registerInstanceBtn.disabled = false;
+                registerInstanceBtn.innerHTML = 'Register Instance';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                registerResult.classList.remove('d-none');
+                const alertElement = registerResult.querySelector('.alert');
+                const messageElement = registerResult.querySelector('.message');
+                
+                alertElement.className = 'alert alert-danger';
+                messageElement.innerHTML = `
+                    <h5><i data-lucide="alert-circle" class="me-2" style="width: 18px; height: 18px;"></i> Error</h5>
+                    <p>An unexpected error occurred. Please try again.</p>
+                `;
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Reset button
+                registerInstanceBtn.disabled = false;
+                registerInstanceBtn.innerHTML = 'Register Instance';
+            });
+        });
+    }
+    
+    // Verify connection button
+    if (verifyConnectionBtn) {
+        verifyConnectionBtn.addEventListener('click', function() {
+            // Get form data
+            const formData = new FormData(registerInstanceForm);
+            const jsonData = {};
+            
+            for (const [key, value] of formData.entries()) {
+                jsonData[key] = value;
+            }
+            
+            // Check required fields
+            if (!jsonData.domain || !jsonData.api_identifier || !jsonData.api_secret) {
+                registerResult.classList.remove('d-none');
+                const alertElement = registerResult.querySelector('.alert');
+                const messageElement = registerResult.querySelector('.message');
+                
+                alertElement.className = 'alert alert-warning';
+                messageElement.innerHTML = `
+                    <h5><i data-lucide="alert-triangle" class="me-2" style="width: 18px; height: 18px;"></i> Missing Data</h5>
+                    <p>Please fill in the required fields: Domain, API Identifier, and API Secret.</p>
+                `;
+                
+                // Create icons
+                lucide.createIcons();
+                return;
+            }
+            
+            // Clear previous results
+            registerResult.classList.add('d-none');
+            
+            // Show loading state
+            verifyConnectionBtn.disabled = true;
+            verifyConnectionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Verifying...';
+            
+            // Make API request
+            fetch('/api/testing/verify-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    domain: jsonData.domain,
+                    api_identifier: jsonData.api_identifier,
+                    api_secret: jsonData.api_secret
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display result
+                registerResult.classList.remove('d-none');
+                const alertElement = registerResult.querySelector('.alert');
+                const messageElement = registerResult.querySelector('.message');
+                
+                if (data.success) {
+                    alertElement.className = 'alert alert-success';
+                    messageElement.innerHTML = `
+                        <h5><i data-lucide="check-circle" class="me-2" style="width: 18px; height: 18px;"></i> Connection Verified</h5>
+                        <p>${data.message}</p>
+                        <div class="small mt-2">
+                            <strong>System Info:</strong>
+                            <ul class="mb-0">
+                                <li>WHMCS Version: ${data.system_info?.whmcsversion || 'Unknown'}</li>
+                                <li>Server: ${data.system_info?.servertype || 'Unknown'}</li>
+                                <li>PHP Version: ${data.system_info?.phpversion || 'Unknown'}</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    alertElement.className = 'alert alert-danger';
+                    messageElement.innerHTML = `
+                        <h5><i data-lucide="alert-circle" class="me-2" style="width: 18px; height: 18px;"></i> Connection Failed</h5>
+                        <p>${data.message}</p>
+                    `;
+                }
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Reset button
+                verifyConnectionBtn.disabled = false;
+                verifyConnectionBtn.innerHTML = 'Verify Connection';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                registerResult.classList.remove('d-none');
+                const alertElement = registerResult.querySelector('.alert');
+                const messageElement = registerResult.querySelector('.message');
+                
+                alertElement.className = 'alert alert-danger';
+                messageElement.innerHTML = `
+                    <h5><i data-lucide="alert-circle" class="me-2" style="width: 18px; height: 18px;"></i> Error</h5>
+                    <p>An unexpected error occurred. Please try again.</p>
+                `;
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Reset button
+                verifyConnectionBtn.disabled = false;
+                verifyConnectionBtn.innerHTML = 'Verify Connection';
+            });
+        });
+    }
+    
+    // Test webhook buttons
+    const testWebhookBtns = document.querySelectorAll('.test-webhook-btn');
+    testWebhookBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const domain = this.getAttribute('data-domain');
+            
+            // Show loading state
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            
+            // Make API request
+            fetch('/api/testing/webhook-test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    domain: domain
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="webhook" style="width: 16px; height: 16px;"></i>';
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Show toast notification
+                if (data.success) {
+                    showToast(`Webhook test sent to ${domain} successfully`, 'success');
+                } else {
+                    showToast(`Webhook test failed: ${data.message}`, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Reset button
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="webhook" style="width: 16px; height: 16px;"></i>';
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Show toast notification
+                showToast('An unexpected error occurred. Please try again.', 'danger');
+            });
+        });
+    });
+    
+    // Verify connection buttons
+    const verifyConnectionBtns = document.querySelectorAll('.verify-connection-btn');
+    verifyConnectionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const domain = this.getAttribute('data-domain');
+            const apiId = this.getAttribute('data-api-id');
+            const apiSecret = this.getAttribute('data-api-secret');
+            
+            if (!apiId || !apiSecret) {
+                showToast('API credentials not configured. Please update instance settings.', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            
+            // Make API request
+            fetch('/api/testing/verify-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    domain: domain,
+                    api_identifier: apiId,
+                    api_secret: apiSecret
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="check" style="width: 16px; height: 16px;"></i>';
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Show toast notification
+                if (data.success) {
+                    showToast(`Connection to ${domain} verified successfully`, 'success');
+                } else {
+                    showToast(`Connection verification failed: ${data.message}`, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Reset button
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="check" style="width: 16px; height: 16px;"></i>';
+                
+                // Create icons
+                lucide.createIcons();
+                
+                // Show toast notification
+                showToast('An unexpected error occurred. Please try again.', 'danger');
+            });
+        });
+    });
+    
+    // Refresh instances button
+    const refreshInstancesBtn = document.getElementById('refreshInstancesBtn');
+    if (refreshInstancesBtn) {
+        refreshInstancesBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
+    
+    // Refresh errors button
+    const refreshErrorsBtn = document.getElementById('refreshErrorsBtn');
+    if (refreshErrorsBtn) {
+        refreshErrorsBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
+});
+</script>
+{% endblock %}

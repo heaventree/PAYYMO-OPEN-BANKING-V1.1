@@ -1,0 +1,606 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Statistics Cards -->
+<div class="row mb-4">
+    <!-- Income Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="figma-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="figma-badge completed">Income</span>
+                <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="figma-amount">${{ stats.new_transactions|default(78) }},000</div>
+            <div class="figma-amount-label">Total Income</div>
+            <a href="#" class="mt-3 d-inline-block text-decoration-none">
+                <span class="small d-flex align-items-center">
+                    <span>View Details</span>
+                    <i data-lucide="chevron-right" style="width: 16px; height: 16px;" class="ms-1"></i>
+                </span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Expense Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="figma-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="figma-badge pending">Expense</span>
+                <i data-lucide="trending-down" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="figma-amount">${{ stats.unmatched_transactions|default(43) }},000</div>
+            <div class="figma-amount-label">Total Expenses</div>
+            <a href="#" class="mt-3 d-inline-block text-decoration-none">
+                <span class="small d-flex align-items-center">
+                    <span>View Details</span>
+                    <i data-lucide="chevron-right" style="width: 16px; height: 16px;" class="ms-1"></i>
+                </span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Savings Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="figma-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="figma-badge completed" style="background-color: rgba(77, 139, 225, 0.1); color: #4d8be1;">Savings</span>
+                <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="figma-amount">${{ stats.bank_connections|default(56) }},000</div>
+            <div class="figma-amount-label">Total Savings</div>
+            <a href="#" class="mt-3 d-inline-block text-decoration-none">
+                <span class="small d-flex align-items-center">
+                    <span>View Details</span>
+                    <i data-lucide="chevron-right" style="width: 16px; height: 16px;" class="ms-1"></i>
+                </span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Balance Account Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="figma-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold">Balance Account</span>
+                <i data-lucide="more-horizontal" style="width: 20px; height: 20px;" class="cursor-pointer"></i>
+            </div>
+            <div class="figma-amount">$562,000</div>
+            <div class="row mt-3 mb-1">
+                <div class="col-6">
+                    <div class="small text-muted">EXP</div>
+                    <div class="fw-bold">11/25</div>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="small text-muted">CVV</div>
+                    <div class="fw-bold">***</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="figma-card p-3">
+            <div class="d-flex flex-wrap justify-content-between">
+                <div class="d-flex flex-column align-items-center figma-action-item px-3">
+                    <div class="figma-action-icon bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                        <i data-lucide="arrow-up-right" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="small">Top Up</span>
+                </div>
+                
+                <div class="d-flex flex-column align-items-center figma-action-item px-3">
+                    <div class="figma-action-icon bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                        <i data-lucide="repeat" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="small">Transfer</span>
+                </div>
+                
+                <div class="d-flex flex-column align-items-center figma-action-item px-3">
+                    <div class="figma-action-icon bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                        <i data-lucide="hand" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="small">Request</span>
+                </div>
+                
+                <div class="d-flex flex-column align-items-center figma-action-item px-3">
+                    <div class="figma-action-icon bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                        <i data-lucide="history" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="small">History</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cash Flow Chart and Statistics Right Column -->
+<div class="row mb-4">
+    <!-- Cash Flow Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="figma-card h-100">
+            <div class="d-flex justify-content-between align-items-center p-3">
+                <div>
+                    <h5 class="fw-bold mb-0">Cashflow</h5>
+                    <div class="d-flex align-items-center mt-2">
+                        <span class="small text-muted">Total Balance</span>
+                    </div>
+                    <div class="figma-amount mb-0">${{ "$562,000" }}</div>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm">
+                        <option>This Year</option>
+                        <option>Last Year</option>
+                        <option>All Time</option>
+                    </select>
+                </div>
+            </div>
+            <div class="cashflow-chart p-3">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+            <div class="cashflow-chart-legend p-3 border-top">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="legend-color income me-2"></span>
+                            <span class="me-3">Income</span>
+                            <span class="fw-semibold">${{ "8,000" }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="legend-color expense me-2"></span>
+                            <span class="me-3">Expense</span>
+                            <span class="fw-semibold">${{ "4,000" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="col-lg-4 mb-4">
+        <div class="figma-card h-100">
+            <div class="d-flex justify-content-between align-items-center p-3">
+                <h5 class="fw-bold mb-0">Statistic</h5>
+                <div>
+                    <select class="form-select form-select-sm">
+                        <option>This Month</option>
+                        <option>Last Month</option>
+                        <option>All Time</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-3">
+                <div class="d-flex mb-3">
+                    <div class="me-3">
+                        <div class="small text-muted">Income</div>
+                        <div class="figma-amount mb-0" style="font-size: 1.25rem;">${{ "$74,000" }}</div>
+                    </div>
+                    <div>
+                        <div class="small text-muted">Expense</div>
+                        <div class="figma-amount mb-0" style="font-size: 1.25rem;">${{ "$43,000" }}</div>
+                    </div>
+                </div>
+                
+                <div class="coinest-donut-chart mt-4">
+                    <canvas id="expenseDonutChart"></canvas>
+                    <div class="coinest-donut-center">
+                        <p class="coinest-donut-label">Total Cost</p>
+                        <p class="coinest-donut-value">${{ "$3,500" }}</p>
+                    </div>
+                </div>
+                
+                <!-- Categories -->
+                <div class="mt-4">
+                    <div class="expense-category">
+                        <div class="expense-category-name">
+                            <span class="expense-category-dot" style="background-color: #4d8be1;"></span>
+                            <span>Rent & Living</span>
+                        </div>
+                        <div class="expense-category-amount">${{ "$2,100" }}</div>
+                    </div>
+                    
+                    <div class="expense-category">
+                        <div class="expense-category-name">
+                            <span class="expense-category-dot" style="background-color: #4de182;"></span>
+                            <span>Investment</span>
+                        </div>
+                        <div class="expense-category-amount">${{ "$525" }}</div>
+                    </div>
+                    
+                    <div class="expense-category">
+                        <div class="expense-category-name">
+                            <span class="expense-category-dot" style="background-color: #e1ca4d;"></span>
+                            <span>Education</span>
+                        </div>
+                        <div class="expense-category-amount">${{ "$400" }}</div>
+                    </div>
+                    
+                    <div class="expense-category">
+                        <div class="expense-category-name">
+                            <span class="expense-category-dot" style="background-color: #8b5cf6;"></span>
+                            <span>Food & Drink</span>
+                        </div>
+                        <div class="expense-category-amount">${{ "$280" }}</div>
+                    </div>
+                    
+                    <div class="expense-category">
+                        <div class="expense-category-name">
+                            <span class="expense-category-dot" style="background-color: #e14d51;"></span>
+                            <span>Entertainment</span>
+                        </div>
+                        <div class="expense-category-amount">${{ "$175" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Limit and Saving Plans Row -->
+<div class="row mb-4">
+    <!-- Daily Limit -->
+    <div class="col-lg-5 mb-4">
+        <div class="figma-card h-100">
+            <div class="daily-limit-card">
+                <div class="daily-limit-heading">
+                    <h5 class="daily-limit-title">Daily Limit</h5>
+                    <i data-lucide="more-horizontal" style="width: 20px; height: 20px;" class="cursor-pointer"></i>
+                </div>
+                
+                <div class="daily-limit-info">
+                    <div class="daily-limit-spent">${{ "$2,900.00" }} <span class="daily-limit-percent">12.5%</span></div>
+                    <div class="daily-limit-total">of ${{ "20,000.00" }}</div>
+                </div>
+                
+                <div class="daily-limit-progress">
+                    <div class="daily-limit-bar" style="width: 12.5%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Saving Plans -->
+    <div class="col-lg-7 mb-4">
+        <div class="figma-card h-100">
+            <div class="saving-plans-card">
+                <div class="saving-plans-heading">
+                    <h5 class="saving-plans-title">Saving Plans</h5>
+                    <button class="add-plan-button">
+                        Add Plan 
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+                
+                <div class="saving-plan-total">${{ "$84,500" }}</div>
+                
+                <!-- Emergency Fund -->
+                <div class="saving-plan emergency-fund">
+                    <div class="saving-plan-header">
+                        <div class="saving-plan-icon">
+                            <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="saving-plan-name">Emergency Fund</h6>
+                            <div class="saving-plan-amount">
+                                <div class="saving-plan-current">${{ "$5,000" }} <span class="small text-muted">(50%)</span></div>
+                                <div class="saving-plan-target">Target: ${{ "10,000" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="saving-plan-progress">
+                        <div class="saving-plan-bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Vacation Fund -->
+                <div class="saving-plan vacation-fund">
+                    <div class="saving-plan-header">
+                        <div class="saving-plan-icon">
+                            <i data-lucide="palm-tree" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="saving-plan-name">Vacation Fund</h6>
+                            <div class="saving-plan-amount">
+                                <div class="saving-plan-current">${{ "$3,000" }} <span class="small text-muted">(60%)</span></div>
+                                <div class="saving-plan-target">Target: ${{ "5,000" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="saving-plan-progress">
+                        <div class="saving-plan-bar" style="width: 60%;"></div>
+                    </div>
+                </div>
+                
+                <!-- House Down Payment -->
+                <div class="saving-plan house-fund">
+                    <div class="saving-plan-header">
+                        <div class="saving-plan-icon">
+                            <i data-lucide="home" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="saving-plan-name">Home Down Payment</h6>
+                            <div class="saving-plan-amount">
+                                <div class="saving-plan-current">${{ "$7,250" }} <span class="small text-muted">(32%)</span></div>
+                                <div class="saving-plan-target">Target: ${{ "22,000" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="saving-plan-progress">
+                        <div class="saving-plan-bar" style="width: 32%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions and Activity Row -->
+<div class="row">
+    <!-- Recent Transaction -->
+    <div class="col-lg-8 mb-4">
+        <div class="figma-card">
+            <div class="d-flex justify-content-between align-items-center p-3">
+                <div>
+                    <h5 class="fw-bold mb-0">Recent Transaction</h5>
+                    <div class="d-flex align-items-center mt-2">
+                        <span class="figma-badge completed me-2">This Month</span>
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                    </div>
+                </div>
+                <div>
+                    <button class="figma-action-button">
+                        <i data-lucide="filter" class="me-2" style="width: 16px; height: 16px;"></i>
+                        Filter
+                    </button>
+                </div>
+            </div>
+            <div class="p-0">
+                <table class="figma-table w-100">
+                    <thead>
+                        <tr>
+                            <th>Transaction Name</th>
+                            <th>Date & Time</th>
+                            <th>Amount</th>
+                            <th>Note</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Transaction 1 -->
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i data-lucide="zap" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <div>Electricity Bill</div>
+                                        <div class="small text-muted">Utilities</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                2025-03-01<br>
+                                <span class="small text-muted">14:32:25</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-danger">-$298.81</span><br>
+                                <small class="text-muted">USD</small>
+                            </td>
+                            <td>
+                                Payment for monthly electricity bill
+                            </td>
+                            <td>
+                                <span class="figma-badge failed">Failed</span>
+                            </td>
+                        </tr>
+                        
+                        <!-- Transaction 2 -->
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <div>Weekly Groceries</div>
+                                        <div class="small text-muted">Shopping</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                2025-03-04<br>
+                                <span class="small text-muted">09:28:15</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-danger">-$204.97</span><br>
+                                <small class="text-muted">USD</small>
+                            </td>
+                            <td>
+                                Groceries shopping at local supermarket
+                            </td>
+                            <td>
+                                <span class="figma-badge completed">Completed</span>
+                            </td>
+                        </tr>
+                        
+                        <!-- Transaction 3 -->
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i data-lucide="film" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <div>Movie Night</div>
+                                        <div class="small text-muted">Entertainment</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                2025-03-07<br>
+                                <span class="small text-muted">17:25:11</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-danger">-$67.84</span><br>
+                                <small class="text-muted">USD</small>
+                            </td>
+                            <td>
+                                Tickets for movies and snacks
+                            </td>
+                            <td>
+                                <span class="figma-badge pending">Pending</span>
+                            </td>
+                        </tr>
+                        
+                        <!-- Transaction 4 -->
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i data-lucide="stethoscope" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <div>Medical Check-up</div>
+                                        <div class="small text-muted">Healthcare</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                2025-03-07<br>
+                                <span class="small text-muted">09:23:35</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-danger">-$323.33</span><br>
+                                <small class="text-muted">USD</small>
+                            </td>
+                            <td>
+                                Routine health check-up and medications
+                            </td>
+                            <td>
+                                <span class="figma-badge pending">Pending</span>
+                            </td>
+                        </tr>
+                        
+                        <!-- Transaction 5 -->
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i data-lucide="utensils" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <div>Dinner at Italian Restaurant</div>
+                                        <div class="small text-muted">Dining Out</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                2025-03-11<br>
+                                <span class="small text-muted">19:28:08</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-danger">-$226.26</span><br>
+                                <small class="text-muted">USD</small>
+                            </td>
+                            <td>
+                                Dining out with family at a local Italian restaurant
+                            </td>
+                            <td>
+                                <span class="figma-badge pending">Pending</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-4 mb-4">
+        <div class="figma-card h-100">
+            <div class="d-flex justify-content-between align-items-center p-3">
+                <h5 class="fw-bold mb-0">Recent Activity</h5>
+                <i data-lucide="more-horizontal" style="width: 20px; height: 20px;" class="cursor-pointer"></i>
+            </div>
+            <div class="p-3">
+                <h6 class="mb-3">Today</h6>
+                
+                <!-- Activity 1 -->
+                <div class="activity-item">
+                    <div class="activity-avatar">
+                        <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Jamie Smith</strong> updated account settings
+                        </p>
+                        <p class="activity-time">10:30</p>
+                    </div>
+                </div>
+                
+                <!-- Activity 2 -->
+                <div class="activity-item">
+                    <div class="activity-avatar" style="background-color: rgba(77, 139, 225, 0.1); color: #4d8be1;">
+                        <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Alex Johnson</strong> logged in
+                        </p>
+                        <p class="activity-time">13:00</p>
+                    </div>
+                </div>
+                
+                <!-- Activity 3 -->
+                <div class="activity-item">
+                    <div class="activity-avatar" style="background-color: rgba(225, 202, 77, 0.1); color: #e1ca4d;">
+                        <i data-lucide="piggy-bank" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Morgan Lee</strong> added a new savings goal for vacation
+                        </p>
+                        <p class="activity-time">16:45</p>
+                    </div>
+                </div>
+                
+                <h6 class="mb-3 mt-4">Yesterday</h6>
+                
+                <!-- Activity 4 -->
+                <div class="activity-item">
+                    <div class="activity-avatar" style="background-color: rgba(77, 139, 225, 0.1); color: #4d8be1;">
+                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Taylor Green</strong> reviewed recent transactions
+                        </p>
+                        <p class="activity-time">21:15</p>
+                    </div>
+                </div>
+                
+                <!-- Activity 5 -->
+                <div class="activity-item">
+                    <div class="activity-avatar" style="background-color: rgba(225, 77, 81, 0.1); color: #e14d51;">
+                        <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Wilson Baptiste</strong> transferred funds to emergency fund
+                        </p>
+                        <p class="activity-time">09:15</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
