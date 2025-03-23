@@ -733,6 +733,10 @@ body {
     border-top: 3px solid var(--color-warning);
 }
 
+.card.card-secondary {
+    border-top: 3px solid var(--color-secondary);
+}
+
 .card.card-error {
     border-top: 3px solid var(--color-error);
 }
