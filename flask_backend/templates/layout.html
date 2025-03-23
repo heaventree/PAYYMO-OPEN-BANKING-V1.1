@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payymo - Open Banking for WHMCS - {% block title %}Dashboard{% endblock %}</title>
     
-    <!-- Bootstrap CSS (Light Theme) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS (using Replit-themed bootstrap CSS as per guidelines) -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Urbanist (Used in Figma design) -->
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- jQuery (required for plugins) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -28,6 +31,21 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* Inline Figma-related styles */
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background-color: #e3e4e2;
+        }
+        .navbar {
+            background-color: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .container-fluid {
+            padding: 1.5rem;
+        }
+    </style>
     
     {% block styles %}{% endblock %}
 </head>

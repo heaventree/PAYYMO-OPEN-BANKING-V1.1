@@ -1,10 +1,10 @@
 :root {
-    /* Primary colors */
-    --color-primary: #4f46e5;  /* Indigo 600 */
-    --color-secondary: #9333ea; /* Purple 600 */
-    --color-accent: #ec4899;    /* Pink 500 */
+    /* Primary colors based on Figma */
+    --color-primary: #4CAF50;  /* Green from Figma */
+    --color-secondary: #E91E63; /* Pink from Figma */
+    --color-accent: #F5A623;    /* Orange from Figma */
     
-    /* Neutral colors */
+    /* Neutral colors - keeping with a lighter palette like Figma */
     --color-gray-50: #f9fafb;
     --color-gray-100: #f3f4f6;
     --color-gray-200: #e5e7eb;
@@ -16,11 +16,16 @@
     --color-gray-800: #1f2937;
     --color-gray-900: #111827;
     
-    /* Semantic colors */
-    --color-success: #22c55e;   /* Green 500 */
-    --color-warning: #f59e0b;   /* Amber 500 */
-    --color-error: #ef4444;     /* Red 500 */
-    --color-info: #0ea5e9;      /* Sky 500 */
+    /* Figma semantic colors */
+    --color-success: #4CAF50;   /* Green */
+    --color-warning: #FF9800;   /* Orange */
+    --color-error: #F44336;     /* Red */
+    --color-info: #2196F3;      /* Blue */
+    
+    /* Figma specific colors */
+    --color-income: #4CAF50;    /* Green for income */
+    --color-expense: #E91E63;   /* Pink for expenses */
+    --color-savings: #2196F3;   /* Blue for savings */
     
     /* Typography */
     --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
@@ -769,9 +774,9 @@ body {
     bottom: 20px;
     right: 20px;
     width: 320px;
-    border-radius: 8px;
+    border-radius: 16px;
     background-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     z-index: 1050;
     opacity: 0.95;
     transition: all 0.3s ease;
@@ -781,7 +786,7 @@ body {
 .quick-insights-widget:hover {
     opacity: 1;
     transform: scale(1.02);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
 .quick-insights-widget.minimized {
@@ -793,18 +798,183 @@ body {
 }
 
 .quick-insights-widget .insight-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     background-color: var(--color-info);
+    border-radius: 50%;
 }
 
 .quick-insights-widget .widget-header {
     cursor: move;
+    border-radius: 16px 16px 0 0;
+    background-color: #f8f9fa;
 }
 
 .quick-insights-widget .widget-controls .btn-icon:hover {
     background-color: rgba(0, 0, 0, 0.05);
     border-radius: 50%;
+}
+
+/* Figma-inspired styles */
+.figma-card {
+    background-color: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.figma-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.figma-header {
+    background-color: #e3e4e2;
+    padding: 20px;
+    color: #111;
+}
+
+.figma-search {
+    background-color: #f5f5f5;
+    border-radius: 50px;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+.figma-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e3e4e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: #222;
+}
+
+.figma-statistic-card {
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+    transition: all 0.3s ease;
+}
+
+.figma-statistic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.figma-statistic-card.income {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: var(--color-income);
+    border-left: 4px solid var(--color-income);
+}
+
+.figma-statistic-card.expense {
+    background-color: rgba(233, 30, 99, 0.1);
+    color: var(--color-expense);
+    border-left: 4px solid var(--color-expense);
+}
+
+.figma-statistic-card.savings {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: var(--color-savings);
+    border-left: 4px solid var(--color-savings);
+}
+
+.figma-amount {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.figma-amount-label {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.figma-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: #333;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-weight: 500;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.figma-action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.figma-chart-container {
+    background-color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.figma-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.figma-table th {
+    text-align: left;
+    padding: 16px;
+    font-weight: 500;
+    color: #555;
+    border-bottom: 1px solid #eee;
+}
+
+.figma-table td {
+    padding: 16px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+}
+
+.figma-table tr:last-child td {
+    border-bottom: none;
+}
+
+.figma-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.figma-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.figma-badge.completed {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: var(--color-success);
+}
+
+.figma-badge.pending {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: var(--color-warning);
+}
+
+.figma-badge.failed {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: var(--color-error);
 }
 
 .quick-insights-widget .insight-animation {
