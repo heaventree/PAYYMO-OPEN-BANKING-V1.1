@@ -1,0 +1,26 @@
+/* 
+ * Section Identifiers CSS
+ * Adds numbered badges to major page sections for easier reference
+ */
+
+.section-container {
+  position: relative;
+}
+
+.section-identifier {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #6c757d;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 100;
+}
