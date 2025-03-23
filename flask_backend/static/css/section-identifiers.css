@@ -1,12 +1,17 @@
 /* 
  * Section Identifiers CSS
  * Adds numbered badges to major page sections for easier reference
+ * Toggle via .show-section-identifiers body class
  */
 
+/* Base container styles */
 .section-container {
   position: relative;
+  border: 1px solid transparent;
+  transition: border-color 0.3s ease;
 }
 
+/* Base identifier styles */
 .section-identifier {
   position: absolute;
   top: 0;
@@ -23,4 +28,35 @@
   font-size: 12px;
   font-weight: bold;
   z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
+
+/* Hide identifiers by default */
+.section-identifier {
+  display: none;
+}
+
+/* Show identifiers when enabled */
+body.show-section-identifiers .section-identifier {
+  display: inline-flex;
+  opacity: 1;
+}
+
+/* Add subtle highlight to container when identifiers are enabled */
+body.show-section-identifiers .section-container {
+  border-color: rgba(108, 117, 125, 0.15);
+  border-radius: 4px;
+}
+
+/* Hover effects for containers */
+body.show-section-identifiers .section-container:hover {
+  border-color: rgba(108, 117, 125, 0.3);
+}
+
+/* Color variants for different section types */
+.section-identifier.badge-primary { background-color: var(--bs-primary); }
+.section-identifier.badge-success { background-color: var(--bs-success); }
+.section-identifier.badge-info { background-color: var(--bs-info); }
+.section-identifier.badge-warning { background-color: var(--bs-warning); }
+.section-identifier.badge-danger { background-color: var(--bs-danger); }
