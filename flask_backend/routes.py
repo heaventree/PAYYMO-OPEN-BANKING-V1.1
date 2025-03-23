@@ -610,7 +610,7 @@ def dashboard():
         )
     except Exception as e:
         logger.error(f"Error rendering dashboard: {str(e)}")
-        return render_template('dashboard.html', error=str(e))
+        return render_template('dashboard_figma.html', error=str(e))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
