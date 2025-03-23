@@ -16,8 +16,8 @@ const SectionIdentifiers = {
         // Check saved preference
         this.loadPreference();
         
-        // Add toggle button to help menu
-        this.addToggleButton();
+        // Setup toggle switch in navbar
+        this.setupToggleSwitch();
         
         // Set initial state based on preference
         this.applyState();
@@ -90,7 +90,13 @@ const SectionIdentifiers = {
         // Setup or remove identifiers
         this.setupIdentifiers();
         
-        // Update toggle button state
+        // Update toggle switch state
+        const toggleSwitch = document.getElementById('sectionIdentifiersToggle');
+        if (toggleSwitch) {
+            toggleSwitch.checked = this.enabled;
+        }
+        
+        // Update toggle button state (for help menu if it exists)
         const toggleBtn = document.getElementById('toggleSectionIdentifiers');
         if (toggleBtn) {
             toggleBtn.innerHTML = `
@@ -98,6 +104,18 @@ const SectionIdentifiers = {
                 ${this.enabled ? 'Hide' : 'Show'} Section Numbers
             `;
         }
+    },
+    
+    // Setup toggle switch in navbar
+    setupToggleSwitch: function() {
+        const toggleSwitch = document.getElementById('sectionIdentifiersToggle');
+        if (!toggleSwitch) return;
+        
+        // Set initial state
+        toggleSwitch.checked = this.enabled;
+        
+        // Add click event listener
+        toggleSwitch.addEventListener('change', () => this.toggle());
     },
     
     // Save preference to cookie
