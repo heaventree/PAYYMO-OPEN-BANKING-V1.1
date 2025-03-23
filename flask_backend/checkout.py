@@ -22,6 +22,7 @@ def create_checkout_session():
     {
         "price_id": "price_1234",    # The Stripe Price ID
         "quantity": 1,               # Number of items
+        "mode": "payment",           # Optional: payment or subscription (defaults to payment)
         "success_url": "https://example.com/success",  # URL to redirect after successful payment
         "cancel_url": "https://example.com/cancel"     # URL to redirect if user cancels
     }
@@ -42,6 +43,7 @@ def create_checkout_session():
         success_url = data.get('success_url')
         cancel_url = data.get('cancel_url')
         quantity = data.get('quantity', 1)
+        mode = data.get('mode', 'payment')
         
         if not price_id or not success_url or not cancel_url:
             raise APIError("Missing required fields", status_code=400)
@@ -54,10 +56,9 @@ def create_checkout_session():
                     'quantity': quantity,
                 },
             ],
-            mode='payment',
+            mode=mode,
             success_url=success_url,
             cancel_url=cancel_url,
-            automatic_tax={'enabled': True},
         )
         
         # Return the checkout URL
@@ -98,6 +99,7 @@ def redirect_to_checkout():
         success_url = data.get('success_url')
         cancel_url = data.get('cancel_url')
         quantity = data.get('quantity', 1)
+        mode = data.get('mode', 'payment')
         
         if not price_id or not success_url or not cancel_url:
             raise APIError("Missing required fields", status_code=400)
@@ -110,10 +112,9 @@ def redirect_to_checkout():
                     'quantity': quantity,
                 },
             ],
-            mode='payment',
+            mode=mode,
             success_url=success_url,
             cancel_url=cancel_url,
-            automatic_tax={'enabled': True},
         )
         
         # Redirect to the checkout page
