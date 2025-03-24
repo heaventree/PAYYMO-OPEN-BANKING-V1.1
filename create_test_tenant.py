@@ -53,6 +53,7 @@ def create_test_tenant():
         user = User.query.filter_by(email='admin@test.com').first()
         if not user:
             user = User(
+                tenant_id=tenant.id,  # Set the tenant_id to match our tenant
                 name='Admin User',
                 email='admin@test.com',
                 password_hash=generate_password_hash('password123'),
