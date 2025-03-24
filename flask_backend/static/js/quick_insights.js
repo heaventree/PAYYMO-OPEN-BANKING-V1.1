@@ -1,255 +1,233 @@
 /**
  * AI-Powered Financial Insights Widget
- * Self-contained module for displaying AI-driven financial insights in a floating widget
+ * Self-contained module for displaying AI-driven financial insights
  * Analyzes transaction patterns and provides smart recommendations
- * Can be easily repositioned and integrated into different layouts
  */
-
-const QuickInsightsWidget = (function() {
-    // Private variables
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing Quick Insights Widget');
+    
+    // Find the widget container (or create it if it doesn't exist)
+    let widget = document.getElementById('quick-insights-widget');
+    
+    if (!widget) {
+        console.warn('Quick Insights Widget element not found');
+        // We'll not create it dynamically since this is a placeholder implementation
+        return;
+    }
+    
+    // Widget state
     let currentInsightIndex = 0;
-    let widgetVisible = false;
-    let widgetElement;
-    let insightData = [
+    let insights = [];
+    
+    // Sample insights data (would normally come from the server)
+    const sampleInsights = [
         {
-            type: 'Tip',
-            title: 'Reference Numbers',
-            text: 'Transactions with clear reference numbers have a 92% higher chance of automatic matching. Always include invoice numbers in payment references.'
+            title: 'Improve Cash Flow',
+            content: 'Based on your transaction history, setting up automatic invoice reminders could improve payment times by up to 30%.',
+            icon: 'trending-up',
+            type: 'success'
         },
         {
-            type: 'Insight',
-            title: 'Transaction Patterns',
-            text: 'Most of your successfully matched transactions occur on Mondays and Tuesdays. Consider scheduling invoice reminders for Friday afternoons.'
+            title: 'Potential Duplicate Payment',
+            content: 'We detected similar transactions on Mar 15 and Mar 17 to the same vendor. You might want to check for duplicates.',
+            icon: 'alert-triangle',
+            type: 'warning'
         },
         {
-            type: 'Alert',
-            title: 'Bank Connection',
-            text: 'Your NatWest connection will expire in 7 days. Renew your connection before then to avoid missing transaction data.'
-        },
-        {
-            type: 'Tip',
-            title: 'Matching Efficiency',
-            text: 'Set up automatic payment application rules to handle recurring payments from the same customers with similar amounts.'
-        },
-        {
-            type: 'Insight',
-            title: 'Reconciliation Time',
-            text: 'You\'ve reduced your average reconciliation time by 64% since implementing Open Banking connections.'
+            title: 'Banking Connection',
+            content: 'Connect another bank account to get a more complete picture of your finances.',
+            icon: 'link',
+            type: 'info'
         }
     ];
     
-    // Private methods
+    // Initialize the widget
     function initialize() {
-        console.log('Initializing Quick Insights Widget');
-        widgetElement = document.getElementById('quickInsightsWidget');
+        // Add event listeners to controls
+        widget.querySelector('.minimize-btn')?.addEventListener('click', toggleMinimize);
+        widget.querySelector('.close-btn')?.addEventListener('click', hideWidget);
+        widget.querySelector('.prev-btn')?.addEventListener('click', showPrevInsight);
+        widget.querySelector('.next-btn')?.addEventListener('click', showNextInsight);
+        widget.querySelector('.refresh-btn')?.addEventListener('click', refreshInsight);
         
-        if (!widgetElement) {
-            console.warn('Quick Insights Widget element not found');
-            return;
-        }
-        
-        // Set up event listeners
-        document.getElementById('refreshInsight').addEventListener('click', refreshInsight);
-        document.getElementById('minimizeInsight').addEventListener('click', toggleMinimize);
-        document.getElementById('closeInsight').addEventListener('click', hideWidget);
-        document.getElementById('nextInsight').addEventListener('click', showNextInsight);
-        document.getElementById('prevInsight').addEventListener('click', showPrevInsight);
-        
-        // Make widget draggable
+        // Make the widget draggable
         makeDraggable();
         
-        // Initialize insight count
-        document.getElementById('totalInsights').textContent = insightData.length;
-        
-        // Show first insight
-        showInsight(0);
-        
-        // Load insights from the server if available
+        // Load insights data
         loadInsightsFromServer();
-        
-        // Start with the widget hidden
-        hideWidget();
     }
     
+    // Display a specific insight
     function showInsight(index) {
-        if (index < 0) index = insightData.length - 1;
-        if (index >= insightData.length) index = 0;
+        if (insights.length === 0) return;
+        
+        // Ensure index is within bounds
+        if (index < 0) index = insights.length - 1;
+        if (index >= insights.length) index = 0;
         
         currentInsightIndex = index;
         
-        const insight = insightData[index];
-        const typeElement = document.querySelector('#quickInsightsWidget .badge');
-        const titleElement = document.getElementById('insightTitle');
-        const textElement = document.getElementById('insightText');
-        const currentElement = document.getElementById('currentInsight');
+        const insight = insights[currentInsightIndex];
+        const contentArea = widget.querySelector('.insights-content');
+        if (!contentArea) return;
         
-        // Update content with animation
-        textElement.classList.add('insight-animation');
+        // Update content
+        const titleElement = contentArea.querySelector('.insight-title');
+        const contentElement = contentArea.querySelector('.insight-content');
+        const iconElement = contentArea.querySelector('.insight-icon');
         
-        typeElement.textContent = insight.type;
-        titleElement.textContent = insight.title;
-        textElement.textContent = insight.text;
-        currentElement.textContent = index + 1;
+        if (titleElement) titleElement.textContent = insight.title;
+        if (contentElement) contentElement.textContent = insight.content;
         
-        // Set appropriate badge color
-        typeElement.className = 'badge rounded-pill me-2';
-        if (insight.type === 'Tip') {
-            typeElement.classList.add('bg-info');
-        } else if (insight.type === 'Insight') {
-            typeElement.classList.add('bg-primary');
-        } else if (insight.type === 'Alert') {
-            typeElement.classList.add('bg-warning');
+        // Update icon
+        if (iconElement) {
+            // Clear previous icon classes
+            iconElement.className = 'insight-icon';
+            // Add new icon class
+            iconElement.classList.add(`text-${insight.type}`);
+            // Update icon data attribute
+            iconElement.setAttribute('data-lucide', insight.icon);
+            // Refresh the icon
+            lucide.createIcons({
+                icons: {
+                    [insight.icon]: iconElement
+                }
+            });
         }
         
-        // Remove animation class after animation completes
-        setTimeout(() => {
-            textElement.classList.remove('insight-animation');
-        }, 1000);
+        // Update pagination indicator
+        const paginationElement = widget.querySelector('.pagination-indicator');
+        if (paginationElement) {
+            paginationElement.textContent = `${currentInsightIndex + 1}/${insights.length}`;
+        }
     }
     
+    // Show next insight
     function showNextInsight() {
         showInsight(currentInsightIndex + 1);
     }
     
+    // Show previous insight
     function showPrevInsight() {
         showInsight(currentInsightIndex - 1);
     }
     
+    // Refresh insights data
     function refreshInsight() {
-        // Add a spinning animation to the refresh button
-        const refreshIcon = document.querySelector('#refreshInsight i');
-        refreshIcon.style.animation = 'spinner 1s linear';
-        
-        // After animation, show a random insight
-        setTimeout(() => {
-            const randomIndex = Math.floor(Math.random() * insightData.length);
-            showInsight(randomIndex);
-            refreshIcon.style.animation = '';
-        }, 1000);
+        // Simulated refresh animation
+        const refreshBtn = widget.querySelector('.refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.classList.add('animate__animated', 'animate__rotateIn');
+            setTimeout(() => {
+                refreshBtn.classList.remove('animate__animated', 'animate__rotateIn');
+                loadInsightsFromServer();
+            }, 500);
+        }
     }
     
+    // Toggle minimize state
     function toggleMinimize() {
-        widgetElement.classList.toggle('minimized');
+        widget.classList.toggle('widget-minimized');
         
-        // Change the minimize icon to maximize when minimized
-        const minimizeIcon = document.querySelector('#minimizeInsight i');
-        if (widgetElement.classList.contains('minimized')) {
-            minimizeIcon.setAttribute('data-lucide', 'maximize-2');
-        } else {
-            minimizeIcon.setAttribute('data-lucide', 'minus');
+        // Update button icon
+        const minimizeBtn = widget.querySelector('.minimize-btn');
+        if (minimizeBtn) {
+            const isMinimized = widget.classList.contains('widget-minimized');
+            minimizeBtn.setAttribute('data-lucide', isMinimized ? 'maximize-2' : 'minimize-2');
+            lucide.createIcons();
         }
         
-        // Update the icon
-        lucide.createIcons({
-            attrs: {
-                'stroke-width': 1.5
-            },
-            elements: [minimizeIcon.parentElement]
-        });
+        // Store state in localStorage
+        localStorage.setItem('insightsWidgetMinimized', widget.classList.contains('widget-minimized'));
     }
     
+    // Hide widget
     function hideWidget() {
-        widgetElement.style.display = 'none';
-        widgetVisible = false;
-        
-        // Create a "show insights" button at the bottom right
-        if (!document.getElementById('showInsightsBtn')) {
-            const showBtn = document.createElement('button');
-            showBtn.id = 'showInsightsBtn';
-            showBtn.className = 'position-fixed ai-insights-btn';
-            showBtn.style.bottom = '10px';
-            showBtn.style.right = '10px';
-            showBtn.style.zIndex = '1050';
-            showBtn.innerHTML = '<i data-lucide="brain" style="width: 18px; height: 18px; margin-right: 5px;"></i> AI Insights';
-            showBtn.addEventListener('click', showWidget);
-            
-            document.body.appendChild(showBtn);
-            
-            // Initialize the icon
-            lucide.createIcons({
-                attrs: {
-                    'stroke-width': 1.5
-                },
-                elements: [showBtn]
-            });
-        } else {
-            document.getElementById('showInsightsBtn').style.display = 'block';
-        }
+        widget.style.display = 'none';
+        localStorage.setItem('insightsWidgetHidden', 'true');
     }
     
+    // Show widget
     function showWidget() {
-        widgetElement.style.display = 'block';
-        widgetVisible = true;
-        
-        // Hide the "show insights" button
-        const showBtn = document.getElementById('showInsightsBtn');
-        if (showBtn) {
-            showBtn.style.display = 'none';
-        }
+        widget.style.display = 'block';
+        localStorage.setItem('insightsWidgetHidden', 'false');
     }
     
+    // Load insights from server
     function loadInsightsFromServer() {
-        // This function would normally fetch insights from the server
-        // For now we'll use our static data, but this could be enhanced
-        // to load dynamic insights based on user data
-        console.log('Would fetch insights from server in production');
+        // In a real implementation, this would be an AJAX call to the server
+        // For now, we'll use the sample data with a simulated delay
+        const loadingIndicator = widget.querySelector('.loading-indicator');
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        
+        setTimeout(() => {
+            insights = sampleInsights;
+            showInsight(0);
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+        }, 500);
     }
     
+    // Make the widget draggable
     function makeDraggable() {
+        const header = widget.querySelector('.card-header');
+        if (!header) return;
+        
         let isDragging = false;
         let offsetX, offsetY;
-        const header = widgetElement.querySelector('.widget-header');
         
         header.addEventListener('mousedown', startDrag);
         
         function startDrag(e) {
             isDragging = true;
-            offsetX = e.clientX - widgetElement.getBoundingClientRect().left;
-            offsetY = e.clientY - widgetElement.getBoundingClientRect().top;
             
+            // Get the current position of the widget
+            const rect = widget.getBoundingClientRect();
+            
+            // Calculate the offset from the pointer to the widget's top-left corner
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            
+            // Add event listeners for dragging and releasing
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', stopDrag);
+            
+            // Prevent text selection during drag
+            header.style.userSelect = 'none';
         }
         
         function drag(e) {
             if (!isDragging) return;
             
+            // Calculate new position
             const x = e.clientX - offsetX;
             const y = e.clientY - offsetY;
             
-            // Ensure widget stays within viewport
-            const maxX = window.innerWidth - widgetElement.offsetWidth;
-            const maxY = window.innerHeight - widgetElement.offsetHeight;
+            // Set new position
+            widget.style.left = x + 'px';
+            widget.style.top = y + 'px';
             
-            widgetElement.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
-            widgetElement.style.right = 'auto';
-            widgetElement.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
-            widgetElement.style.bottom = 'auto';
+            // Make sure the widget stays fixed
+            widget.style.position = 'fixed';
         }
         
         function stopDrag() {
             isDragging = false;
+            
+            // Remove event listeners
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('mouseup', stopDrag);
+            
+            // Restore text selection
+            header.style.userSelect = '';
+            
+            // Store position in localStorage
+            localStorage.setItem('insightsWidgetPosition', JSON.stringify({
+                left: widget.style.left,
+                top: widget.style.top
+            }));
         }
     }
     
-    // Return public API
-    return {
-        init: initialize,
-        next: showNextInsight,
-        prev: showPrevInsight,
-        refresh: refreshInsight,
-        toggle: toggleMinimize,
-        hide: hideWidget,
-        show: showWidget
-    };
-})();
-
-// Initialize the widget when the DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Small delay to ensure all elements are ready
-    setTimeout(() => {
-        QuickInsightsWidget.init();
-    }, 500);
+    // Initialize
+    initialize();
 });

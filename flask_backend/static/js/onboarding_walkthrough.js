@@ -3,450 +3,298 @@
  * Interactive first-time user guide that walks through key features of the Open Banking module
  * Highlights important elements with tooltips and animated indicators
  */
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuration
-    const walkthrough = {
-        enabled: true,
-        autoStart: false, // Set to false to prevent auto-start - less intrusive
-        steps: [
-            {
-                target: '.dashboard-header',
-                title: 'Welcome to Open Banking',
-                content: 'This dashboard helps you connect bank accounts and match transactions to invoices automatically.',
-                position: 'bottom'
-            },
-            {
-                target: '.bank-connection-card',
-                title: 'Connect Your Bank',
-                content: 'Start by connecting your bank account. We support over 2,400 banks across Europe.',
-                position: 'right'
-            },
-            {
-                target: '.transactions-table',
-                title: 'Transaction Management',
-                content: 'View all your transactions here. The system will automatically try to match them to invoices.',
-                position: 'top'
-            },
-            {
-                target: '.financial-goals',
-                title: 'Financial Goals',
-                content: 'Track your progress toward important financial targets.',
-                position: 'left'
-            },
-            {
-                target: '.quick-insights-widget',
-                title: 'AI-Powered Insights',
-                content: 'Get smart recommendations based on your transaction data and payment patterns.',
-                position: 'left'
-            }
-        ],
-        completionCallback: () => {
-            // Save to localStorage that walkthrough is completed
-            localStorage.setItem('walkthroughCompleted', 'true');
-            showToast('Walkthrough completed! You can restart it anytime from the help menu.', 'success');
+    // Walkthrough configuration
+    const walkthroughSteps = [
+        {
+            target: '.navbar-brand',
+            title: 'Welcome to Payymo',
+            content: 'This dashboard allows you to manage your financial transactions, connections, and invoice matches.',
+            position: 'bottom'
+        },
+        {
+            target: '.card:has(.card-title:contains("Welcome"))',
+            title: 'Dashboard Overview',
+            content: 'Your dashboard provides a quick overview of your financial status and recent activities.',
+            position: 'top'
+        },
+        {
+            target: '.bg-primary.bg-opacity-10',
+            title: 'Transaction Monitoring',
+            content: 'Keep track of all your banking transactions in one place.',
+            position: 'bottom'
+        },
+        {
+            target: '.bg-warning.bg-opacity-10',
+            title: 'Invoice Matching',
+            content: 'We automatically match bank transactions to invoices for easier reconciliation.',
+            position: 'bottom'
+        },
+        {
+            target: '.btn-primary:contains("Connect Bank")',
+            title: 'Connect Your Bank',
+            content: 'Start by connecting your bank account to import transactions.',
+            position: 'right'
+        },
+        {
+            target: '.btn-secondary:contains("Connect Stripe")',
+            title: 'Stripe Integration',
+            content: 'Connect your Stripe account to synchronize payment data.',
+            position: 'right'
         }
-    };
-
+    ];
+    
+    // State
     let currentStep = 0;
-    let walkthroughActive = false;
-    let walkthroughPopover = null;
-    let highlightOverlay = null;
-
-    // Initialize highlight overlay
+    let isWalkthroughActive = false;
+    let highlightOverlay;
+    let popover;
+    
+    // Create the highlight overlay element
     function createHighlightOverlay() {
-        const overlay = document.createElement('div');
-        overlay.className = 'walkthrough-overlay';
-        document.body.appendChild(overlay);
-        return overlay;
-    }
-
-    // Create and show popover for the current step
-    function showCurrentStep() {
-        if (currentStep >= walkthrough.steps.length) {
-            endWalkthrough(true);
-            return;
+        // Remove existing overlay if it exists
+        if (highlightOverlay) {
+            highlightOverlay.remove();
         }
-
-        const step = walkthrough.steps[currentStep];
-        const targetSelector = step.target;
         
-        // Special handling for financial goals section to find the correct instance
-        let targetElement;
-        if (targetSelector.includes('financial-goals')) {
-            // Try to find the financial goals element that's actually visible
-            const allGoals = document.querySelectorAll(targetSelector);
-            if (allGoals.length > 0) {
-                // Use the first visible one
-                for (let i = 0; i < allGoals.length; i++) {
-                    const rect = allGoals[i].getBoundingClientRect();
-                    if (rect.width > 0 && rect.height > 0) {
-                        targetElement = allGoals[i];
-                        break;
-                    }
-                }
-                
-                // If none found visible, use the first one
-                if (!targetElement) {
-                    targetElement = allGoals[0];
-                }
-            }
-        } else {
-            targetElement = document.querySelector(targetSelector);
-        }
+        // Create new overlay
+        highlightOverlay = document.createElement('div');
+        highlightOverlay.className = 'walkthrough-overlay';
+        highlightOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1049;
+            pointer-events: none;
+        `;
+        
+        document.body.appendChild(highlightOverlay);
+        
+        // Create popover container
+        popover = document.createElement('div');
+        popover.className = 'walkthrough-popover animate__animated animate__fadeIn';
+        popover.style.cssText = `
+            position: absolute;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            width: 300px;
+            z-index: 1050;
+            pointer-events: auto;
+        `;
+        
+        // Add controls
+        popover.innerHTML = `
+            <div class="walkthrough-header">
+                <h5 class="walkthrough-title"></h5>
+                <button type="button" class="btn-close" onclick="endWalkthrough()"></button>
+            </div>
+            <div class="walkthrough-body mt-2">
+                <p class="walkthrough-content"></p>
+            </div>
+            <div class="walkthrough-footer d-flex justify-content-between mt-3">
+                <button class="btn btn-sm btn-outline-secondary prev-btn">Previous</button>
+                <div class="step-indicator small text-muted"></div>
+                <button class="btn btn-sm btn-primary next-btn">Next</button>
+            </div>
+        `;
+        
+        document.body.appendChild(popover);
+        
+        // Add event listeners
+        popover.querySelector('.prev-btn').addEventListener('click', prevStep);
+        popover.querySelector('.next-btn').addEventListener('click', nextStep);
+        popover.querySelector('.btn-close').addEventListener('click', () => endWalkthrough());
+        
+        // Make the overlay close the walkthrough when clicked
+        highlightOverlay.style.pointerEvents = 'auto';
+        highlightOverlay.addEventListener('click', () => endWalkthrough());
+        
+        return highlightOverlay;
+    }
+    
+    // Show the current step
+    function showCurrentStep() {
+        const step = walkthroughSteps[currentStep];
+        
+        // Find the target element
+        const targetSelector = step.target;
+        const targetElement = document.querySelector(targetSelector);
         
         if (!targetElement) {
-            console.warn(`Target element ${targetSelector} not found, skipping step`);
-            currentStep++;
-            showCurrentStep();
+            console.warn(`Walkthrough target not found: ${targetSelector}`);
+            nextStep(); // Skip this step
             return;
         }
-
-        // Clear any existing popover to avoid stacking
-        if (walkthroughPopover) {
-            walkthroughPopover.remove();
-            walkthroughPopover = null;
+        
+        // Update popover content
+        popover.querySelector('.walkthrough-title').textContent = step.title;
+        popover.querySelector('.walkthrough-content').textContent = step.content;
+        popover.querySelector('.step-indicator').textContent = `${currentStep + 1}/${walkthroughSteps.length}`;
+        
+        // Update button states
+        popover.querySelector('.prev-btn').disabled = currentStep === 0;
+        
+        const nextBtn = popover.querySelector('.next-btn');
+        if (currentStep === walkthroughSteps.length - 1) {
+            nextBtn.textContent = 'Finish';
+        } else {
+            nextBtn.textContent = 'Next';
         }
         
-        // Position the highlight first
+        // Position the highlight around the target element
         positionHighlight(targetElement);
         
-        // Create new popover with a short delay to ensure smooth transitions
-        setTimeout(() => {
-            walkthroughPopover = document.createElement('div');
-            walkthroughPopover.className = 'walkthrough-popover animate__animated animate__fadeIn';
-            document.body.appendChild(walkthroughPopover);
-
-            // Populate the popover
-            walkthroughPopover.innerHTML = `
-                <div class="walkthrough-header">
-                    <h5>${step.title}</h5>
-                    <button type="button" class="btn-close walkthrough-close" aria-label="Close walkthrough"></button>
-                </div>
-                <div class="walkthrough-body">
-                    <p>${step.content}</p>
-                </div>
-                <div class="walkthrough-footer">
-                    <div class="walkthrough-progress">
-                        <span>${currentStep + 1}/${walkthrough.steps.length}</span>
-                    </div>
-                    <div class="walkthrough-buttons">
-                        <button class="btn btn-sm btn-danger walkthrough-close me-2">Exit Tour</button>
-                        ${currentStep > 0 ? '<button class="btn btn-sm btn-secondary walkthrough-prev me-2">Previous</button>' : ''}
-                        <button class="btn btn-sm btn-primary walkthrough-next">${currentStep < walkthrough.steps.length - 1 ? 'Next' : 'Finish'}</button>
-                    </div>
-                </div>
-            `;
-
-            // Position the popover relative to the target element
-            positionPopover(targetElement, step.position);
-
-            // Add event listeners to all close buttons
-            const closeButtons = walkthroughPopover.querySelectorAll('.walkthrough-close');
-            closeButtons.forEach(button => {
-                button.addEventListener('click', () => endWalkthrough(false));
-            });
-            
-            const nextBtn = walkthroughPopover.querySelector('.walkthrough-next');
-            if (nextBtn) {
-                nextBtn.addEventListener('click', nextStep);
-            }
-            
-            const prevBtn = walkthroughPopover.querySelector('.walkthrough-prev');
-            if (prevBtn) {
-                prevBtn.addEventListener('click', prevStep);
-            }
-
-            // Add pulse animation to target
-            targetElement.classList.add('walkthrough-target-pulse');
-        }, 50); // Short delay for smoother transitions
+        // Position the popover
+        positionPopover(targetElement, step.position || 'bottom');
     }
-
-    // Position the highlight overlay around the target element
+    
+    // Position the highlight around the target element
     function positionHighlight(targetElement) {
-        if (!highlightOverlay) return;
-        
-        // Scroll element into view only if it's not already visible in the viewport
+        // Get the element's position and dimensions
         const rect = targetElement.getBoundingClientRect();
-        const isInViewport = (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
         
-        const scrollPadding = 120; // Pixels from top of viewport
-        
-        if (!isInViewport) {
-            const elementTop = rect.top + window.scrollY;
-            const targetScrollPosition = elementTop - scrollPadding;
-            
-            // Smooth scroll to the element
-            const previousScrollPosition = window.scrollY;
-            
-            // Only scroll if we need to move more than 200px to prevent small jumps
-            if (Math.abs(previousScrollPosition - targetScrollPosition) > 200) {
-                window.scrollTo({
-                    top: targetScrollPosition,
-                    behavior: 'smooth'
-                });
-            }
-        }
-        
-        // Position the highlight with a slight delay to ensure accurate positioning
-        setTimeout(() => {
-            // Get updated position after scrolling
-            const updatedRect = targetElement.getBoundingClientRect();
-            const padding = 10; // Extra space around the element
-            
-            highlightOverlay.style.display = 'block';
-            highlightOverlay.innerHTML = `
-                <div class="walkthrough-mask"></div>
-                <div class="walkthrough-highlight" style="
-                    top: ${updatedRect.top - padding + window.scrollY}px;
-                    left: ${updatedRect.left - padding + window.scrollX}px;
-                    width: ${updatedRect.width + padding * 2}px;
-                    height: ${updatedRect.height + padding * 2}px;
-                    border-radius: 8px;
-                "></div>
-            `;
-        }, 400); // Slightly longer delay to ensure smooth transition
+        // Create a cutout in the overlay
+        highlightOverlay.innerHTML = `
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <mask id="mask">
+                        <rect width="100%" height="100%" fill="white"/>
+                        <rect x="${rect.left}" y="${rect.top}" width="${rect.width}" height="${rect.height}" fill="black" rx="4"/>
+                    </mask>
+                </defs>
+                <rect width="100%" height="100%" fill="rgba(0, 0, 0, 0.5)" mask="url(#mask)"/>
+                <rect x="${rect.left - 4}" y="${rect.top - 4}" width="${rect.width + 8}" height="${rect.height + 8}" 
+                    fill="none" stroke="#007bff" stroke-width="2" rx="6"/>
+            </svg>
+        `;
     }
-
+    
     // Position the popover relative to the target element
     function positionPopover(targetElement, position = 'bottom') {
-        if (!walkthroughPopover) return;
+        const rect = targetElement.getBoundingClientRect();
+        const popoverRect = popover.getBoundingClientRect();
         
-        // Position popover after a slight delay to ensure accurate positioning after any scrolling
-        setTimeout(() => {
-            const targetRect = targetElement.getBoundingClientRect();
-            const popoverRect = walkthroughPopover.getBoundingClientRect();
-            const padding = 20; // Distance from target
-            const viewportPadding = 15; // Minimum distance from viewport edges
-            
-            let top, left;
-            let originalPosition = position;
-    
-            // Determine the best position based on available space
-            // If the target is close to the top of the viewport, prefer bottom position
-            if (targetRect.top < 200 && position === 'top') {
-                position = 'bottom';
-            }
-            
-            // If the target is close to the bottom of the viewport, prefer top position
-            if (targetRect.bottom > window.innerHeight - 200 && position === 'bottom') {
-                position = 'top';
-            }
-            
-            // If the target is close to the left edge, prefer right position
-            if (targetRect.left < 250 && position === 'left') {
-                position = 'right';
-            }
-            
-            // If the target is close to the right edge, prefer left position
-            if (targetRect.right > window.innerWidth - 250 && position === 'right') {
-                position = 'left';
-            }
-    
-            switch (position) {
-                case 'top':
-                    top = targetRect.top - popoverRect.height - padding + window.scrollY;
-                    left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2) + window.scrollX;
-                    break;
-                case 'bottom':
-                    top = targetRect.bottom + padding + window.scrollY;
-                    left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2) + window.scrollX;
-                    break;
-                case 'left':
-                    top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2) + window.scrollY;
-                    left = targetRect.left - popoverRect.width - padding + window.scrollX;
-                    break;
-                case 'right':
-                    top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2) + window.scrollY;
-                    left = targetRect.right + padding + window.scrollX;
-                    break;
-                default:
-                    top = targetRect.bottom + padding + window.scrollY;
-                    left = targetRect.left + window.scrollX;
-            }
-    
-            // Make sure popover stays within viewport
-            if (left < viewportPadding) left = viewportPadding;
-            if (left + popoverRect.width > window.innerWidth - viewportPadding) {
-                left = window.innerWidth - popoverRect.width - viewportPadding;
-            }
-            
-            // Ensure the popover is not too close to the top of the viewport
-            const topViewportDistance = top - window.scrollY;
-            if (topViewportDistance < viewportPadding) {
-                top = window.scrollY + viewportPadding;
-            }
-            
-            // Ensure the popover is visible if it would appear below the viewport
-            const bottomViewportDistance = (top + popoverRect.height) - (window.scrollY + window.innerHeight);
-            if (bottomViewportDistance > -viewportPadding) {
-                top = window.scrollY + window.innerHeight - popoverRect.height - viewportPadding;
-            }
-            
-            walkthroughPopover.style.top = `${top}px`;
-            walkthroughPopover.style.left = `${left}px`;
-    
-            // Add position-specific class for styling arrow
-            walkthroughPopover.className = walkthroughPopover.className
-                .replace(/ position-(top|bottom|left|right)/g, '')
-                + ` position-${position}`;
-        }, 350); // Delay slightly longer than the highlight positioning to ensure accurate placement
+        let top, left;
+        
+        switch (position) {
+            case 'top':
+                top = rect.top - popoverRect.height - 15;
+                left = rect.left + (rect.width / 2) - (popoverRect.width / 2);
+                break;
+            case 'bottom':
+                top = rect.bottom + 15;
+                left = rect.left + (rect.width / 2) - (popoverRect.width / 2);
+                break;
+            case 'left':
+                top = rect.top + (rect.height / 2) - (popoverRect.height / 2);
+                left = rect.left - popoverRect.width - 15;
+                break;
+            case 'right':
+                top = rect.top + (rect.height / 2) - (popoverRect.height / 2);
+                left = rect.right + 15;
+                break;
+        }
+        
+        // Ensure the popover stays within the viewport
+        if (left < 15) left = 15;
+        if (left + popoverRect.width > window.innerWidth - 15) {
+            left = window.innerWidth - popoverRect.width - 15;
+        }
+        if (top < 15) top = 15;
+        if (top + popoverRect.height > window.innerHeight - 15) {
+            top = window.innerHeight - popoverRect.height - 15;
+        }
+        
+        popover.style.top = `${top}px`;
+        popover.style.left = `${left}px`;
     }
-
-    // Go to next step
+    
+    // Next step
     function nextStep() {
-        // Remove pulse from current target - handle special case for financial goals
-        const targetSelector = walkthrough.steps[currentStep].target;
-        if (targetSelector.includes('financial-goals')) {
-            // Remove pulse from all financial goal elements
-            document.querySelectorAll(targetSelector).forEach(el => {
-                el.classList.remove('walkthrough-target-pulse');
-            });
+        if (currentStep < walkthroughSteps.length - 1) {
+            currentStep++;
+            showCurrentStep();
         } else {
-            const currentTarget = document.querySelector(targetSelector);
-            if (currentTarget) {
-                currentTarget.classList.remove('walkthrough-target-pulse');
-            }
+            endWalkthrough(true); // Completed
         }
-        
-        currentStep++;
-        showCurrentStep();
     }
-
-    // Go to previous step
+    
+    // Previous step
     function prevStep() {
-        // Remove pulse from current target - handle special case for financial goals
-        const targetSelector = walkthrough.steps[currentStep].target;
-        if (targetSelector.includes('financial-goals')) {
-            // Remove pulse from all financial goal elements
-            document.querySelectorAll(targetSelector).forEach(el => {
-                el.classList.remove('walkthrough-target-pulse');
-            });
-        } else {
-            const currentTarget = document.querySelector(targetSelector);
-            if (currentTarget) {
-                currentTarget.classList.remove('walkthrough-target-pulse');
-            }
+        if (currentStep > 0) {
+            currentStep--;
+            showCurrentStep();
         }
-        
-        currentStep--;
-        if (currentStep < 0) currentStep = 0;
-        showCurrentStep();
     }
-
+    
     // Start the walkthrough
     function startWalkthrough() {
-        if (walkthroughActive) return;
-        walkthroughActive = true;
+        isWalkthroughActive = true;
+        createHighlightOverlay();
         currentStep = 0;
-        
-        // Create overlay if it doesn't exist
-        if (!highlightOverlay) {
-            highlightOverlay = createHighlightOverlay();
-        }
-        
-        // Show first step
         showCurrentStep();
+        
+        // Make the function available globally
+        window.endWalkthrough = endWalkthrough;
     }
-
+    
     // End the walkthrough
     function endWalkthrough(completed = false) {
-        walkthroughActive = false;
+        isWalkthroughActive = false;
         
-        // Remove highlight from current target - handle special case for financial goals
-        if (currentStep < walkthrough.steps.length) {
-            const targetSelector = walkthrough.steps[currentStep]?.target;
-            if (targetSelector) {
-                if (targetSelector.includes('financial-goals')) {
-                    // Remove pulse from all financial goal elements
-                    document.querySelectorAll(targetSelector).forEach(el => {
-                        el.classList.remove('walkthrough-target-pulse');
-                    });
-                } else {
-                    const currentTarget = document.querySelector(targetSelector);
-                    if (currentTarget) {
-                        currentTarget.classList.remove('walkthrough-target-pulse');
-                    }
-                }
+        if (highlightOverlay) {
+            highlightOverlay.remove();
+            highlightOverlay = null;
+        }
+        
+        if (popover) {
+            popover.remove();
+            popover = null;
+        }
+        
+        if (completed) {
+            // Mark as completed in localStorage to prevent auto showing
+            localStorage.setItem('walkthroughCompleted', 'true');
+            
+            // Show completion toast
+            if (typeof showToast === 'function') {
+                showToast('Walkthrough completed! You can restart it anytime from the Help menu.', 'success');
             }
         }
         
-        // Remove popover with animation
-        if (walkthroughPopover) {
-            walkthroughPopover.classList.add('animate__fadeOut');
-            setTimeout(() => {
-                if (walkthroughPopover) {
-                    walkthroughPopover.remove();
-                    walkthroughPopover = null;
-                }
-            }, 300);
-        }
-        
-        // Remove overlay
-        if (highlightOverlay) {
-            highlightOverlay.style.display = 'none';
-        }
-        
-        // Call completion callback if walkthrough was completed
-        if (completed && typeof walkthrough.completionCallback === 'function') {
-            walkthrough.completionCallback();
-        }
+        // Remove global function
+        delete window.endWalkthrough;
     }
-
-    // Add walkthrough button to the page
+    
+    // Add walkthrough button to the help menu
     function addWalkthroughButton() {
         const helpMenu = document.querySelector('.help-menu');
         if (!helpMenu) return;
         
-        const walkthroughButton = document.createElement('button');
-        walkthroughButton.className = 'dropdown-item';
-        walkthroughButton.innerHTML = '<i class="fas fa-route me-2"></i> Start Guided Tour';
-        walkthroughButton.addEventListener('click', startWalkthrough);
+        const walkthroughItem = document.createElement('li');
+        walkthroughItem.innerHTML = `<button class="dropdown-item" type="button"><i class="fas fa-map-marked-alt me-2"></i> Start Walkthrough</button>`;
+        walkthroughItem.querySelector('button').addEventListener('click', startWalkthrough);
         
-        helpMenu.appendChild(walkthroughButton);
+        helpMenu.appendChild(walkthroughItem);
     }
-
+    
     // Check if we should auto-start the walkthrough
     function checkAutoStartWalkthrough() {
-        // Only auto-start if specifically enabled AND for first-time users
-        if (walkthrough.enabled && walkthrough.autoStart && !localStorage.getItem('walkthroughCompleted')) {
-            // Add a small dismiss button to the corner of the screen first
-            const dismissButton = document.createElement('button');
-            dismissButton.className = 'walkthrough-dismiss-btn btn btn-sm btn-danger position-fixed';
-            dismissButton.innerHTML = 'Skip Tour';
-            dismissButton.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999; border-radius: 20px; opacity: 0.8;';
-            document.body.appendChild(dismissButton);
-            
-            dismissButton.addEventListener('click', () => {
-                dismissButton.remove();
-                localStorage.setItem('walkthroughCompleted', 'true');
-            });
-            
-            // Delay start to ensure page is fully loaded
-            const tourTimeout = setTimeout(startWalkthrough, 1500);
-            
-            // Allow quick dismissal
-            dismissButton.addEventListener('click', () => {
-                clearTimeout(tourTimeout);
-                dismissButton.remove();
-            });
-        }
+        // Only auto-start if this is the first visit (based on localStorage)
+        const walkthroughCompleted = localStorage.getItem('walkthroughCompleted') === 'true';
         
-        // Always add the button to manually start the walkthrough
-        addWalkthroughButton();
+        if (!walkthroughCompleted && document.querySelector('.dashboard-page')) {
+            // Wait a bit to let the page settle
+            setTimeout(startWalkthrough, 1000);
+        }
     }
-
+    
     // Initialize
+    addWalkthroughButton();
     checkAutoStartWalkthrough();
-
-    // Expose functions for external use
-    window.onboardingWalkthrough = {
-        start: startWalkthrough,
-        end: endWalkthrough
-    };
 });
