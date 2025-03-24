@@ -70,11 +70,26 @@ def index():
                 font-style: italic;
                 margin-bottom: 15px;
             }
+            .highlight {
+                background-color: #fffacd;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                border-left: 4px solid #ffd700;
+            }
         </style>
     </head>
     <body>
         <h1>Admin Dashboard Theme Viewer</h1>
         <p class="description">Review and compare these admin dashboard themes for implementation in Payymo</p>
+        
+        <div class="highlight">
+            <h2>Theme Browser</h2>
+            <p>Use our new theme browser to explore and compare theme files with syntax highlighting:</p>
+            <ul>
+                <li><a href="/themes/browser" target="_blank">Open Theme Browser</a></li>
+            </ul>
+        </div>
         
         <div class="theme-section">
             <h2>Approx HTML Admin Dashboard</h2>
@@ -271,3 +286,47 @@ def serve_flask_admin(path):
     
     print(f"File not found: {path}")
     return f"File not found: {path}", 404
+
+@themes_bp.route('/browser')
+def theme_browser():
+    """Display a browser for theme files"""
+    # Get HTML files from Approx theme
+    approx_files = []
+    for file in os.listdir(APPROX_THEME_PATH):
+        if file.endswith('.html'):
+            approx_files.append(file)
+    approx_files.sort()
+    
+    # Get HTML files from Flask Admin theme templates
+    flask_admin_files = []
+    for root, dirs, files in os.walk(FLASK_ADMIN_TEMPLATES_PATH):
+        for file in files:
+            if file.endswith('.html'):
+                # Get relative path from templates directory
+                rel_path = os.path.relpath(os.path.join(root, file), FLASK_ADMIN_TEMPLATES_PATH)
+                flask_admin_files.append(rel_path)
+    flask_admin_files.sort()
+    
+    return render_template('theme_browser.html', 
+                           approx_files=approx_files,
+                           flask_admin_files=flask_admin_files)
+
+@themes_bp.route('/approx-content/<path:filename>')
+def approx_content(filename):
+    """Return the content of an Approx theme file"""
+    file_path = os.path.join(APPROX_THEME_PATH, filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return Response(content, mimetype='text/plain')
+    return "File not found", 404
+
+@themes_bp.route('/flask-admin-content/<path:filename>')
+def flask_admin_content(filename):
+    """Return the content of a Flask Admin theme file"""
+    file_path = os.path.join(FLASK_ADMIN_TEMPLATES_PATH, filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return Response(content, mimetype='text/plain')
+    return "File not found", 404
