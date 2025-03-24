@@ -13,31 +13,31 @@ document.addEventListener('DOMContentLoaded', function() {
             position: 'bottom'
         },
         {
-            target: '.card:has(.card-title:contains("Welcome"))',
+            target: '.card:first-child',
             title: 'Dashboard Overview',
             content: 'Your dashboard provides a quick overview of your financial status and recent activities.',
             position: 'top'
         },
         {
-            target: '.bg-primary.bg-opacity-10',
+            target: '.col-xl-3:nth-child(1)',
             title: 'Transaction Monitoring',
             content: 'Keep track of all your banking transactions in one place.',
             position: 'bottom'
         },
         {
-            target: '.bg-warning.bg-opacity-10',
+            target: '.col-xl-3:nth-child(3)',
             title: 'Invoice Matching',
             content: 'We automatically match bank transactions to invoices for easier reconciliation.',
             position: 'bottom'
         },
         {
-            target: '.btn-primary:contains("Connect Bank")',
+            target: '.btn-primary:first-of-type',
             title: 'Connect Your Bank',
             content: 'Start by connecting your bank account to import transactions.',
             position: 'right'
         },
         {
-            target: '.btn-secondary:contains("Connect Stripe")',
+            target: '.btn-secondary:first-of-type',
             title: 'Stripe Integration',
             content: 'Connect your Stripe account to synchronize payment data.',
             position: 'right'
