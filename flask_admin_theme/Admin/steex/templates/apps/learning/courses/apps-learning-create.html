@@ -1,0 +1,297 @@
+{% extends 'partials/base.html' %}
+{% block title %} Create Course {% endblock title %} 
+
+{% block extra_css %}
+
+    <!-- dropzone css -->
+    <link href="{{url_for('static' ,filename='libs/dropzone/dropzone.css')}}" rel="stylesheet" type="text/css">
+
+{% endblock extra_css %}
+
+{% block content %} 
+                    <!-- start page title -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0">Create Course</h4>
+
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a href="javascript: void(0);">Courses</a></li>
+                                        <li class="breadcrumb-item active">Create Course</li>
+                                    </ol>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end page title -->
+
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Create Course</h5>
+                                </div>
+                                <div class="card-body form-steps">
+                                    <form action="#">
+                                        <div id="custom-progress-bar" class="progress-nav mb-4">
+                                            <div class="progress" style="height: 1px;">
+                                                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                        
+                                            <ul class="nav nav-pills progress-bar-tab custom-nav" role="tablist">
+                                                <li class="nav-item" role="presentation" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-title="Courses Details">
+                                                    <button class="nav-link rounded-pill active" data-progressbar="custom-progress-bar" id="coursesDetails-tab" data-bs-toggle="pill" data-bs-target="#coursesDetails" type="button" role="tab" aria-controls="coursesDetails" aria-selected="true">1</button>
+                                                </li>
+                                                <li class="nav-item" role="presentation" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-title="Course media">
+                                                    <button class="nav-link rounded-pill" data-progressbar="custom-progress-bar" id="pills-info-desc-tab" data-bs-toggle="pill" data-bs-target="#pills-info-desc" type="button" role="tab" aria-controls="pills-info-desc" aria-selected="false">2</button>
+                                                </li>
+                                                <li class="nav-item" role="presentation" data-bs-toggle="tooltip"  data-bs-trigger="hover" data-bs-title="Successfully">
+                                                    <button class="nav-link rounded-pill" data-progressbar="custom-progress-bar" id="pills-success-tab" data-bs-toggle="pill" data-bs-target="#pills-success" type="button" role="tab" aria-controls="pills-success" aria-selected="false">3</button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                        
+                                        <div class="tab-content">
+                                            <div class="tab-pane fade show active" id="coursesDetails" role="tabpanel" aria-labelledby="coursesDetails-tab">
+                                                <h5 class="card-title mb-3">Course details</h5>
+                                                <div class="row g-3 align-items-center">
+                                                    <div class="col-lg-12">
+                                                        <div>
+                                                            <label for="course-title-input" class="form-label">Course title<span class="text-danger">*</span></label>
+                                                            <input type="text" id="course-title-input" class="form-control" placeholder="Enter course title" required>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-6">
+                                                        <div>
+                                                            <label for="course-category-input" class="form-label">Course Category<span class="text-danger">*</span></label>
+                                                            <select class="form-select" id="course-category-input" data-choices>
+                                                                <option value="">Select Course Category</option>
+                                                                <option value="Marketing & Management">Marketing & Management</option>
+                                                                <option value="React Development">React Development</option>
+                                                                <option value="Shopify Development">Shopify Development</option>
+                                                                <option value="Graphic Design">Graphic Design</option>
+                                                                <option value="Laravel Development">Laravel Development</option>
+                                                                <option value="Flask Development">Flask Development</option>
+                                                                <option value="Web Design">Web Design</option>
+                                                                <option value="Asp.Net Development">Asp.Net Development</option>
+                                                                <option value="Marketing & Management">Marketing & Management</option>
+                                                                <option value="PHP Development">PHP Development</option>
+                                                                <option value="Graphic Design">Graphic Design</option>
+                                                                <option value="Digital Marketing">Digital Marketing</option>
+                                                                <option value="Data Science">Data Science</option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-6">
+                                                        <div>
+                                                            <label for="lavel-input" class="form-label">Courses Level<span class="text-danger">*</span></label>
+                                                            <select class="form-select" id="lavel-input" data-choices data-choices-search-false multiple>
+                                                                <option value="">Select Level</option>
+                                                                <option value="Beginner">Beginner</option>
+                                                                <option value="Advanced">Advanced</option>
+                                                                <option value="Intermediate">Intermediate</option>
+                                                                <option value="Expert">Expert</option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-6">
+                                                        <div>
+                                                            <label for="language-input" class="form-label">Language<span class="text-danger">*</span></label>
+                                                            <select class="form-select" id="language-input" data-choices data-choices-search-false multiple>
+                                                                <option value="">Select Language</option>
+                                                                <option value="English" selected>English</option>
+                                                                <option value="Hindi">Hindi</option>
+                                                                <option value="France">France</option>
+                                                                <option value="Expert">Expert</option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-6">
+                                                        <div>
+                                                            <label for="lessons-input" class="form-label">Lessons<span class="text-danger">*</span></label>
+                                                            <input type="number" id="lessons-input" class="form-control" placeholder="Lessons" required>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-4">
+                                                        <div>
+                                                            <label for="price-input" class="form-label">Course price<span class="text-danger">*</span></label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text">$</span>
+                                                                <input type="number" class="form-control" id="price-input" placeholder="0.00" required>
+                                                            </div>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-4">
+                                                        <div>
+                                                            <label for="discount-input" class="form-label">Discount price<span class="text-danger">*</span></label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text">%</span>
+                                                                <input type="number" class="form-control" id="discount-input" placeholder="00" required>
+                                                            </div>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-4">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="checkBox1" checked="">
+                                                            <label class="form-check-label" for="checkBox1">
+                                                                Enable this Discount
+                                                            </label>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-12">
+                                                        <div>
+                                                            <label for="shortDescription" class="form-label">Short Description<span class="text-danger">*</span></label>
+                                                            <textarea class="form-control" id="shortDescription" rows="3" placeholder="Enter description"></textarea>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-12">
+                                                        <label class="form-label">Add Description<span class="text-danger">*</span></label>
+                                                        <div class="ckeditor-classic"></div>
+                                                    </div>
+                                                </div><!--end row-->
+                                                <div class="d-flex align-items-start gap-3 mt-4">
+                                                    <button type="button" class="btn btn-primary btn-label right ms-auto nexttab nexttab" data-nexttab="pills-info-desc-tab"><i class="ri-arrow-right-line label-icon align-middle fs-lg ms-2"></i> Next Step</button>
+                                                </div>
+                                            </div>
+                                            <!-- end tab pane -->
+                        
+                                            <div class="tab-pane fade" id="pills-info-desc" role="tabpanel" aria-labelledby="pills-info-desc-tab">
+                                                <div>
+                                                    <label class="form-label">Main Course Image<span class="text-danger">*</span></label>
+                                                    <div class="dropzone">
+                                                        <div class="fallback">
+                                                            <input name="file" type="file" multiple="multiple">
+                                                        </div>
+                                                        <div class="dz-message needsclick">
+                                                            <div class="mb-3">
+                                                                <i class="display-4 text-muted ri-upload-cloud-2-fill"></i>
+                                                            </div>
+                                                    
+                                                            <h4>Drop image here or click to upload.</h4>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <ul class="list-unstyled mb-0" id="dropzone-preview">
+                                                        <li class="mt-2" id="dropzone-preview-list">
+                                                            <!-- This is used as the file preview template -->
+                                                            <div class="border rounded">
+                                                                <div class="d-flex p-2">
+                                                                    <div class="flex-shrink-0 me-3">
+                                                                        <div class="avatar-sm bg-light rounded">
+                                                                            <img data-dz-thumbnail class="img-fluid rounded d-block" src="{{url_for('static' ,filename='images/new-document.png')}}" alt="Dropzone-Image" >
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="flex-grow-1">
+                                                                        <div class="pt-1">
+                                                                            <h5 class="fs-md mb-1" data-dz-name>&nbsp;</h5>
+                                                                            <p class="fs-sm text-muted mb-0" data-dz-size></p>
+                                                                            <strong class="error text-danger" data-dz-errormessage></strong>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="flex-shrink-0 ms-3">
+                                                                        <button data-dz-remove class="btn btn-sm btn-danger">Delete</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                    <!-- end dropzon-preview -->
+                                                </div>
+                                                <div class="mt-4">
+                                                    <div class="mb-3">
+                                                        <label for="videoURL" class="form-label">Video URL</label>
+                                                        <input type="url" class="form-control" id="videoURL" placeholder="Enter url">
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label">Upload Video<span class="text-danger">*</span></label>
+                                                        <div class="dropzone video">
+                                                            <div class="fallback">
+                                                                <input name="file" type="file" multiple="multiple">
+                                                            </div>
+                                                            <div class="dz-message needsclick">
+                                                                <div class="mb-3">
+                                                                    <i class="display-4 text-muted ri-upload-cloud-2-fill"></i>
+                                                                </div>
+                                                    
+                                                                <h4>Drop video here or click to upload.</h4>
+                                                            </div>
+                                                        </div>
+                                                    
+                                                        <ul class="list-unstyled mb-0" id="video-preview">
+                                                            <li class="mt-2" id="video-preview-list">
+                                                                <!-- This is used as the file preview template -->
+                                                                <div class="border rounded">
+                                                                    <div class="d-flex p-2">
+                                                                        <div class="flex-shrink-0 me-3">
+                                                                            <div class="avatar-sm bg-light rounded">
+                                                                                <img data-dz-thumbnail class="img-fluid rounded d-block" src="{{url_for('static' ,filename='images/new-document.png')}}" alt="Dropzone-Image" >
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-grow-1">
+                                                                            <div class="pt-1">
+                                                                                <h5 class="fs-md mb-1" data-dz-name>&nbsp;</h5>
+                                                                                <p class="fs-sm text-muted mb-0" data-dz-size></p>
+                                                                                <strong class="error text-danger" data-dz-errormessage></strong>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-shrink-0 ms-3">
+                                                                            <button data-dz-remove class="btn btn-sm btn-danger">Delete</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                        </ul>
+                                                        <!-- end dropzon-preview -->
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-start gap-3 mt-4">
+                                                    <button type="button" class="btn btn-link text-decoration-none btn-label previestab" data-previous="coursesDetails-tab"><i class="ri-arrow-left-line label-icon align-middle fs-lg me-2"></i> Back to Course Details</button>
+                                                    <button type="button" class="btn btn-primary btn-label right ms-auto nexttab nexttab" data-nexttab="pills-success-tab"><i class="ri-arrow-right-line label-icon align-middle fs-lg ms-2"></i>Submit</button>
+                                                </div>
+                                            </div>
+                                            <!-- end tab pane -->
+                        
+                                            <div class="tab-pane fade" id="pills-success" role="tabpanel" aria-labelledby="pills-success-tab">
+                                                <div>
+                                                    <div class="text-center">
+                                                        <div class="my-4">
+                                                            <img src="{{url_for('static' ,filename='images/success-img.png')}}" alt="" height="150">
+                                                        </div>
+                                                        <h4>Well Done !</h4>
+                                                        <p class="text-muted mb-0">You have added successfully course</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- end tab pane -->
+                                        </div>
+                                        <!-- end tab content -->
+                                    </form>
+                                </div>
+                                <!-- end card body -->
+                            </div>
+                            <!-- end card -->
+                        </div>
+                        <!-- end col -->
+                    </div>
+{% endblock content %}
+
+{% block extra_js %}
+
+    <!-- ckeditor -->
+    <script src="{{url_for('static' ,filename='libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js')}}"></script>
+
+    <!-- dropzone min -->
+    <script src="{{url_for('static' ,filename='libs/dropzone/dropzone-min.js')}}"></script>
+
+    <!-- init js -->
+    <script src="{{url_for('static' ,filename='js/pages/form-editor.init.js')}}"></script>
+    
+    <!-- form wizard init -->
+    <script src="{{url_for('static' ,filename='js/pages/form-wizard.init.js')}}"></script>
+
+    <script src="{{url_for('static' ,filename='js/pages/learning-create.init.js')}}"></script>
+
+{% endblock extra_js %}
+
