@@ -104,8 +104,9 @@ class Webhook(db.Model):
     tenant = db.relationship('Tenant', backref='webhooks')
     integration = db.relationship('Integration', backref='webhooks')
     
-    # Add indexes
+    # Add indexes and extend_existing to avoid creating duplicate tables and indexes
     __table_args__ = (
+        {'extend_existing': True},
         db.Index('idx_webhook_tenant', tenant_id),
         db.Index('idx_webhook_integration', integration_id),
     )
