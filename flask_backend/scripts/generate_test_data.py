@@ -78,7 +78,7 @@ def create_test_tenant():
             email='admin@test.com',
             password_hash='$2b$12$8M55ZaJ15n9y7AKuBCavreG51RyQ9lA1RcXUdugTuGW4aLPEFJ/oe',  # password123
             role=UserRole.ADMIN.value,
-            status=UserStatus.ACTIVE.value,
+            status='active',
             email_verified=True
         )
         

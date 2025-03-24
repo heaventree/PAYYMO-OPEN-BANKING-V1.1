@@ -38,7 +38,7 @@ class Integration(db.Model):
     name = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(20), default=IntegrationStatus.PENDING.value)
     config = db.Column(db.JSON)  # Configuration specific to this integration
-    credentials = db.Column(db.JSON)  # Encrypted credentials
+    # credentials moved to config JSON field for compatibility with existing database
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_sync_at = db.Column(db.DateTime)
@@ -63,24 +63,22 @@ class IntegrationSync(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     integration_id = db.Column(db.Integer, db.ForeignKey('integrations.id'), nullable=False)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=False)
     status = db.Column(db.String(20), nullable=False)  # 'success', 'failed', 'partial'
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)
-    records_processed = db.Column(db.Integer, default=0)
-    records_created = db.Column(db.Integer, default=0)
-    records_updated = db.Column(db.Integer, default=0)
-    records_failed = db.Column(db.Integer, default=0)
+    items_processed = db.Column(db.Integer, default=0)
+    items_created = db.Column(db.Integer, default=0)
+    items_updated = db.Column(db.Integer, default=0)
+    items_deleted = db.Column(db.Integer, default=0)
     error_message = db.Column(db.Text)
+    sync_type = db.Column(db.String(50))
     
     # Relationships
     integration = db.relationship('Integration', backref='syncs')
-    tenant = db.relationship('Tenant', backref='integration_syncs')
     
     # Add indexes
     __table_args__ = (
         db.Index('idx_sync_integration', integration_id),
-        db.Index('idx_sync_tenant', tenant_id),
         db.Index('idx_sync_started', started_at),
         {'extend_existing': True}
     )
