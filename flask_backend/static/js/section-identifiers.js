@@ -1,8 +1,7 @@
 /**
- * Section Identifiers System
- * Adds sequential numbered identifiers to main containers
- * Each set of related cards/panes has its own container
- * Based on the WHMCS addon approach
+ * Section Identifiers System for Payymo
+ * Based exactly on the original WHMCS implementation
+ * Adds sequential section numbers to main content containers
  */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Section Identifiers system');
@@ -12,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!toggleButton) {
         console.log('Section identifiers toggle button not found');
         
-        // Create a toggle button in the corner if one doesn't exist
+        // Create a toggle button in the corner
         createToggleButton();
         return;
     }
@@ -85,58 +84,66 @@ document.addEventListener('DOMContentLoaded', function() {
         setupSectionIdentifiers();
     }
     
-    // Function to set up section identifiers
+    // Function to set up section identifiers - WHMCS style exactly
     function setupSectionIdentifiers() {
         // Remove any existing identifiers
         const existingIdentifiers = document.querySelectorAll('.section-identifier');
         existingIdentifiers.forEach(identifier => identifier.remove());
         
-        // Only select the main containers (parent containers that group related cards)
-        // Use direct children of main content area to avoid selecting nested containers
-        const mainContentArea = document.querySelector('main') || document.body;
-        const topLevelContainers = Array.from(mainContentArea.children).filter(el => {
-            return (
-                el.classList.contains('container') || 
-                el.classList.contains('container-fluid') ||
-                (el.tagName === 'DIV' && el.querySelector('.card, .alert, .row'))
-            );
+        // Get all the main rows that contain our content sections
+        const contentRows = document.querySelectorAll('.row');
+        
+        // WHMCS addon style - select each main content section
+        const sections = [];
+        
+        // Section 1: Welcome card - first card in the first row
+        if (contentRows.length > 0) {
+            const welcomeCard = contentRows[0].querySelector('.card');
+            if (welcomeCard) sections.push(welcomeCard);
+        }
+        
+        // Section 2: Stats row - the row with the 4 stat cards (usually 2nd row)
+        if (contentRows.length > 1) {
+            const statsRow = contentRows[1]; // Second row with stats
+            
+            // Check if this row has the stat cards by looking for col-xl-3
+            const hasStatCards = statsRow.querySelector('.col-xl-3') !== null;
+            if (hasStatCards) sections.push(statsRow);
+        }
+        
+        // Section 3-5: Cards with headings
+        document.querySelectorAll('.card-header h5').forEach(heading => {
+            const headingText = heading.textContent.trim();
+            const card = heading.closest('.card');
+            
+            if (headingText.includes('Recent Transactions')) {
+                sections.push(card); // Section 3
+            } else if (headingText.includes('Recent Invoices')) {
+                sections.push(card); // Section 4
+            } else if (headingText.includes('Integrations') || headingText.includes('Your Integrations')) {
+                sections.push(card); // Section 5
+            }
         });
         
+        // Filter out any null sections
+        const validSections = sections.filter(section => section !== null);
+        
         // Add sequential numbered identifiers
-        topLevelContainers.forEach((container, index) => {
+        validSections.forEach((section, index) => {
             // Create the section identifier element
             const identifier = document.createElement('div');
             identifier.className = 'section-identifier';
             identifier.textContent = index + 1; // Start numbering from 1
             
             // Add the identifier to the container
-            container.appendChild(identifier);
+            section.appendChild(identifier);
             
             // Make sure the container is positioned relatively
-            if (getComputedStyle(container).position === 'static') {
-                container.style.position = 'relative';
+            if (getComputedStyle(section).position === 'static') {
+                section.style.position = 'relative';
             }
         });
         
-        // Also add identifiers to alert boxes that might be direct children of the body
-        const alertContainers = document.querySelectorAll('.alert:not(.section-identifier)');
-        alertContainers.forEach((alert, index) => {
-            // Skip alerts that are inside already marked containers
-            if (alert.closest('[class*="container"]')) {
-                return;
-            }
-            
-            const identifier = document.createElement('div');
-            identifier.className = 'section-identifier';
-            identifier.textContent = topLevelContainers.length + index + 1;
-            
-            alert.appendChild(identifier);
-            
-            if (getComputedStyle(alert).position === 'static') {
-                alert.style.position = 'relative';
-            }
-        });
-        
-        console.log(`Added identifiers to ${topLevelContainers.length} main containers`);
+        console.log(`Added identifiers to ${validSections.length} main sections`);
     }
 });
