@@ -28,18 +28,19 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255))
     role = db.Column(db.String(20), default=UserRole.USER.value)
     status = db.Column(db.String(20), default=UserStatus.PENDING.value)
     email_verified = db.Column(db.Boolean, default=False)
-    phone = db.Column(db.String(20))
-    profile_image = db.Column(db.String(255))
+    avatar_url = db.Column(db.String(255))
+    verification_token = db.Column(db.String(255))
+    preferences = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    last_login = db.Column(db.DateTime)
-    timezone = db.Column(db.String(50), default='UTC')
+    last_login_at = db.Column(db.DateTime)
     
     # Add indexes
     __table_args__ = (
