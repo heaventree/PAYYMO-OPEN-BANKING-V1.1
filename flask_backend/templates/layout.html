@@ -28,6 +28,88 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Dashboard-specific styles -->
+    <style>
+        /* Dashboard card styles */
+        .stats-card {
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .stats-card-icon {
+            width: 48px;
+            height: 48px;
+        }
+        .stats-card-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        .dashboard-table tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .dashboard-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        
+        /* Chart container styles */
+        .chart-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        /* Loading state for tables */
+        .table-responsive.loading {
+            position: relative;
+        }
+        .table-responsive.loading:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 1;
+        }
+        .table-responsive.loading:before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            margin: -15px 0 0 -15px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            z-index: 2;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Button and action styles */
+        .btn-icon {
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        .card-footer-link {
+            transition: background-color 0.2s;
+        }
+        .card-footer-link:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        
+        /* Helper classes */
+        .cursor-pointer {
+            cursor: pointer;
+        }
+    </style>
     <!-- Section Identifiers CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/section-identifiers.css') }}">
     

@@ -183,7 +183,7 @@
                         {% for transaction in recent_transactions %}
                         <tr>
                             <td>{{ transaction.transaction_date|default('-') }}</td>
-                            <td>{{ transaction.reference|default(transaction.transaction_id[:8]|default('-')) }}</td>
+                            <td>{{ transaction.reference|default(transaction.source_id[:8] if transaction.source_id else '-') }}</td>
                             <td><span class="fw-semibold">
                                 {% if transaction.amount is defined and transaction.amount is not none %}
                                     {{ "%.2f"|format(transaction.amount) }}
@@ -196,17 +196,23 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                        {% if transaction.type is defined and transaction.type == 'stripe' %}
+                                        {% if transaction.source is defined and transaction.source == 'stripe' %}
                                         <i data-lucide="credit-card" style="width: 14px; height: 14px;"></i>
                                         {% else %}
                                         <i data-lucide="landmark" style="width: 14px; height: 14px;"></i>
                                         {% endif %}
                                     </div>
-                                    {{ transaction.bank_name|default('Unknown Bank') }}
+                                    {% if transaction.source == 'stripe' %}
+                                        Stripe
+                                    {% elif transaction.source == 'gocardless' %}
+                                        {{ transaction.transaction_metadata.bank_name|default('GoCardless') if transaction.transaction_metadata is defined else 'GoCardless' }}
+                                    {% else %}
+                                        {{ transaction.source|capitalize|default('Unknown Source') }}
+                                    {% endif %}
                                 </div>
                             </td>
                             <td>
-                                {% if transaction.is_matched|default(false) %}
+                                {% if transaction.invoice_matches is defined and transaction.invoice_matches|length > 0 %}
                                 <span class="badge bg-success">Matched</span>
                                 {% else %}
                                 <span class="badge bg-warning">Unmatched</span>
@@ -309,8 +315,10 @@
                                     <small class="text-muted">{{ invoice.currency|default('GBP') }}</small>
                                 </td>
                                 <td>
-                                    {% if invoice.is_paid|default(false) %}
+                                    {% if invoice.status is defined and invoice.status == 'paid' %}
                                     <span class="badge bg-success">Paid</span>
+                                    {% elif invoice.status is defined and invoice.status == 'partially_paid' %}
+                                    <span class="badge bg-info">Partially Paid</span>
                                     {% else %}
                                     <span class="badge bg-warning">Unpaid</span>
                                     {% endif %}
