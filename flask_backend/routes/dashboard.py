@@ -225,48 +225,65 @@ def get_tenant_dashboard_stats(tenant_id):
     last_30_days = today - timedelta(days=30)
     last_7_days = today - timedelta(days=7)
     
-    # Transaction stats
-    new_transactions_today = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedTransaction.transaction_date >= today).count()
+    try:
+        # Transaction stats
+        new_transactions_today = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedTransaction.transaction_date >= today).count()
+            
+        new_transactions_yesterday = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedTransaction.transaction_date >= yesterday) \
+            .filter(StandardizedTransaction.transaction_date < today).count()
+            
+        new_transactions_7_days = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedTransaction.transaction_date >= last_7_days).count()
+            
+        new_transactions_30_days = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedTransaction.transaction_date >= last_30_days).count()
+            
+        # Invoice stats
+        new_invoices_today = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedInvoice.invoice_date >= today).count()
+            
+        new_invoices_yesterday = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedInvoice.invoice_date >= yesterday) \
+            .filter(StandardizedInvoice.invoice_date < today).count()
+            
+        new_invoices_7_days = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedInvoice.invoice_date >= last_7_days).count()
+            
+        new_invoices_30_days = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
+            .filter(StandardizedInvoice.invoice_date >= last_30_days).count()
+            
+        # Match stats
+        matches_today = InvoiceTransaction.query.filter_by(tenant_id=tenant_id) \
+            .filter(InvoiceTransaction.created_at >= today).count()
+            
+        pending_matches = InvoiceTransaction.query.filter_by(
+            tenant_id=tenant_id,
+            status='pending'
+        ).count()
         
-    new_transactions_yesterday = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedTransaction.transaction_date >= yesterday) \
-        .filter(StandardizedTransaction.transaction_date < today).count()
-        
-    new_transactions_7_days = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedTransaction.transaction_date >= last_7_days).count()
-        
-    new_transactions_30_days = StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedTransaction.transaction_date >= last_30_days).count()
-        
-    # Invoice stats
-    new_invoices_today = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedInvoice.invoice_date >= today).count()
-        
-    new_invoices_yesterday = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedInvoice.invoice_date >= yesterday) \
-        .filter(StandardizedInvoice.invoice_date < today).count()
-        
-    new_invoices_7_days = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedInvoice.invoice_date >= last_7_days).count()
-        
-    new_invoices_30_days = StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
-        .filter(StandardizedInvoice.invoice_date >= last_30_days).count()
-        
-    # Match stats
-    matches_today = InvoiceTransaction.query.filter_by(tenant_id=tenant_id) \
-        .filter(InvoiceTransaction.created_at >= today).count()
-        
-    pending_matches = InvoiceTransaction.query.filter_by(
-        tenant_id=tenant_id,
-        status='pending'
-    ).count()
-    
-    # Balance stats
-    # Sum all transaction amounts for the tenant
-    # This is a simple approximation, real balance would need more complex accounting logic
-    balance_query = StandardizedTransaction.query.filter_by(tenant_id=tenant_id)
-    total_transaction_amount = sum([t.amount for t in balance_query.all()]) or 0
+        # Balance stats
+        # Sum all transaction amounts for the tenant
+        # This is a simple approximation, real balance would need more complex accounting logic
+        balance_query = StandardizedTransaction.query.filter_by(tenant_id=tenant_id)
+        total_transaction_amount = sum([t.amount for t in balance_query.all()]) or 0
+    except Exception as e:
+        logger.warning(f"Error getting dashboard stats: {str(e)}")
+        # Return default values if there's an error (like missing tables)
+        return {
+            'new_transactions_today': 0,
+            'new_transactions_yesterday': 0,
+            'new_transactions_7_days': 0,
+            'new_transactions_30_days': 0,
+            'new_invoices_today': 0,
+            'new_invoices_yesterday': 0,
+            'new_invoices_7_days': 0,
+            'new_invoices_30_days': 0,
+            'matches_today': 0,
+            'pending_matches': 0,
+            'total_transaction_amount': 0
+        }
     
     return {
         'new_transactions_today': new_transactions_today,
@@ -284,16 +301,28 @@ def get_tenant_dashboard_stats(tenant_id):
 
 def get_recent_transactions(tenant_id, limit=5):
     """Get recent transactions for a tenant"""
-    return StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
-        .order_by(StandardizedTransaction.transaction_date.desc()) \
-        .limit(limit).all()
+    try:
+        return StandardizedTransaction.query.filter_by(tenant_id=tenant_id) \
+            .order_by(StandardizedTransaction.transaction_date.desc()) \
+            .limit(limit).all()
+    except Exception as e:
+        logger.warning(f"Error getting recent transactions: {str(e)}")
+        return []
 
 def get_recent_invoices(tenant_id, limit=5):
     """Get recent invoices for a tenant"""
-    return StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
-        .order_by(StandardizedInvoice.invoice_date.desc()) \
-        .limit(limit).all()
+    try:
+        return StandardizedInvoice.query.filter_by(tenant_id=tenant_id) \
+            .order_by(StandardizedInvoice.invoice_date.desc()) \
+            .limit(limit).all()
+    except Exception as e:
+        logger.warning(f"Error getting recent invoices: {str(e)}")
+        return []
 
 def get_tenant_integrations(tenant_id):
     """Get integration statuses for a tenant"""
-    return Integration.query.filter_by(tenant_id=tenant_id).all()
+    try:
+        return Integration.query.filter_by(tenant_id=tenant_id).all()
+    except Exception as e:
+        logger.warning(f"Error getting tenant integrations: {str(e)}")
+        return []

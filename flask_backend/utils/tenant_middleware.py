@@ -29,8 +29,8 @@ def get_tenant_from_subdomain(hostname):
     # Extract the first part as the subdomain/tenant slug
     subdomain = parts[0]
     
-    # Skip common development/staging subdomains
-    if subdomain in ['www', 'app', 'api', 'dev', 'staging']:
+    # Skip common development/staging subdomains and Replit domains
+    if subdomain in ['www', 'app', 'api', 'dev', 'staging'] or '-' in subdomain:
         return None
         
     return subdomain
