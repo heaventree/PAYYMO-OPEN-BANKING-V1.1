@@ -22,8 +22,16 @@ class GoCardlessService:
         self.client_id = os.environ.get('GOCARDLESS_CLIENT_ID')
         self.client_secret = os.environ.get('GOCARDLESS_CLIENT_SECRET')
         
-        # Check if we're in sandbox mode
-        self.sandbox_mode = os.environ.get('GOCARDLESS_SANDBOX_MODE', 'true').lower() == 'true'
+        # Try to get sandbox mode from app config first
+        try:
+            from flask import current_app
+            sandbox_setting = current_app.config.get('GOCARDLESS_SANDBOX_MODE', 'true')
+            self.sandbox_mode = sandbox_setting.lower() == 'true'
+            logger.info(f"Using GoCardless sandbox mode from app config: {self.sandbox_mode}")
+        except Exception as e:
+            # Fallback to environment variable if app context is not available
+            self.sandbox_mode = os.environ.get('GOCARDLESS_SANDBOX_MODE', 'true').lower() == 'true'
+            logger.info(f"Using GoCardless sandbox mode from environment: {self.sandbox_mode}")
         
         if self.sandbox_mode:
             logger.info("GoCardless service running in SANDBOX mode")
@@ -38,8 +46,10 @@ class GoCardlessService:
             # Use sandbox credentials if not provided
             if not self.client_id:
                 self.client_id = 'sandbox-client-id'
+                logger.info("Using default sandbox client ID")
             if not self.client_secret:
                 self.client_secret = 'sandbox-client-secret'
+                logger.info("Using default sandbox client secret")
         else:
             logger.info("GoCardless service running in PRODUCTION mode")
             self.api_base_url = 'https://api.gocardless.com'

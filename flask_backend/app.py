@@ -34,13 +34,15 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Configure GoCardless webhook certificate paths
+# Configure GoCardless settings
 app.config["GOCARDLESS_WEBHOOK_CERT_PATH"] = os.environ.get("GOCARDLESS_WEBHOOK_CERT_PATH", DEFAULT_CERT_PATH)
 app.config["GOCARDLESS_WEBHOOK_KEY_PATH"] = os.environ.get("GOCARDLESS_WEBHOOK_KEY_PATH", DEFAULT_KEY_PATH)
+app.config["GOCARDLESS_SANDBOX_MODE"] = os.environ.get("GOCARDLESS_SANDBOX_MODE", "true")
 
-# Log certificate path configuration
+# Log GoCardless configuration
 logger.info(f"GoCardless webhook certificate path: {app.config['GOCARDLESS_WEBHOOK_CERT_PATH']}")
 logger.info(f"GoCardless webhook key path: {app.config['GOCARDLESS_WEBHOOK_KEY_PATH']}")
+logger.info(f"GoCardless sandbox mode: {app.config['GOCARDLESS_SANDBOX_MODE']}")
 
 # Initialize the database with the app
 db.init_app(app)
