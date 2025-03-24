@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Viewer - {{ theme_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .header {
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .header .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            background: #555;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .header a:hover {
+            background: #777;
+        }
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 56px);
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .device-selector {
+            display: flex;
+            gap: 10px;
+        }
+        .device-btn {
+            cursor: pointer;
+            padding: 6px 12px;
+            background: #555;
+            border-radius: 4px;
+            font-size: 14px;
+            border: none;
+            color: white;
+        }
+        .device-btn:hover {
+            background: #777;
+        }
+        .active {
+            background: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ theme_name }} - {{ page_title }}</h1>
+        <div class="controls">
+            <div class="device-selector">
+                <button class="device-btn active" data-width="100%" data-height="100%">Full</button>
+                <button class="device-btn" data-width="1200px" data-height="100%">Desktop</button>
+                <button class="device-btn" data-width="992px" data-height="100%">Laptop</button>
+                <button class="device-btn" data-width="768px" data-height="100%">Tablet</button>
+                <button class="device-btn" data-width="400px" data-height="100%">Mobile</button>
+            </div>
+            <a href="{{ back_url }}">Back to Theme Selection</a>
+        </div>
+    </div>
+    <div class="iframe-container">
+        <iframe id="theme-frame" src="{{ iframe_src }}"></iframe>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('theme-frame');
+        const deviceBtns = document.querySelectorAll('.device-btn');
+        
+        deviceBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                deviceBtns.forEach(b => b.classList.remove('active'));
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Set iframe dimensions
+                iframe.style.width = btn.getAttribute('data-width');
+                iframe.style.height = btn.getAttribute('data-height');
+            });
+        });
+    </script>
+</body>
+</html>
