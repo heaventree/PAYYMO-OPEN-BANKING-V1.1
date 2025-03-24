@@ -74,16 +74,17 @@ def login():
                 return redirect(url_for('dashboard.index'))
             else:
                 # Redirect to tenant selection page (for users with multiple tenants)
-                if user.tenants.count() > 1:
+                if len(user.tenants) > 1:
                     return redirect(url_for('auth.select_tenant'))
-                elif user.tenants.count() == 1:
+                elif len(user.tenants) == 1:
                     # If user only has one tenant, set it active and redirect to dashboard
-                    tenant = user.tenants.first().tenant
+                    tenant = user.tenants[0].tenant
                     session['tenant_id'] = tenant.id
                     return redirect(url_for('dashboard.index'))
                 else:
-                    # User has no tenants, redirect to platform dashboard
-                    return redirect(url_for('platform.index'))
+                    # User has no tenants, redirect to dashboard or create tenant
+                    flash('You do not have access to any tenants. Please contact an administrator.', 'warning')
+                    return redirect(url_for('auth.login'))
         else:
             # Log failed attempt
             log_login_attempt(email, success=False, tenant_id=getattr(g, 'tenant_id', None))
