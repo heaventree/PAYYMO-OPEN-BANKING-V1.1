@@ -9,11 +9,21 @@ from flask import Blueprint, render_template, request, send_from_directory, redi
 # Create blueprint
 themes_bp = Blueprint('themes', __name__, url_prefix='/themes')
 
-# Theme paths
-APPROX_THEME_PATH = 'theme_preview/approx-v1.0/dist'
-FLASK_ADMIN_THEME_PATH = 'flask_admin_theme/Admin/steex'
-FLASK_ADMIN_TEMPLATES_PATH = 'flask_admin_theme/Admin/steex/templates'
-FLASK_ADMIN_DOCS_PATH = 'flask_admin_theme/Documentation'
+# Theme paths (using absolute paths for better reliability)
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+APPROX_THEME_PATH = os.path.join(BASE_DIR, 'theme_preview/approx-v1.0/dist')
+FLASK_ADMIN_THEME_PATH = os.path.join(BASE_DIR, 'flask_admin_theme/Admin/steex')
+FLASK_ADMIN_TEMPLATES_PATH = os.path.join(BASE_DIR, 'flask_admin_theme/Admin/steex/templates')
+FLASK_ADMIN_DOCS_PATH = os.path.join(BASE_DIR, 'flask_admin_theme/Documentation')
+
+# Debug information
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"APPROX_THEME_PATH: {APPROX_THEME_PATH}")
+print(f"FLASK_ADMIN_THEME_PATH: {FLASK_ADMIN_THEME_PATH}")
+print(f"FLASK_ADMIN_TEMPLATES_PATH: {FLASK_ADMIN_TEMPLATES_PATH}")
+print(f"FLASK_ADMIN_DOCS_PATH: {FLASK_ADMIN_DOCS_PATH}")
+print(f"Theme files exist? Approx: {os.path.exists(APPROX_THEME_PATH)}, Flask Admin: {os.path.exists(FLASK_ADMIN_THEME_PATH)}")
 
 @themes_bp.route('/')
 def index():
@@ -181,44 +191,83 @@ def flask_admin_index():
 @themes_bp.route('/approx/<path:path>')
 def serve_approx(path):
     """Serve files from the Approx theme"""
-    return send_from_directory(APPROX_THEME_PATH, path)
+    print(f"Serving approx file: {path}")
+    print(f"Full path: {os.path.join(APPROX_THEME_PATH, path)}")
+    print(f"File exists: {os.path.exists(os.path.join(APPROX_THEME_PATH, path))}")
+    
+    if os.path.exists(os.path.join(APPROX_THEME_PATH, path)):
+        return send_from_directory(APPROX_THEME_PATH, path)
+    
+    return f"File not found: {path}", 404
 
 @themes_bp.route('/flask-admin/dashboard')
 def flask_admin_dashboard():
     """Serve Flask Admin dashboard page"""
-    return send_from_directory(os.path.join(FLASK_ADMIN_TEMPLATES_PATH, 'dashboards'), 'index.html')
+    dashboard_path = os.path.join(FLASK_ADMIN_TEMPLATES_PATH, 'dashboards', 'index.html')
+    print(f"Serving flask admin dashboard from: {dashboard_path}")
+    print(f"File exists: {os.path.exists(dashboard_path)}")
+    
+    if os.path.exists(dashboard_path):
+        return send_from_directory(os.path.join(FLASK_ADMIN_TEMPLATES_PATH, 'dashboards'), 'index.html')
+    
+    return "Dashboard file not found", 404
 
 @themes_bp.route('/flask-admin/docs')
 def flask_admin_documentation():
     """Serve Flask Admin documentation"""
-    return send_from_directory(FLASK_ADMIN_DOCS_PATH, 'index.html')
+    docs_path = os.path.join(FLASK_ADMIN_DOCS_PATH, 'index.html')
+    print(f"Serving flask admin docs from: {docs_path}")
+    print(f"File exists: {os.path.exists(docs_path)}")
+    
+    if os.path.exists(docs_path):
+        return send_from_directory(FLASK_ADMIN_DOCS_PATH, 'index.html')
+    
+    return "Documentation not found", 404
 
 @themes_bp.route('/flask-admin/admin/<path:path>')
 def flask_admin_admin(path):
     """Serve admin pages from the Flask Admin theme"""
+    print(f"Looking for admin page: {path}")
+    
     # Try to find the appropriate template
     for root, dirs, files in os.walk(FLASK_ADMIN_TEMPLATES_PATH):
         for file in files:
             if file == path + '.html' or file == path:
-                relative_path = os.path.join(root, file).replace(FLASK_ADMIN_TEMPLATES_PATH + '/', '')
+                relative_path = os.path.relpath(os.path.join(root, file), FLASK_ADMIN_TEMPLATES_PATH)
+                print(f"Found file at: {relative_path}")
                 return send_from_directory(FLASK_ADMIN_TEMPLATES_PATH, relative_path)
     
+    print(f"Admin page not found: {path}")
     # Default to dashboard if page not found
-    return send_from_directory(os.path.join(FLASK_ADMIN_TEMPLATES_PATH, 'dashboards'), 'index.html')
+    dashboard_path = os.path.join(FLASK_ADMIN_TEMPLATES_PATH, 'dashboards', 'index.html')
+    if os.path.exists(dashboard_path):
+        return send_from_directory(os.path.join(FLASK_ADMIN_TEMPLATES_PATH, 'dashboards'), 'index.html')
+    
+    return f"Admin page not found: {path}", 404
 
 @themes_bp.route('/flask-admin/<path:path>')
 def serve_flask_admin(path):
     """Serve static files from the Flask Admin theme"""
+    print(f"Looking for flask admin file: {path}")
+    
     # Check if it's a static file (CSS, JS, images)
     if path.startswith('static/'):
-        return send_from_directory(FLASK_ADMIN_THEME_PATH, path)
-        
+        full_path = os.path.join(FLASK_ADMIN_THEME_PATH, path)
+        print(f"Checking static path: {full_path}")
+        if os.path.exists(full_path):
+            return send_from_directory(FLASK_ADMIN_THEME_PATH, path)
+    
     # Try to find the file in Documentation
-    if os.path.exists(os.path.join(FLASK_ADMIN_DOCS_PATH, path)):
+    docs_path = os.path.join(FLASK_ADMIN_DOCS_PATH, path)
+    print(f"Checking docs path: {docs_path}")
+    if os.path.exists(docs_path):
         return send_from_directory(FLASK_ADMIN_DOCS_PATH, path)
-        
+    
     # Try to find the file in Admin
-    if os.path.exists(os.path.join(FLASK_ADMIN_THEME_PATH, path)):
+    admin_path = os.path.join(FLASK_ADMIN_THEME_PATH, path)
+    print(f"Checking admin path: {admin_path}")
+    if os.path.exists(admin_path):
         return send_from_directory(FLASK_ADMIN_THEME_PATH, path)
-        
-    return "File not found", 404
+    
+    print(f"File not found: {path}")
+    return f"File not found: {path}", 404
