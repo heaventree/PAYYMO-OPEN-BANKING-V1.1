@@ -5,13 +5,15 @@ from flask_backend.routes.dashboard import dashboard_bp
 from flask_backend.routes.auth import auth_bp
 from flask_backend.routes.api import api_bp
 from flask_backend.routes.stripe import stripe_bp
+from flask_backend.routes.themes import themes_bp
 
 # List of all blueprints to register with the app
 all_blueprints = [
     dashboard_bp,
     auth_bp,
     api_bp,
-    stripe_bp
+    stripe_bp,
+    themes_bp
 ]
 
 def register_blueprints(app):
