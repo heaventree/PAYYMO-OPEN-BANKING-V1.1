@@ -204,7 +204,7 @@
     </nav>
     
     <!-- Main Content -->
-    <div class="container-fluid px-md-4">
+    <div class="container-fluid">
         <!-- Page content -->
         {% block content %}{% endblock %}
         
@@ -291,7 +291,7 @@
                 });
             });
             
-            const contentContainer = document.querySelector('.container-fluid.px-md-4');
+            const contentContainer = document.querySelector('.container-fluid');
             if (contentContainer) {
                 contentObserver.observe(contentContainer, { childList: true, subtree: true });
             }
