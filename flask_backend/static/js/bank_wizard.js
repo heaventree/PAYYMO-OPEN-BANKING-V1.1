@@ -2,268 +2,285 @@
  * Bank Connection Wizard
  * This script controls the bank connection wizard modal and steps
  */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Bank wizard script loaded');
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Bank wizard script loaded");
     
-    // Find the bank wizard modal
-    const bankModal = document.getElementById('bank-connection-modal');
+    // Check if the modal element exists
+    const bankModal = document.getElementById('bankConnectionModal');
     if (!bankModal) {
-        console.log('Bank connection modal not found');
+        console.log("Bank connection modal not found");
         return;
     }
     
-    // Get all steps
-    const steps = Array.from(bankModal.querySelectorAll('.wizard-step'));
-    if (steps.length === 0) return;
+    // Initialize the wizard
+    console.log("Initializing bank connection wizard");
     
-    // Get control buttons
-    const nextBtn = bankModal.querySelector('.next-step');
-    const prevBtn = bankModal.querySelector('.prev-step');
-    const submitBtn = bankModal.querySelector('.submit-step');
+    // Elements
+    const steps = bankModal.querySelectorAll('.step');
+    const stepContents = bankModal.querySelectorAll('.step-content');
+    const nextButton = document.getElementById('bankWizardNextBtn');
+    const progressBar = bankModal.querySelector('.progress-bar');
     
-    // Current step index
-    let currentStepIndex = 0;
+    console.log(`Found ${steps.length} steps and ${stepContents.length} step contents`);
     
-    // Bank data
-    let selectedCountry = 'GB';
+    let currentStep = 1;
+    const totalSteps = steps.length;
     let selectedBank = null;
-    let availableBanks = [];
     
-    // Show the current step
-    function showStep(index) {
-        // Hide all steps
-        steps.forEach(step => step.classList.add('d-none'));
-        
-        // Show the current step
-        steps[index].classList.remove('d-none');
-        
-        // Update buttons
-        if (index === 0) {
-            prevBtn.classList.add('d-none');
-        } else {
-            prevBtn.classList.remove('d-none');
-        }
-        
-        if (index === steps.length - 1) {
-            nextBtn.classList.add('d-none');
-            submitBtn.classList.remove('d-none');
-        } else {
-            nextBtn.classList.remove('d-none');
-            submitBtn.classList.add('d-none');
-        }
-        
-        // Update step indicators
-        updateStepIcons();
-    }
-    
-    // Go to next step
-    function nextStep() {
-        if (currentStepIndex < steps.length - 1) {
-            // Validate current step
-            if (validateCurrentStep()) {
-                currentStepIndex++;
-                showStep(currentStepIndex);
-            }
-        }
-    }
-    
-    // Go to previous step
-    function prevStep() {
-        if (currentStepIndex > 0) {
-            currentStepIndex--;
-            showStep(currentStepIndex);
-        }
-    }
-    
-    // Validate the current step
-    function validateCurrentStep() {
-        // Validation logic depends on the step
-        switch(currentStepIndex) {
-            case 0: // Country selection
-                selectedCountry = bankModal.querySelector('select[name="country"]').value;
-                if (!selectedCountry) {
-                    alert('Please select a country');
-                    return false;
-                }
-                // Fetch available banks for the selected country
-                fetchAvailableBanks(selectedCountry);
-                return true;
-                
-            case 1: // Bank selection
-                const bankRadios = bankModal.querySelectorAll('input[name="bank"]:checked');
-                if (bankRadios.length === 0) {
-                    alert('Please select a bank');
-                    return false;
-                }
-                selectedBank = bankRadios[0].value;
-                return true;
-                
-            default:
-                return true;
-        }
-    }
-    
-    // Update step indicator icons
+    // Update the current step display and progress bar
     function updateStepIcons() {
-        const stepIcons = bankModal.querySelectorAll('.step-indicator');
-        stepIcons.forEach((icon, index) => {
-            // Remove all classes
-            icon.classList.remove('active', 'completed');
+        steps.forEach((step, index) => {
+            const stepNumber = index + 1;
+            const stepIcon = step.querySelector('.step-icon');
             
-            // Add appropriate class
-            if (index < currentStepIndex) {
-                icon.classList.add('completed');
-            } else if (index === currentStepIndex) {
-                icon.classList.add('active');
+            if (stepNumber < currentStep) {
+                // Completed step
+                stepIcon.classList.remove('bg-light', 'border');
+                stepIcon.classList.add('bg-primary', 'text-white');
+                stepIcon.innerHTML = '<i data-lucide="check" style="width: 16px; height: 16px;"></i>';
+            } else if (stepNumber === currentStep) {
+                // Current step
+                stepIcon.classList.remove('bg-light', 'border');
+                stepIcon.classList.add('bg-primary', 'text-white');
+                stepIcon.innerHTML = `<span>${stepNumber}</span>`;
+            } else {
+                // Future step
+                stepIcon.classList.remove('bg-primary', 'text-white');
+                stepIcon.classList.add('bg-light', 'border');
+                stepIcon.innerHTML = `<span>${stepNumber}</span>`;
             }
         });
+        
+        // Update progress bar
+        const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+        progressBar.setAttribute('aria-valuenow', progressPercentage);
     }
     
-    // Fetch available banks for a country
-    function fetchAvailableBanks(country = 'GB') {
-        // Show loading indicator
-        const bankList = bankModal.querySelector('.bank-list');
-        if (bankList) {
-            bankList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading banks...</p></div>';
-        }
+    // Show the current step
+    function showCurrentStep() {
+        stepContents.forEach((content, index) => {
+            if (index + 1 === currentStep) {
+                content.classList.remove('d-none');
+            } else {
+                content.classList.add('d-none');
+            }
+        });
         
-        // In a real implementation, this would be an AJAX call to the server
-        // For now, we'll use sample data with a simulated delay
+        // Update the next button text based on the current step
+        if (currentStep === totalSteps) {
+            nextButton.textContent = "Complete";
+        } else if (currentStep === 1) {
+            nextButton.textContent = "Continue to Authorization";
+            nextButton.disabled = !selectedBank;
+        } else {
+            nextButton.textContent = "Continue";
+            nextButton.disabled = false;
+        }
+    }
+    
+    // Fetch available banks
+    function fetchAvailableBanks(country = 'GB') {
+        const bankOptionsContainer = bankModal.querySelector('.bank-options-container');
+        
+        // Show loading state
+        bankOptionsContainer.innerHTML = `
+            <div class="text-center p-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading available banks...</p>
+            </div>
+        `;
+        
+        // For demo purposes, we'll use mock data
+        // In a real implementation, this would be an API call to GoCardless
         setTimeout(() => {
-            // Sample data
-            availableBanks = [
-                { id: 'bank-001', name: 'Bank of Example', logo: 'bank1.png', country: 'GB' },
-                { id: 'bank-002', name: 'Financial Trust', logo: 'bank2.png', country: 'GB' },
-                { id: 'bank-003', name: 'Digital Banking Co', logo: 'bank3.png', country: 'GB' },
-                { id: 'bank-004', name: 'Global Bank UK', logo: 'bank4.png', country: 'GB' },
-                { id: 'bank-005', name: 'Metro Financial', logo: 'bank5.png', country: 'GB' }
+            // Mock data for demonstration
+            const banks = [
+                { id: 'hsbc_uk', name: 'HSBC UK', logo: 'https://via.placeholder.com/80x80.png?text=HSBC' },
+                { id: 'barclays_uk', name: 'Barclays', logo: 'https://via.placeholder.com/80x80.png?text=Barclays' },
+                { id: 'lloyds_uk', name: 'Lloyds Bank', logo: 'https://via.placeholder.com/80x80.png?text=Lloyds' },
+                { id: 'natwest_uk', name: 'NatWest', logo: 'https://via.placeholder.com/80x80.png?text=NatWest' },
+                { id: 'santander_uk', name: 'Santander UK', logo: 'https://via.placeholder.com/80x80.png?text=Santander' },
+                { id: 'rbs_uk', name: 'Royal Bank of Scotland', logo: 'https://via.placeholder.com/80x80.png?text=RBS' },
+                { id: 'halifax_uk', name: 'Halifax', logo: 'https://via.placeholder.com/80x80.png?text=Halifax' },
+                { id: 'tsb_uk', name: 'TSB Bank', logo: 'https://via.placeholder.com/80x80.png?text=TSB' },
+                { id: 'metro_uk', name: 'Metro Bank', logo: 'https://via.placeholder.com/80x80.png?text=Metro' }
             ];
             
-            // Render the bank options
-            renderBankOptions();
+            renderBankOptions(banks);
         }, 1000);
     }
     
-    // Render the bank options
-    function renderBankOptions() {
-        const bankList = bankModal.querySelector('.bank-list');
-        if (!bankList) return;
-        
-        // Filter banks by selected country
-        const filteredBanks = availableBanks.filter(bank => bank.country === selectedCountry);
-        
-        if (filteredBanks.length === 0) {
-            bankList.innerHTML = '<div class="alert alert-info">No banks available for the selected country.</div>';
-            return;
-        }
-        
-        // Create bank options HTML
+    // Render bank options
+    function renderBankOptions(banks) {
+        const bankOptionsContainer = bankModal.querySelector('.bank-options-container');
         let html = '';
-        filteredBanks.forEach(bank => {
+        
+        banks.forEach(bank => {
             html += `
-                <div class="bank-option card mb-2">
-                    <div class="card-body">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="bank" id="${bank.id}" value="${bank.id}">
-                            <label class="form-check-label d-flex align-items-center" for="${bank.id}">
-                                <div class="bank-logo me-3">
-                                    <i data-lucide="building" style="width: 24px; height: 24px;"></i>
-                                </div>
-                                <div class="bank-info">
-                                    <strong>${bank.name}</strong>
-                                </div>
-                            </label>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="bank-option border rounded p-3 d-flex align-items-center cursor-pointer" data-bank-id="${bank.id}" data-bank-name="${bank.name}" data-bank-logo="${bank.logo}">
+                        <div class="bank-logo bg-light rounded-circle d-flex align-items-center justify-content-center me-3">
+                            <i data-lucide="landmark" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">${bank.name}</h6>
+                            <p class="mb-0 small text-muted">Personal & Business</p>
                         </div>
                     </div>
                 </div>
             `;
         });
         
-        // Add search box
-        const searchBox = `
-            <div class="mb-3">
-                <input type="text" class="form-control bank-search" placeholder="Search for a bank...">
-            </div>
-        `;
+        bankOptionsContainer.innerHTML = html;
         
-        bankList.innerHTML = searchBox + html;
+        // Initialize Lucide icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
         
-        // Initialize search functionality
-        const searchInput = bankList.querySelector('.bank-search');
+        // Add event listeners to bank options
+        const bankOptions = bankOptionsContainer.querySelectorAll('.bank-option');
+        bankOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove active class from all options
+                bankOptions.forEach(opt => opt.classList.remove('border-primary', 'bg-light'));
+                
+                // Add active class to selected option
+                this.classList.add('border-primary', 'bg-light');
+                
+                // Store selected bank
+                selectedBank = {
+                    id: this.getAttribute('data-bank-id'),
+                    name: this.getAttribute('data-bank-name'),
+                    logo: this.getAttribute('data-bank-logo')
+                };
+                
+                // Update bank preview in step 2
+                updateBankPreview();
+                
+                // Enable the next button
+                nextButton.disabled = false;
+            });
+        });
+    }
+    
+    // Update bank preview in step 2
+    function updateBankPreview() {
+        if (!selectedBank) return;
+        
+        const bankName = bankModal.querySelector('.bank-name');
+        const bankPreviewLogo = bankModal.querySelector('.bank-preview-logo');
+        const bankLogoPlaceholder = bankModal.querySelector('.bank-preview .bank-logo');
+        
+        bankName.textContent = selectedBank.name;
+        
+        // Show bank logo if available, otherwise show placeholder
+        if (selectedBank.logo) {
+            bankPreviewLogo.src = selectedBank.logo;
+            bankPreviewLogo.style.display = 'block';
+            bankLogoPlaceholder.style.display = 'none';
+        } else {
+            bankPreviewLogo.style.display = 'none';
+            bankLogoPlaceholder.style.display = 'inline-flex';
+        }
+    }
+    
+    // Initialize the bank search functionality
+    function initBankSearch() {
+        const searchInput = document.getElementById('bankSearchInput');
+        const countryFilter = document.getElementById('bankCountryFilter');
+        
         if (searchInput) {
             searchInput.addEventListener('input', filterBanks);
         }
         
-        // Initialize Lucide icons
-        lucide.createIcons();
+        if (countryFilter) {
+            countryFilter.addEventListener('change', function() {
+                fetchAvailableBanks(this.value);
+            });
+        }
     }
     
     // Filter banks based on search input
     function filterBanks() {
-        const searchInput = bankModal.querySelector('.bank-search');
-        if (!searchInput) return;
-        
-        const searchValue = searchInput.value.toLowerCase();
+        const searchInput = document.getElementById('bankSearchInput');
         const bankOptions = bankModal.querySelectorAll('.bank-option');
         
+        if (!searchInput || !bankOptions.length) return;
+        
+        const searchTerm = searchInput.value.toLowerCase();
+        
         bankOptions.forEach(option => {
-            const bankName = option.querySelector('.bank-info strong').textContent.toLowerCase();
-            if (bankName.includes(searchValue)) {
-                option.style.display = '';
+            const bankName = option.getAttribute('data-bank-name').toLowerCase();
+            
+            if (bankName.includes(searchTerm)) {
+                option.closest('.col-lg-4').style.display = 'block';
             } else {
-                option.style.display = 'none';
+                option.closest('.col-lg-4').style.display = 'none';
             }
         });
     }
     
-    // Reset the wizard
+    // Handle the next button click
+    nextButton.addEventListener('click', function() {
+        if (currentStep < totalSteps) {
+            currentStep++;
+            updateStepIcons();
+            showCurrentStep();
+        } else {
+            // Handle completion (step 3)
+            // In a real implementation, this would close the modal and update the UI
+            bankModal.querySelector('.modal-footer').innerHTML = `
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+            `;
+        }
+    });
+    
+    // Reset wizard when modal is hidden
+    bankModal.addEventListener('hidden.bs.modal', function() {
+        resetWizard();
+    });
+    
+    // Reset the wizard state
     function resetWizard() {
-        currentStepIndex = 0;
-        selectedCountry = 'GB';
+        currentStep = 1;
         selectedBank = null;
         
-        // Reset form fields
-        const countrySelect = bankModal.querySelector('select[name="country"]');
-        if (countrySelect) countrySelect.value = 'GB';
+        // Reset the UI
+        updateStepIcons();
+        showCurrentStep();
         
-        // Show the first step
-        showStep(0);
-    }
-    
-    // Add event listeners to buttons
-    if (nextBtn) nextBtn.addEventListener('click', nextStep);
-    if (prevBtn) prevBtn.addEventListener('click', prevStep);
-    if (submitBtn) {
-        submitBtn.addEventListener('click', function() {
-            // Submit the form or make an AJAX call
-            if (validateCurrentStep()) {
-                // Show loading indicator
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Connecting...';
-                submitBtn.disabled = true;
-                
-                // In a real implementation, this would submit the form data
-                // For now, we'll just simulate a successful connection
-                setTimeout(() => {
-                    // Hide the modal
-                    const modal = bootstrap.Modal.getInstance(bankModal);
-                    modal.hide();
-                    
-                    // Show success message
-                    if (typeof showToast === 'function') {
-                        showToast('Bank connected successfully!', 'success');
-                    }
-                    
-                    // Reset form for next use
-                    setTimeout(resetWizard, 500);
-                    
-                    // Reset button state
-                    submitBtn.innerHTML = 'Connect';
-                    submitBtn.disabled = false;
-                }, 2000);
+        // Reset the bank selection
+        const bankOptions = bankModal.querySelectorAll('.bank-option');
+        bankOptions.forEach(opt => opt.classList.remove('border-primary', 'bg-light'));
+        
+        // Reset the modal footer
+        bankModal.querySelector('.modal-footer').innerHTML = `
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="bankWizardNextBtn" disabled>Continue to Authorization</button>
+        `;
+        
+        // Re-attach event listener to the new button
+        document.getElementById('bankWizardNextBtn').addEventListener('click', function() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepIcons();
+                showCurrentStep();
+            } else {
+                // Handle completion (step 3)
+                bankModal.querySelector('.modal-footer').innerHTML = `
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                `;
             }
         });
     }
     
-    // Initialize the wizard when the modal is shown
-    bankModal.addEventListener('show.bs.modal', resetWizard);
+    // Initialize the wizard
+    fetchAvailableBanks();
+    initBankSearch();
+    updateStepIcons();
+    showCurrentStep();
 });

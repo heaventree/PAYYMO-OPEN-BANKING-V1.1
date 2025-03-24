@@ -2,174 +2,175 @@
  * Stripe Connection Wizard
  * This script controls the Stripe connection wizard modal and steps
  */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Stripe wizard script loaded');
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Stripe wizard script loaded");
     
-    // Find the Stripe wizard modal
-    const stripeModal = document.getElementById('stripe-connection-modal');
+    // Check if the modal element exists
+    const stripeModal = document.getElementById('stripeConnectionModal');
     if (!stripeModal) {
-        console.log('Stripe connection modal not found');
+        console.log("Stripe connection modal not found");
         return;
     }
     
-    // Get all steps
-    const steps = Array.from(stripeModal.querySelectorAll('.wizard-step'));
-    if (steps.length === 0) return;
+    // Initialize the wizard
+    console.log("Initializing Stripe connection wizard");
     
-    // Get control buttons
-    const nextBtn = stripeModal.querySelector('.next-step');
-    const prevBtn = stripeModal.querySelector('.prev-step');
-    const submitBtn = stripeModal.querySelector('.submit-step');
+    // Elements
+    const steps = stripeModal.querySelectorAll('.step');
+    const stepContents = stripeModal.querySelectorAll('.step-content');
+    const nextButton = document.getElementById('stripeWizardNextBtn');
+    const progressBar = stripeModal.querySelector('.progress-bar');
     
-    // Current step index
-    let currentStepIndex = 0;
+    console.log(`Found ${steps.length} steps and ${stepContents.length} step contents`);
+    
+    let currentStep = 1;
+    const totalSteps = steps.length;
+    
+    // Update the current step display and progress bar
+    function updateStepIcons() {
+        steps.forEach((step, index) => {
+            const stepNumber = index + 1;
+            const stepIcon = step.querySelector('.step-icon');
+            
+            if (stepNumber < currentStep) {
+                // Completed step
+                stepIcon.classList.remove('bg-light', 'border');
+                stepIcon.classList.add('bg-primary', 'text-white');
+                stepIcon.innerHTML = '<i data-lucide="check" style="width: 16px; height: 16px;"></i>';
+            } else if (stepNumber === currentStep) {
+                // Current step
+                stepIcon.classList.remove('bg-light', 'border');
+                stepIcon.classList.add('bg-primary', 'text-white');
+                stepIcon.innerHTML = `<span>${stepNumber}</span>`;
+            } else {
+                // Future step
+                stepIcon.classList.remove('bg-primary', 'text-white');
+                stepIcon.classList.add('bg-light', 'border');
+                stepIcon.innerHTML = `<span>${stepNumber}</span>`;
+            }
+        });
+        
+        // Update progress bar
+        const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+        progressBar.setAttribute('aria-valuenow', progressPercentage);
+    }
     
     // Show the current step
-    function showStep(index) {
-        // Hide all steps
-        steps.forEach(step => step.classList.add('d-none'));
-        
-        // Show the current step
-        steps[index].classList.remove('d-none');
-        
-        // Update buttons
-        if (index === 0) {
-            prevBtn.classList.add('d-none');
-        } else {
-            prevBtn.classList.remove('d-none');
-        }
-        
-        if (index === steps.length - 1) {
-            nextBtn.classList.add('d-none');
-            submitBtn.classList.remove('d-none');
-        } else {
-            nextBtn.classList.remove('d-none');
-            submitBtn.classList.add('d-none');
-        }
-        
-        // Update step indicators
-        updateStepIcons();
-    }
-    
-    // Go to next step
-    function nextStep() {
-        if (currentStepIndex < steps.length - 1) {
-            // Validate current step
-            if (validateCurrentStep()) {
-                currentStepIndex++;
-                showStep(currentStepIndex);
-            }
-        }
-    }
-    
-    // Go to previous step
-    function prevStep() {
-        if (currentStepIndex > 0) {
-            currentStepIndex--;
-            showStep(currentStepIndex);
-        }
-    }
-    
-    // Validate the current step
-    function validateCurrentStep() {
-        // Validation logic depends on the step
-        switch(currentStepIndex) {
-            case 0: // Account type selection
-                const accountType = stripeModal.querySelector('input[name="account-type"]:checked');
-                if (!accountType) {
-                    alert('Please select an account type');
-                    return false;
-                }
-                return true;
-                
-            case 1: // Integration purpose
-                const integrationPurpose = stripeModal.querySelector('input[name="integration-purpose"]:checked');
-                if (!integrationPurpose) {
-                    alert('Please select an integration purpose');
-                    return false;
-                }
-                return true;
-                
-            default:
-                return true;
-        }
-    }
-    
-    // Update step indicator icons
-    function updateStepIcons() {
-        const stepIcons = stripeModal.querySelectorAll('.step-indicator');
-        stepIcons.forEach((icon, index) => {
-            // Remove all classes
-            icon.classList.remove('active', 'completed');
-            
-            // Add appropriate class
-            if (index < currentStepIndex) {
-                icon.classList.add('completed');
-            } else if (index === currentStepIndex) {
-                icon.classList.add('active');
+    function showCurrentStep() {
+        stepContents.forEach((content, index) => {
+            if (index + 1 === currentStep) {
+                content.classList.remove('d-none');
+            } else {
+                content.classList.add('d-none');
             }
         });
+        
+        // Update the next button text based on the current step
+        if (currentStep === totalSteps) {
+            nextButton.textContent = "Complete";
+        } else if (currentStep === 1) {
+            nextButton.textContent = "Continue to Authorization";
+        } else {
+            nextButton.textContent = "Continue";
+        }
     }
     
-    // Reset the wizard
-    function resetWizard() {
-        currentStepIndex = 0;
-        
-        // Reset form fields
-        const accountTypeRadios = stripeModal.querySelectorAll('input[name="account-type"]');
-        if (accountTypeRadios.length > 0) {
-            accountTypeRadios.forEach(radio => radio.checked = false);
-            accountTypeRadios[0].checked = true;
-        }
-        
-        const purposeRadios = stripeModal.querySelectorAll('input[name="integration-purpose"]');
-        if (purposeRadios.length > 0) {
-            purposeRadios.forEach(radio => radio.checked = false);
-            purposeRadios[0].checked = true;
-        }
-        
-        // Show the first step
-        showStep(0);
-    }
-    
-    // Add event listeners to buttons
-    if (nextBtn) nextBtn.addEventListener('click', nextStep);
-    if (prevBtn) prevBtn.addEventListener('click', prevStep);
-    if (submitBtn) {
-        submitBtn.addEventListener('click', function() {
-            // Submit the form or make an AJAX call
-            if (validateCurrentStep()) {
-                // Show loading indicator
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Connecting...';
-                submitBtn.disabled = true;
-                
-                // In a real implementation, this would redirect to Stripe OAuth
-                // For now, we'll just simulate a successful connection
+    // Handle the next button click
+    nextButton.addEventListener('click', function() {
+        if (currentStep < totalSteps) {
+            // Move to the next step
+            currentStep++;
+            updateStepIcons();
+            showCurrentStep();
+            
+            // If we're in step 2, we would redirect to Stripe in a real implementation
+            if (currentStep === 2) {
+                // Simulate a Stripe redirect with a delay in this demo
                 setTimeout(() => {
-                    // In practice, this would open a new window or redirect to Stripe
-                    // Create a fake OAuth window
-                    window.open("about:blank", "stripe_oauth", "width=600,height=700");
+                    // In a real implementation, this would be a redirection to Stripe's OAuth page
+                    // For demo purposes, we'll simulate a successful authorization
+                    currentStep++;
+                    updateStepIcons();
+                    showCurrentStep();
                     
-                    // Hide the modal
-                    const modal = bootstrap.Modal.getInstance(stripeModal);
-                    modal.hide();
-                    
-                    // Show success message
-                    if (typeof showToast === 'function') {
-                        showToast('Redirecting to Stripe for authorization...', 'info');
+                    // Update the Stripe account email in the completion step
+                    const stripeAccountEmail = document.getElementById('stripeAccountEmail');
+                    if (stripeAccountEmail) {
+                        stripeAccountEmail.textContent = 'demo@example.com';
                     }
                     
-                    // Reset form for next use
-                    setTimeout(resetWizard, 500);
-                    
-                    // Reset button state
-                    submitBtn.innerHTML = 'Connect to Stripe';
-                    submitBtn.disabled = false;
+                    // Update the footer button
+                    stripeModal.querySelector('.modal-footer').innerHTML = `
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                    `;
                 }, 1000);
+            }
+        } else {
+            // Handle completion (step 3)
+            stripeModal.querySelector('.modal-footer').innerHTML = `
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+            `;
+        }
+    });
+    
+    // Reset wizard when modal is hidden
+    stripeModal.addEventListener('hidden.bs.modal', function() {
+        resetWizard();
+    });
+    
+    // Reset the wizard state
+    function resetWizard() {
+        currentStep = 1;
+        
+        // Reset the UI
+        updateStepIcons();
+        showCurrentStep();
+        
+        // Reset the modal footer
+        stripeModal.querySelector('.modal-footer').innerHTML = `
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="stripeWizardNextBtn">Continue to Authorization</button>
+        `;
+        
+        // Re-attach event listener to the new button
+        document.getElementById('stripeWizardNextBtn').addEventListener('click', function() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepIcons();
+                showCurrentStep();
+                
+                // Handle the simulated Stripe OAuth redirect
+                if (currentStep === 2) {
+                    setTimeout(() => {
+                        currentStep++;
+                        updateStepIcons();
+                        showCurrentStep();
+                        
+                        const stripeAccountEmail = document.getElementById('stripeAccountEmail');
+                        if (stripeAccountEmail) {
+                            stripeAccountEmail.textContent = 'demo@example.com';
+                        }
+                        
+                        stripeModal.querySelector('.modal-footer').innerHTML = `
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                        `;
+                    }, 1000);
+                }
+            } else {
+                stripeModal.querySelector('.modal-footer').innerHTML = `
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                `;
             }
         });
     }
     
-    // Initialize the wizard when the modal is shown
-    stripeModal.addEventListener('show.bs.modal', resetWizard);
+    // Initialize Lucide icons if they're available
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+    
+    // Initialize the wizard
+    updateStepIcons();
+    showCurrentStep();
 });
