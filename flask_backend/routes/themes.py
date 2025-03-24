@@ -4,7 +4,7 @@ Allows viewing and previewing the HTML themes uploaded
 """
 
 import os
-from flask import Blueprint, render_template, request, send_from_directory, redirect, url_for
+from flask import Blueprint, render_template, request, send_from_directory, redirect, url_for, Response
 
 # Create blueprint
 themes_bp = Blueprint('themes', __name__, url_prefix='/themes')
