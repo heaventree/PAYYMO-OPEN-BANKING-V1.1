@@ -4,6 +4,9 @@ import stripe
 from flask import Blueprint, request, jsonify, redirect, url_for, session, render_template
 from flask_backend.utils.tenant_middleware import tenant_required
 
+# Configure Stripe
+stripe_exceptions = stripe.error
+
 stripe_bp = Blueprint('stripe', __name__, url_prefix='/stripe')
 
 # Initialize Stripe with the API key from environment variables
