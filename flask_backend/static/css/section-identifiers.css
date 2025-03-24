@@ -1,101 +1,131 @@
 /* 
- * Section Identifiers CSS
- * Adds numbered badges to major page sections for easier reference
- * Toggle via .show-section-identifiers body class
+ * Section Identifiers for Payymo
+ * Provides visual indicators to help identify component sections
+ * Can be toggled on/off from the navbar menu
  */
 
-/* Base container styles */
-.section-container {
-  position: relative;
-  border: 1px solid transparent;
-  transition: border-color 0.3s ease;
-}
-
-/* Base identifier styles */
 .section-identifier {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #6c757d;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  z-index: 100;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 10px;
+    padding: 2px 6px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
+    pointer-events: none;
 }
 
-/* Hide identifiers by default */
-.section-identifier {
-  display: none;
+.section-identifiers-enabled .section-identifier {
+    display: block;
 }
 
-/* Show identifiers when enabled */
-body.show-section-identifiers .section-identifier {
-  display: inline-flex;
-  opacity: 1;
+.section-identifiers-enabled .card,
+.section-identifiers-enabled .navbar,
+.section-identifiers-enabled .container-fluid,
+.section-identifiers-enabled .container,
+.section-identifiers-enabled footer,
+.section-identifiers-enabled main,
+.section-identifiers-enabled section,
+.section-identifiers-enabled .row > div,
+.section-identifiers-enabled .alert,
+.section-identifiers-enabled .table-responsive,
+.section-identifiers-enabled .modal,
+.section-identifiers-enabled .tab-content {
+    position: relative;
+    outline: 1px dashed rgba(13, 110, 253, 0.5);
 }
 
-/* Add subtle highlight to container when identifiers are enabled */
-body.show-section-identifiers .section-container {
-  border-color: rgba(108, 117, 125, 0.15);
-  border-radius: 4px;
+.section-identifiers-enabled .container-fluid::before,
+.section-identifiers-enabled .container::before {
+    content: attr(data-section-id);
+    display: block;
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(13, 110, 253, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
 }
 
-/* Hover effects for containers */
-body.show-section-identifiers .section-container:hover {
-  border-color: rgba(108, 117, 125, 0.3);
+.section-identifiers-enabled .card::before {
+    content: attr(data-section-id);
+    display: block;
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(25, 135, 84, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
 }
 
-/* Color variants for different section types */
-.section-identifier.badge-primary { background-color: var(--bs-primary); }
-.section-identifier.badge-success { background-color: var(--bs-success); }
-.section-identifier.badge-info { background-color: var(--bs-info); }
-.section-identifier.badge-warning { background-color: var(--bs-warning); }
-.section-identifier.badge-danger { background-color: var(--bs-danger); }
-
-/* Navbar toggle switch styling */
-.form-check-input#sectionIdentifiersToggle:checked {
-  background-color: var(--bs-info);
-  border-color: var(--bs-info);
+.section-identifiers-enabled .row > div::before {
+    content: attr(data-section-id);
+    display: block;
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(220, 53, 69, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
 }
 
-.form-check-label[for="sectionIdentifiersToggle"] {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
+.section-identifiers-enabled .navbar::before {
+    content: attr(data-section-id);
+    display: block;
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(255, 193, 7, 0.7);
+    color: black;
+    padding: 2px 6px;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
 }
 
-/* Tooltip for section identifiers */
-.section-container {
-  cursor: default;
+.section-identifiers-enabled .alert::before {
+    content: attr(data-section-id);
+    display: block;
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(13, 202, 240, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
 }
 
-body.show-section-identifiers .section-container:hover::before {
-  content: "Section ID: " attr(id);
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(5px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 1000;
-}
-
-body.show-section-identifiers .section-container:hover::before {
-  opacity: 1;
-  transform: translateY(0);
+.section-identifiers-enabled footer::before {
+    content: attr(data-section-id);
+    display: block;
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(108, 117, 125, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
 }

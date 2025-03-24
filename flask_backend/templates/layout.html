@@ -34,7 +34,7 @@
     {% block styles %}{% endblock %}
 </head>
 <body data-bs-theme="light">
-    {% if session.authenticated %}
+    {% if session.user_id %}
     <div class="container-fluid">
         <!-- Top Navigation Bar (WHMCS-style) -->
         <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
