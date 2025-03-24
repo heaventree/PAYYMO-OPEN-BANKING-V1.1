@@ -670,6 +670,59 @@ def dashboard2():
         logger.error(f"Error rendering dashboard: {str(e)}")
         return render_template('dashboard2.html', error=str(e))
 
+@app.route('/dashboard-redesign')
+def dashboard_redesign():
+    """New dashboard with standalone container structure"""
+    # Auto-authenticate for development
+    session['authenticated'] = True
+    
+    # Get some stats for the dashboard
+    try:
+        license_count = LicenseKey.query.count()
+        active_licenses = LicenseKey.query.filter_by(status='active').count()
+        whmcs_instances = WhmcsInstance.query.count()
+        bank_connections = BankConnection.query.count()
+        transactions = Transaction.query.count()
+        matches = InvoiceMatch.query.count()
+        
+        # Stripe stats
+        stripe_connections = StripeConnection.query.count()
+        stripe_payments = StripePayment.query.count()
+        
+        recent_transactions = Transaction.query.order_by(
+            Transaction.transaction_date.desc()
+        ).limit(10).all()
+        
+        # Get recent Stripe payments
+        recent_stripe_payments = StripePayment.query.order_by(
+            StripePayment.payment_date.desc()
+        ).limit(10).all()
+        
+        # Get current date for charts
+        now = datetime.now()
+        day_delta = timedelta(days=1)
+        
+        return render_template(
+            'dashboard_redesign.html',
+            stats={
+                'license_count': license_count,
+                'active_licenses': active_licenses,
+                'whmcs_instances': whmcs_instances,
+                'bank_connections': bank_connections,
+                'transactions': transactions,
+                'matches': matches,
+                'stripe_connections': stripe_connections,
+                'stripe_payments': stripe_payments
+            },
+            recent_transactions=recent_transactions,
+            recent_stripe_payments=recent_stripe_payments,
+            now=now,
+            day_delta=day_delta
+        )
+    except Exception as e:
+        logger.error(f"Error rendering redesigned dashboard: {str(e)}")
+        return render_template('dashboard_redesign.html', error=str(e))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Simple admin login page"""

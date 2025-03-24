@@ -1,0 +1,586 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard Redesign{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Financial Dashboard</h1>
+    <div class="d-flex align-items-center">
+        <div class="form-check form-switch me-3">
+            <input class="form-check-input" type="checkbox" id="toggleSectionIdentifiers">
+            <label class="form-check-label small" for="toggleSectionIdentifiers">Section IDs</label>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dashboardActions" data-bs-toggle="dropdown" aria-expanded="false">
+                <i data-lucide="plus" class="me-1" style="width: 16px; height: 16px;"></i> Actions
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardActions">
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#bankConnectionModal"><i data-lucide="landmark" class="me-2" style="width: 16px; height: 16px;"></i> Connect Bank</a></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#stripeConnectionModal"><i data-lucide="credit-card" class="me-2" style="width: 16px; height: 16px;"></i> Connect Stripe</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export Data</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats Row -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="stats-card-icon bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i data-lucide="key" style="width: 24px; height: 24px; color: white;"></i>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">Licenses</span>
+                </div>
+                <h2 class="stats-card-value mb-1">{{ stats.active_licenses|default(1) }}<span class="text-muted" style="font-size: 1rem;">/{{ stats.license_count|default(1) }}</span></h2>
+                <p class="stats-card-description mb-0 text-muted">Active Licenses</p>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 100%" aria-valuenow="{{ stats.active_licenses|default(1) }}" aria-valuemin="0" aria-valuemax="{{ stats.license_count|default(1) }}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="stats-card-icon bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i data-lucide="landmark" style="width: 24px; height: 24px; color: white;"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success">Connections</span>
+                </div>
+                <h2 class="stats-card-value mb-1">{{ stats.bank_connections|default(0) }}</h2>
+                <p class="stats-card-description mb-0 text-muted">Bank Connections</p>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 65%" aria-valuenow="{{ stats.bank_connections|default(0) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="stats-card-icon bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i data-lucide="receipt" style="width: 24px; height: 24px; color: white;"></i>
+                    </div>
+                    <span class="badge bg-info bg-opacity-10 text-info">Transactions</span>
+                </div>
+                <h2 class="stats-card-value mb-1">{{ stats.transactions|default(0) }}</h2>
+                <p class="stats-card-description mb-0 text-muted">Total Transactions</p>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: 45%" aria-valuenow="{{ stats.transactions|default(0) }}" aria-valuemin="0" aria-valuemax="1000"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="stats-card-icon bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i data-lucide="link" style="width: 24px; height: 24px; color: white;"></i>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning">Matches</span>
+                </div>
+                <h2 class="stats-card-value mb-1">{{ stats.matches|default(0) }}</h2>
+                <p class="stats-card-description mb-0 text-muted">Invoice Matches</p>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: 78%" aria-valuenow="{{ stats.matches|default(0) }}" aria-valuemin="0" aria-valuemax="1000"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Recent Transactions</h5>
+        <div class="d-flex align-items-center">
+            <div class="btn-group btn-group-sm me-2" role="group" aria-label="Transaction source filters">
+                <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+                <button type="button" class="btn btn-sm btn-outline-success" data-filter="bank">Bank</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="stripe">Stripe</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary" data-refresh-target="transactions-table">
+                    <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive" id="transactions-table">
+            <table class="table table-hover mb-0 dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Reference</th>
+                        <th>Amount</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_transactions %}
+                        {% for transaction in recent_transactions[:5] %}
+                        <tr>
+                            <td>{{ transaction.transaction_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ transaction.reference or transaction.transaction_id[:8] }}</td>
+                            <td><span class="fw-semibold">{{ "%.2f"|format(transaction.amount) }}</span> <small class="text-muted">{{ transaction.currency }}</small></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bank-icon me-2 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                        {% if transaction.__tablename__ == 'stripe_payments' %}
+                                        <i data-lucide="credit-card" style="width: 14px; height: 14px;"></i>
+                                        {% else %}
+                                        <i data-lucide="landmark" style="width: 14px; height: 14px;"></i>
+                                        {% endif %}
+                                    </div>
+                                    {% if transaction.__tablename__ == 'stripe_payments' %}
+                                    {{ transaction.customer_name or 'Stripe Customer' }}
+                                    {% else %}
+                                    {{ transaction.bank_name or 'Unknown Bank' }}
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if transaction.matches|length > 0 %}
+                                <span class="badge bg-success">Matched</span>
+                                {% else %}
+                                <span class="badge bg-warning">Unmatched</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary">
+                                        <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary">
+                                        <i data-lucide="link" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i data-lucide="inbox" style="width: 48px; height: 48px;" class="mb-3 text-muted"></i>
+                                    <p class="mb-1 fw-semibold">No transactions found</p>
+                                    <p class="text-muted small">Connect to a bank to start importing transactions</p>
+                                    <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#bankConnectionModal">
+                                        <i data-lucide="plus" class="me-1" style="width: 14px; height: 14px;"></i> 
+                                        Add Bank Connection
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer border-0 bg-transparent d-flex justify-content-between align-items-center">
+        <small class="text-muted">Showing latest {{ recent_transactions|length if recent_transactions else 0 }} transactions</small>
+        <a href="#" class="btn btn-sm btn-outline-primary">View All Transactions</a>
+    </div>
+</div>
+
+<!-- Invoices and Integrations -->
+<div class="row mb-4">
+    <!-- Recent Invoices -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header border-0 bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Invoices</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary" data-refresh-target="invoices-table">
+                            <i data-lucide="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>
+                        </button>
+                        <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_invoices %}
+                <div class="table-responsive" id="invoices-table">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td>{{ invoice.source_id|default('-') }}</td>
+                                <td>{{ invoice.invoice_date|default('-') }}</td>
+                                <td>{{ invoice.client_name|default('Unknown')|truncate(20) }}</td>
+                                <td><span class="fw-semibold">
+                                    {% if invoice.amount is defined and invoice.amount is not none %}
+                                        {{ "%.2f"|format(invoice.amount) }}
+                                    {% else %}
+                                        0.00
+                                    {% endif %}
+                                    </span>
+                                    <small class="text-muted">{{ invoice.currency|default('GBP') }}</small>
+                                </td>
+                                <td>
+                                    {% if invoice.status is defined and invoice.status == 'paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                    {% elif invoice.status is defined and invoice.status == 'partially_paid' %}
+                                    <span class="badge bg-info">Partially Paid</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i data-lucide="file-text" class="mb-3 text-muted" style="width: 48px; height: 48px;"></i>
+                    <p class="mb-1 fw-semibold">No invoices found</p>
+                    <p class="text-muted small">Configure your WHMCS integration to sync invoices</p>
+                    <a href="#" class="btn btn-sm btn-primary mt-2">Configure WHMCS Integration</a>
+                </div>
+                {% endif %}
+            </div>
+            {% if recent_invoices %}
+            <div class="card-footer border-0 bg-transparent text-end">
+                <a href="#" class="btn btn-sm btn-outline-primary">Manage Invoices</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Integrations Overview -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header border-0 bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Your Integrations</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">Manage All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if integrations %}
+                <div class="row">
+                    {% for integration in integrations %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 border">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="card-title mb-0">{{ integration.name }}</h6>
+                                    <span class="badge {% if integration.status == 'active' %}bg-success{% elif integration.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ integration.status|capitalize }}
+                                    </span>
+                                </div>
+                                <p class="card-text small">{{ integration.type|capitalize }} Integration</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <small class="text-muted">Last sync: {{ integration.last_sync_at|default('Never') }}</small>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary">Configure</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i data-lucide="link" class="mb-3 text-muted" style="width: 48px; height: 48px;"></i>
+                    <p class="mb-1 fw-semibold">No integrations configured</p>
+                    <p class="text-muted small">Connect to your financial services to get started</p>
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#bankConnectionModal">Connect Bank</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#stripeConnectionModal">Connect Stripe</button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Container -->
+<div class="row mb-4">
+    <!-- Transaction Trend Chart -->
+    <div class="col-xl-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Transaction Trends <span class="text-muted small">(Last 7 Days)</span></h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-icon btn-outline-secondary" id="chartOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chartOptions">
+                        <li><a class="dropdown-item" href="#"><i data-lucide="calendar" class="me-2" style="width: 16px; height: 16px;"></i> Last 7 Days</a></li>
+                        <li><a class="dropdown-item" href="#"><i data-lucide="calendar" class="me-2" style="width: 16px; height: 16px;"></i> Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#"><i data-lucide="calendar" class="me-2" style="width: 16px; height: 16px;"></i> This Month</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export Data</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body p-3">
+                <div class="chart-container">
+                    <canvas id="transactionChart" height="300"></canvas>
+                </div>
+            </div>
+            <div class="card-footer border-0 bg-transparent text-center">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center small p-2 border rounded">
+                            <span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: rgba(79, 70, 229, 0.6); border-radius: 50%;"></span>
+                            <span>Total: <strong>£{% if stats.total_transaction_amount is defined and stats.total_transaction_amount is not none %}{{ stats.total_transaction_amount|round(2) }}{% else %}0.00{% endif %}</strong></span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center small p-2 border rounded">
+                            <span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: rgba(147, 51, 234, 0.6); border-radius: 50%;"></span>
+                            <span>Transactions: <strong>{{ stats.transactions|default(0) }}</strong></span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center small p-2 border rounded">
+                            <span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: rgba(34, 197, 94, 0.6); border-radius: 50%;"></span>
+                            <span>Avg Amount: <strong>£{% if stats.avg_transaction_amount is defined and stats.avg_transaction_amount is not none %}{{ stats.avg_transaction_amount|round(2) }}{% else %}0.00{% endif %}</strong></span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center small p-2 border rounded">
+                            <span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: rgba(244, 63, 94, 0.6); border-radius: 50%;"></span>
+                            <span>Match Rate: <strong>{% if stats.match_rate is defined and stats.match_rate is not none %}{{ stats.match_rate|round(0) }}{% else %}0{% endif %}%</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Match Rate Chart -->
+    <div class="col-xl-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Match Rate</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-icon btn-outline-secondary" id="matchRateOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="matchRateOptions">
+                        <li><a class="dropdown-item" href="#"><i data-lucide="eye" class="me-2" style="width: 16px; height: 16px;"></i> View Details</a></li>
+                        <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export Data</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body py-3">
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="matchRateChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <div class="d-flex me-4">
+                        <div class="color-dot bg-success me-2" style="width: 12px; height: 12px; border-radius: 50%;"></div>
+                        <span class="small">Matched ({% if stats.match_rate is defined and stats.match_rate is not none %}{{ stats.match_rate|round(0) }}{% else %}0{% endif %}%)</span>
+                    </div>
+                    <div class="d-flex">
+                        <div class="color-dot bg-warning me-2" style="width: 12px; height: 12px; border-radius: 50%;"></div>
+                        <span class="small">Unmatched ({% if stats.match_rate is defined and stats.match_rate is not none %}{{ (100 - stats.match_rate)|round(0) }}{% else %}100{% endif %}%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'components/quick_insights_widget.html' %}
+{% include 'components/bank_connection_wizard.html' %}
+{% include 'components/stripe_connection_wizard.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts when the page is loaded
+        initializeCharts();
+        
+        // Transaction chart
+        function initializeCharts() {
+            // Transaction chart
+            const txCtx = document.getElementById('transactionChart');
+            if (txCtx) {
+                const transactionChart = new Chart(txCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                        datasets: [
+                            {
+                                label: 'Bank Transactions',
+                                data: [12, 19, 8, 15, 12, 6, 10],
+                                borderColor: 'rgba(79, 70, 229, 0.8)',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Matched Transactions',
+                                data: [8, 15, 7, 12, 10, 5, 8],
+                                borderColor: 'rgba(34, 197, 94, 0.8)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+            
+            // Match rate chart
+            const matchCtx = document.getElementById('matchRateChart');
+            if (matchCtx) {
+                const matchRate = 65; // Replace with actual data
+                const matchRateChart = new Chart(matchCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Matched', 'Unmatched'],
+                        datasets: [{
+                            data: [matchRate, 100 - matchRate],
+                            backgroundColor: [
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(234, 179, 8, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(34, 197, 94, 1)',
+                                'rgba(234, 179, 8, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${context.parsed}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Transaction filter buttons
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        if (filterButtons.length > 0) {
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Get filter value
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // In a real app, you would filter the table data here
+                    console.log(`Filtering by: ${filter}`);
+                    
+                    // For demonstration, just log the filter
+                    if (filter === 'all') {
+                        // Show all rows
+                        document.querySelectorAll('#transactions-table tbody tr').forEach(row => {
+                            row.style.display = '';
+                        });
+                    } else {
+                        // Filter rows based on source
+                        document.querySelectorAll('#transactions-table tbody tr').forEach(row => {
+                            const sourceCell = row.querySelector('td:nth-child(4)');
+                            if (sourceCell) {
+                                const sourceText = sourceCell.textContent.toLowerCase();
+                                if (filter === 'bank' && sourceText.includes('bank')) {
+                                    row.style.display = '';
+                                } else if (filter === 'stripe' && sourceText.includes('stripe')) {
+                                    row.style.display = '';
+                                } else {
+                                    row.style.display = 'none';
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Refresh button functionality
+        const refreshButtons = document.querySelectorAll('[data-refresh-target]');
+        if (refreshButtons.length > 0) {
+            refreshButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-refresh-target');
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        // Add loading state
+                        targetElement.classList.add('loading');
+                        
+                        // Simulate refresh (in a real app, you would fetch new data here)
+                        setTimeout(() => {
+                            // Remove loading state
+                            targetElement.classList.remove('loading');
+                            
+                            // Show toast notification
+                            showToast('Data refreshed successfully', 'success');
+                        }, 1000);
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
