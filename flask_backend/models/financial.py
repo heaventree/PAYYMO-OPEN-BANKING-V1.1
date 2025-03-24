@@ -123,7 +123,7 @@ class InvoiceTransaction(db.Model):
     status = db.Column(db.String(20), default=MatchStatus.PENDING.value)
     confidence = db.Column(db.Float, default=0.0)  # 0.0 to 1.0
     match_reason = db.Column(db.Text)
-    applied_at = db.Column(db.DateTime)
+    confirmed_by = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

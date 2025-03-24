@@ -409,7 +409,7 @@ def create_test_matches(tenant_id, transactions, invoices, count=10):
             status=status,
             confidence=confidence,
             match_reason=reason,
-            applied_at=datetime.now() if status == MatchStatus.APPROVED.value else None
+            confirmed_by=1 if status == MatchStatus.APPROVED.value else None
         )
         
         db.session.add(match)
