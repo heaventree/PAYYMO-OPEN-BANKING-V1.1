@@ -4,58 +4,51 @@
 
 {% block content %}
 <!-- Modal Components -->
-<section class="dashboard-modals">
-    <!-- Bank Connection Wizard Modal -->
-    {% include "components/bank_connection_wizard.html" %}
+<!-- Bank Connection Wizard Modal -->
+{% include "components/bank_connection_wizard.html" %}
 
-    <!-- Stripe Connection Wizard Modal -->
-    {% include "components/stripe_connection_wizard.html" %}
-</section>
+<!-- Stripe Connection Wizard Modal -->
+{% include "components/stripe_connection_wizard.html" %}
 
-<!-- Page Header Container -->
-<section class="dashboard-header-container mb-4">
-    <div class="page-header dashboard-header">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="fw-bold">Dashboard</h1>
-                <p class="text-muted">Payymo Open Banking Integration Overview</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <div class="btn-group">
-                    <button class="btn btn-primary btn-refresh" data-refresh-target="dashboard-stats">
-                        <i data-lucide="refresh-cw" class="me-2" style="width: 16px; height: 16px;"></i>
-                        Refresh Data
-                    </button>
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dashboardActions" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardActions">
-                        <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export Report</a></li>
-                        <li><a class="dropdown-item" href="#"><i data-lucide="printer" class="me-2" style="width: 16px; height: 16px;"></i> Print Dashboard</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i data-lucide="settings" class="me-2" style="width: 16px; height: 16px;"></i> Dashboard Settings</a></li>
-                    </ul>
-                </div>
+<!-- Page Header -->
+<div class="page-header mb-4 dashboard-header">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="fw-bold">Dashboard</h1>
+            <p class="text-muted">Payymo Open Banking Integration Overview</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group">
+                <button class="btn btn-primary btn-refresh" data-refresh-target="dashboard-stats">
+                    <i data-lucide="refresh-cw" class="me-2" style="width: 16px; height: 16px;"></i>
+                    Refresh Data
+                </button>
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dashboardActions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardActions">
+                    <li><a class="dropdown-item" href="#"><i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i> Export Report</a></li>
+                    <li><a class="dropdown-item" href="#"><i data-lucide="printer" class="me-2" style="width: 16px; height: 16px;"></i> Print Dashboard</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#"><i data-lucide="settings" class="me-2" style="width: 16px; height: 16px;"></i> Dashboard Settings</a></li>
+                </ul>
             </div>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Alerts Container -->
-<section class="dashboard-alerts-container mb-4">
-    {% if error %}
-    <div class="alert alert-danger d-flex align-items-center" role="alert">
-        <i data-lucide="alert-triangle" class="flex-shrink-0 me-3" style="width: 24px; height: 24px;"></i>
-        <div>
-            <strong>Error:</strong> {{ error }}
-        </div>
+<!-- Alerts Section -->
+{% if error %}
+<div id="dashboard-alerts" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+    <i data-lucide="alert-triangle" class="flex-shrink-0 me-3" style="width: 24px; height: 24px;"></i>
+    <div>
+        <strong>Error:</strong> {{ error }}
     </div>
-    {% endif %}
-</section>
+</div>
+{% endif %}
 
-<!-- Key Action Cards Container -->
-<section class="dashboard-action-cards-container mb-4">
-    <div class="row" id="action-stats">
+<!-- Key Action Cards -->
+<div class="row mb-4" id="action-stats">
         <!-- New Transactions Alert Card -->
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="stats-card border rounded h-100 position-relative overflow-hidden">
@@ -150,9 +143,8 @@
     </div>
 </section>
 
-<!-- Recent Transactions Container -->
-<section class="dashboard-transactions-container mb-4" id="transactions">
-    <div class="card shadow-sm">
+<!-- Recent Transactions -->
+<div class="card shadow-sm mb-4" id="transactions">
         <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Recent Transactions</h5>
             <div class="d-flex align-items-center">
@@ -281,11 +273,9 @@
             </nav>
         </div>
     </div>
-</section>
 
-<!-- Invoices and Integrations Container -->
-<section class="dashboard-info-cards-container mb-4" id="dashboard-info">
-    <div class="row">
+<!-- Invoices and Integrations -->
+<div class="row mb-4" id="dashboard-info">
         <!-- Recent Invoices -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm">
