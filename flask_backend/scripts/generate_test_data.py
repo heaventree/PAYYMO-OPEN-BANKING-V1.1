@@ -170,14 +170,14 @@ def create_test_integrations(tenant_id):
         for i in range(3):
             sync = IntegrationSync(
                 integration_id=integration.id,
-                tenant_id=tenant_id,
                 status='success',
                 started_at=datetime.now() - timedelta(days=i, hours=random.randint(1, 12)),
                 completed_at=datetime.now() - timedelta(days=i, hours=random.randint(1, 12), minutes=random.randint(5, 30)),
-                records_processed=random.randint(10, 100),
-                records_created=random.randint(5, 50),
-                records_updated=random.randint(0, 20),
-                records_failed=random.randint(0, 5)
+                items_processed=random.randint(10, 100),
+                items_created=random.randint(5, 50),
+                items_updated=random.randint(0, 20),
+                items_deleted=random.randint(0, 5),
+                sync_type='full'
             )
             db.session.add(sync)
     
@@ -233,8 +233,6 @@ def create_test_transactions(tenant_id, integration_id, count=20):
             description=f"Sample transaction {i+1} from {source}",
             reference=f"REF-{i+1}-{random.randint(1000, 9999)}",
             transaction_date=transaction_date,
-            transaction_type='payment',
-            payment_method='bank_transfer' if source == IntegrationType.GOCARDLESS.value else 'card',
             transaction_metadata={
                 'source_system': source,
                 'customer_reference': f"CUST-{random.randint(1000, 9999)}",

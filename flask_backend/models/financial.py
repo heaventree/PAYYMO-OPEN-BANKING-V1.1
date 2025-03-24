@@ -48,8 +48,6 @@ class StandardizedTransaction(db.Model):
     description = db.Column(db.Text)
     reference = db.Column(db.String(255))
     transaction_date = db.Column(db.DateTime, nullable=False)
-    transaction_type = db.Column(db.String(20))  # 'payment', 'refund', 'adjustment', etc.
-    payment_method = db.Column(db.String(50))  # 'card', 'bank_transfer', etc.
     transaction_metadata = db.Column(db.JSON)  # Additional data from source
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
