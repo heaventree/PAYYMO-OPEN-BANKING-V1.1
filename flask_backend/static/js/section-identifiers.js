@@ -1,7 +1,7 @@
 /**
  * Section Identifiers System
- * Adds visual identifiers to page elements to help with template debugging
- * and enable easier component identification
+ * Adds sequential numbered identifiers to main page containers
+ * Based on the simple WHMCS addon approach
  */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Section Identifiers system');
@@ -44,15 +44,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function createToggleButton() {
         // Create a floating toggle button
         const toggleContainer = document.createElement('div');
-        toggleContainer.className = 'position-fixed bottom-0 end-0 p-3';
-        toggleContainer.style.zIndex = '1050';
+        toggleContainer.className = 'section-identifiers-toggle';
         
         const toggleBtn = document.createElement('div');
-        toggleBtn.className = 'form-check form-switch bg-white p-2 rounded shadow-sm';
+        toggleBtn.className = 'form-check form-switch';
         toggleBtn.innerHTML = `
             <input class="form-check-input" type="checkbox" id="sectionIdentifiersToggle">
             <label class="form-check-label small" for="sectionIdentifiersToggle">
-                <i class="fas fa-th me-1"></i>
                 Section IDs
             </label>
         `;
@@ -84,124 +82,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set up the identifiers
         setupSectionIdentifiers();
-        
-        // Add the color legend
-        addSectionLegend();
     }
     
     // Function to set up section identifiers
     function setupSectionIdentifiers() {
-        // Global counter for sequential numbering
-        let sectionCounter = 1;
+        // Remove any existing identifiers
+        const existingIdentifiers = document.querySelectorAll('.section-identifier');
+        existingIdentifiers.forEach(identifier => identifier.remove());
         
-        // Add sequential IDs to all major layout elements
-        const layoutElements = {
-            'container': document.querySelectorAll('.container, .container-fluid'),
-            'card': document.querySelectorAll('.card'),
-            'col': document.querySelectorAll('.row > div'),
-            'navbar': document.querySelectorAll('.navbar'),
-            'alert': document.querySelectorAll('.alert'),
-            'footer': document.querySelectorAll('footer'),
-            'table': document.querySelectorAll('.table, .table-responsive'),
-            'form': document.querySelectorAll('form')
-        };
+        // Select only main containers (not all elements)
+        const containers = document.querySelectorAll('.container, .container-fluid, .card, .alert');
         
-        // Count total elements for logging
-        let totalElements = 0;
-        
-        // Process each element type
-        Object.entries(layoutElements).forEach(([type, elements]) => {
-            elements.forEach((element) => {
-                // Skip if already has a section ID
-                if (element.hasAttribute('data-section-id')) {
-                    return;
-                }
-                
-                // Create a sequential ID that includes the element type
-                element.setAttribute('data-section-id', `${type}-${sectionCounter}`);
-                
-                // Also add a simple numeric ID for quick reference
-                element.setAttribute('data-section-num', `${sectionCounter}`);
-                
-                // Increment the counter
-                sectionCounter++;
-                totalElements++;
-            });
+        // Add sequential numbered identifiers
+        containers.forEach((container, index) => {
+            // Create the section identifier element
+            const identifier = document.createElement('div');
+            identifier.className = 'section-identifier';
+            identifier.textContent = index + 1; // Start numbering from 1
+            
+            // Add the identifier to the container
+            container.appendChild(identifier);
+            
+            // Make sure the container is positioned relatively
+            if (getComputedStyle(container).position === 'static') {
+                container.style.position = 'relative';
+            }
         });
         
-        console.log(`Added identifiers to ${totalElements} sections`);
-    }
-    
-    // Function to add a color legend
-    function addSectionLegend() {
-        // Remove existing legend if any
-        const existingLegend = document.querySelector('.section-identifiers-legend');
-        if (existingLegend) {
-            existingLegend.remove();
-        }
-        
-        // Create the legend
-        const legend = document.createElement('div');
-        legend.className = 'section-identifiers-legend';
-        
-        // Define the color codes and element types
-        const colorCodes = [
-            { type: 'Container', color: 'rgba(13, 110, 253, 0.7)' },
-            { type: 'Card', color: 'rgba(25, 135, 84, 0.7)' },
-            { type: 'Column', color: 'rgba(220, 53, 69, 0.7)' },
-            { type: 'Navbar', color: 'rgba(255, 193, 7, 0.7)' },
-            { type: 'Alert', color: 'rgba(13, 202, 240, 0.7)' },
-            { type: 'Footer', color: 'rgba(108, 117, 125, 0.7)' },
-            { type: 'Table', color: 'rgba(111, 66, 193, 0.7)' },
-            { type: 'Form', color: 'rgba(253, 126, 20, 0.7)' }
-        ];
-        
-        // Create the legend title
-        const title = document.createElement('h6');
-        title.className = 'mb-2';
-        title.textContent = 'Section Types';
-        legend.appendChild(title);
-        
-        // Create the legend items
-        const list = document.createElement('div');
-        list.className = 'mb-0';
-        
-        colorCodes.forEach(({ type, color }) => {
-            const item = document.createElement('div');
-            item.className = 'mb-1 d-flex align-items-center';
-            
-            const colorBox = document.createElement('span');
-            colorBox.style.cssText = `
-                display: inline-block;
-                width: 12px;
-                height: 12px;
-                background-color: ${color};
-                margin-right: 6px;
-                border-radius: 2px;
-            `;
-            
-            const typeName = document.createElement('span');
-            typeName.className = 'small';
-            typeName.textContent = type;
-            
-            item.appendChild(colorBox);
-            item.appendChild(typeName);
-            list.appendChild(item);
-        });
-        
-        legend.appendChild(list);
-        
-        // Add close button
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'btn btn-sm btn-outline-secondary w-100 mt-2';
-        closeBtn.textContent = 'Close Legend';
-        closeBtn.addEventListener('click', () => {
-            legend.style.display = 'none';
-        });
-        
-        legend.appendChild(closeBtn);
-        
-        // Add the legend to the page
-        document.body.appendChild(legend);
+        console.log(`Added identifiers to ${containers.length} containers`);
     }
 });

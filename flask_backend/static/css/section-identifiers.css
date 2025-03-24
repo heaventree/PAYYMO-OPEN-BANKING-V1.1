@@ -1,101 +1,39 @@
 /* 
  * Section Identifiers for Payymo
- * Provides visual indicators to help identify component sections
- * Can be toggled on/off from the navbar menu or floating button
+ * Simple sequential section numbering system
+ * Based on the original WHMCS addon approach
  */
 
-/* Basic outline styling for identified elements */
-.section-identifiers-enabled .card,
-.section-identifiers-enabled .navbar,
-.section-identifiers-enabled .container-fluid,
-.section-identifiers-enabled .container,
-.section-identifiers-enabled footer,
-.section-identifiers-enabled main,
-.section-identifiers-enabled section,
-.section-identifiers-enabled .row > div,
-.section-identifiers-enabled .alert,
-.section-identifiers-enabled .table-responsive,
-.section-identifiers-enabled .table,
-.section-identifiers-enabled form,
-.section-identifiers-enabled .modal,
-.section-identifiers-enabled .tab-content {
-    position: relative !important;
-    outline: 1px dashed rgba(13, 110, 253, 0.5) !important;
-}
-
-/* Styles for all section identifiers */
-.section-identifiers-enabled [data-section-id]::before {
-    content: attr(data-section-num);
-    display: block;
+/* Core section identifier styles */
+.section-identifier {
+    display: none;
     position: absolute;
     top: 0;
     left: 0;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
-    padding: 3px 8px;
+    padding: 2px 6px;
+    background-color: rgba(0, 0, 255, 0.7);
+    color: white;
     border-radius: 0 0 4px 0;
     z-index: 999;
     font-family: monospace;
-    color: white;
     pointer-events: none;
 }
 
-/* Show full ID on hover */
-.section-identifiers-enabled [data-section-id]:hover::after {
-    content: attr(data-section-id);
+/* Only show identifiers when enabled */
+.section-identifiers-enabled .section-identifier {
     display: block;
-    position: absolute;
-    top: 0;
-    left: 30px;
-    font-size: 10px;
-    padding: 2px 6px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border-radius: 0 4px 4px 0;
-    z-index: 999;
-    font-family: monospace;
-    pointer-events: none;
 }
 
-/* Color coding for different element types */
-.section-identifiers-enabled .container::before,
-.section-identifiers-enabled .container-fluid::before {
-    background-color: rgba(13, 110, 253, 0.7); /* Blue for containers */
-}
-
-.section-identifiers-enabled .card::before {
-    background-color: rgba(25, 135, 84, 0.7); /* Green for cards */
-}
-
-.section-identifiers-enabled .row > div::before {
-    background-color: rgba(220, 53, 69, 0.7); /* Red for columns */
-}
-
-.section-identifiers-enabled .navbar::before {
-    background-color: rgba(255, 193, 7, 0.7); /* Yellow for navbar */
-    color: black;
-}
-
-.section-identifiers-enabled .alert::before {
-    background-color: rgba(13, 202, 240, 0.7); /* Cyan for alerts */
-}
-
-.section-identifiers-enabled footer::before {
-    background-color: rgba(108, 117, 125, 0.7); /* Gray for footers */
-}
-
-.section-identifiers-enabled .table::before,
-.section-identifiers-enabled .table-responsive::before {
-    background-color: rgba(111, 66, 193, 0.7); /* Purple for tables */
-}
-
-.section-identifiers-enabled form::before {
-    background-color: rgba(253, 126, 20, 0.7); /* Orange for forms */
-}
-
-/* Fix for nested elements to ensure visibility */
-.section-identifiers-enabled .row > div > [data-section-id]::before {
-    top: 22px; /* Offset for nested elements */
+/* Main section containers - light outline when section identifiers are enabled */
+.section-identifiers-enabled .card,
+.section-identifiers-enabled .container-fluid,
+.section-identifiers-enabled .container,
+.section-identifiers-enabled footer,
+.section-identifiers-enabled .alert {
+    position: relative;
+    outline: 1px dashed rgba(13, 110, 253, 0.5);
 }
 
 /* Floating toggle button */
@@ -109,23 +47,4 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     font-size: 12px;
-}
-
-/* Legend for color coding - shown when identifiers are enabled */
-.section-identifiers-legend {
-    display: none;
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    padding: 10px;
-    z-index: 1000;
-    font-size: 12px;
-    max-width: 200px;
-}
-
-.section-identifiers-enabled .section-identifiers-legend {
-    display: block;
 }
