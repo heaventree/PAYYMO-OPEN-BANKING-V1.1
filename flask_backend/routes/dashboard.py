@@ -13,7 +13,7 @@ from flask_backend.models.financial import StandardizedTransaction, Standardized
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
+dashboard_bp = Blueprint('dashboard', __name__, url_prefix='')
 
 @dashboard_bp.route('/')
 @tenant_from_subdomain
@@ -215,6 +215,46 @@ def users():
         'dashboard/users.html',
         users=tenant_users
     )
+
+@dashboard_bp.route('/dashboard-redesign')
+@tenant_from_subdomain
+def redesign():
+    """New dashboard with standalone container structure"""
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+        
+    # If no tenant context, redirect to tenant selection page
+    if not hasattr(g, 'tenant'):
+        return redirect(url_for('auth.select_tenant'))
+        
+    try:
+        # Get dashboard stats
+        stats = get_tenant_dashboard_stats(g.tenant.id)
+        
+        # Get recent transactions
+        recent_transactions = get_recent_transactions(g.tenant.id, limit=5)
+        
+        # Get recent invoices
+        recent_invoices = get_recent_invoices(g.tenant.id, limit=5)
+        
+        # Get integration statuses
+        integrations = get_tenant_integrations(g.tenant.id)
+        
+        # Current tenant
+        tenant = g.tenant
+        
+        return render_template(
+            'dashboard_redesign.html',
+            stats=stats,
+            recent_transactions=recent_transactions,
+            recent_invoices=recent_invoices,
+            integrations=integrations,
+            tenant=tenant
+        )
+    except Exception as e:
+        logger.error(f"Error rendering redesigned dashboard: {str(e)}")
+        return render_template('dashboard_redesign.html', error=str(e))
 
 # Helper functions
 def get_tenant_dashboard_stats(tenant_id):
