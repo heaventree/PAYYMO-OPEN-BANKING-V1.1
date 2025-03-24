@@ -48,12 +48,26 @@ db.init_app(app)
 # Import routes
 with app.app_context():
     # Import routes and models here to avoid circular imports
-    from flask_backend.routes import *
+    from flask_backend.routes import register_blueprints
     from flask_backend.routes_testing import *
     from flask_backend.routes_test_data import *
     import flask_backend.models
     
+    # Register blueprints
+    register_blueprints(app)
+    
     # Create all database tables
     db.create_all()
 
+    # Add root route for redirection
+    from flask import redirect, url_for, session
+    
+    @app.route('/')
+    def index():
+        """Root route redirects to dashboard if logged in, otherwise to login page"""
+        if 'user_id' in session:
+            return redirect(url_for('dashboard.index'))
+        else:
+            return redirect(url_for('auth.login'))
+    
     logger.info("Flask backend started successfully")

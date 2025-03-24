@@ -65,6 +65,7 @@ class StandardizedTransaction(db.Model):
         db.Index('idx_transaction_source', source, source_id),
         db.Index('idx_transaction_date', transaction_date),
         db.Index('idx_transaction_status', status),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
@@ -105,6 +106,7 @@ class StandardizedInvoice(db.Model):
         db.Index('idx_invoice_date', invoice_date),
         db.Index('idx_invoice_status', status),
         db.Index('idx_invoice_customer', customer_id),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
@@ -139,6 +141,7 @@ class InvoiceTransaction(db.Model):
         db.Index('idx_invoice_transaction_invoice', invoice_id),
         db.Index('idx_invoice_transaction_transaction', transaction_id),
         db.Index('idx_invoice_transaction_status', status),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
@@ -167,6 +170,7 @@ class ReconciliationRule(db.Model):
         db.Index('idx_rule_tenant', tenant_id),
         db.Index('idx_rule_type', rule_type),
         db.Index('idx_rule_active', is_active),
+        {'extend_existing': True}
     )
     
     def __repr__(self):

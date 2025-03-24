@@ -32,23 +32,28 @@ class Tenant(db.Model):
     slug = db.Column(db.String(100), unique=True, nullable=False)
     domain = db.Column(db.String(255))
     status = db.Column(db.String(20), default=TenantStatus.TRIAL.value)
-    plan = db.Column(db.String(20), default=PlanType.FREE.value)
+    plan_id = db.Column(db.String(20), default=PlanType.FREE.value)  # Updated from 'plan' to 'plan_id' to match DB schema
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    trial_ends_at = db.Column(db.DateTime)  # Added to match DB schema
+    subscription_id = db.Column(db.String(255))  # Added to match DB schema
+    subscription_status = db.Column(db.String(20))  # Added to match DB schema
     
     # Settings stored as JSON
     settings = db.Column(db.JSON)
     
-    # Limits
-    max_users = db.Column(db.Integer, default=2)
-    max_integrations = db.Column(db.Integer, default=2)
-    max_api_calls = db.Column(db.Integer, default=1000)
+    # The following columns were in the model but don't exist in the database
+    # We're removing them from the model definition to match the actual DB schema
+    # If these columns are needed, they should be added via a proper migration
     
-    # Billing information
-    billing_email = db.Column(db.String(255))
-    billing_name = db.Column(db.String(255))
-    billing_address = db.Column(db.Text)
-    billing_country = db.Column(db.String(2))
+    # Commenting out so SQLAlchemy doesn't try to access them
+    # max_users = db.Column(db.Integer, default=2)
+    # max_integrations = db.Column(db.Integer, default=2)
+    # max_api_calls = db.Column(db.Integer, default=1000)
+    # billing_email = db.Column(db.String(255))
+    # billing_name = db.Column(db.String(255))
+    # billing_address = db.Column(db.Text)
+    # billing_country = db.Column(db.String(2))
     
     # Add indexes
     __table_args__ = (

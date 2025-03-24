@@ -5,6 +5,7 @@ These routes handle REST API endpoints for the multi-tenant system
 import logging
 import json
 from datetime import datetime, timedelta
+from functools import wraps  # Added import for wraps decorator
 from flask import Blueprint, request, jsonify, g
 from flask_backend.app import db
 from flask_backend.models.auth import User, ApiKey
@@ -21,6 +22,7 @@ api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
 # API key authentication middleware
 def api_key_required(f):
     """Decorator to require API key authentication"""
+    @wraps(f)  # Add this line to preserve the original function's name and metadata
     def decorated_function(*args, **kwargs):
         # Get API key from header
         api_key = request.headers.get('X-API-Key')

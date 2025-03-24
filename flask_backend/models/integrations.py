@@ -51,6 +51,7 @@ class Integration(db.Model):
         db.Index('idx_integration_tenant', tenant_id),
         db.Index('idx_integration_type', type),
         db.Index('idx_integration_status', status),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
@@ -81,6 +82,7 @@ class IntegrationSync(db.Model):
         db.Index('idx_sync_integration', integration_id),
         db.Index('idx_sync_tenant', tenant_id),
         db.Index('idx_sync_started', started_at),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
@@ -104,11 +106,11 @@ class Webhook(db.Model):
     tenant = db.relationship('Tenant', backref='webhooks')
     integration = db.relationship('Integration', backref='webhooks')
     
-    # Add indexes and extend_existing to avoid creating duplicate tables and indexes
+    # Add indexes with unique names to avoid conflicts
     __table_args__ = (
-        {'extend_existing': True},
-        db.Index('idx_webhook_tenant', tenant_id),
-        db.Index('idx_webhook_integration', integration_id),
+        db.Index('idx_webhook_table_tenant', tenant_id),
+        db.Index('idx_webhook_table_integration', integration_id),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
@@ -131,15 +133,16 @@ class WebhookEvent(db.Model):
     last_attempt_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    webhook = db.relationship('Webhook', backref='events')
+    webhook = db.relationship('Webhook', backref='webhook_events')  # Changed backref name from 'events' to 'webhook_events'
     tenant = db.relationship('Tenant', backref='webhook_events')
     
-    # Add indexes
+    # Add indexes with unique names to avoid conflicts
     __table_args__ = (
-        db.Index('idx_webhook_event_webhook', webhook_id),
-        db.Index('idx_webhook_event_tenant', tenant_id),
-        db.Index('idx_webhook_event_type', event_type),
-        db.Index('idx_webhook_event_created', created_at),
+        db.Index('idx_webhook_evt_webhook_id', webhook_id),
+        db.Index('idx_webhook_evt_tenant_id', tenant_id),
+        db.Index('idx_webhook_evt_event_type', event_type),
+        db.Index('idx_webhook_evt_created_at', created_at),
+        {'extend_existing': True}
     )
     
     def __repr__(self):
