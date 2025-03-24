@@ -1,7 +1,8 @@
 /**
  * Section Identifiers System
- * Adds sequential numbered identifiers to main page containers
- * Based on the simple WHMCS addon approach
+ * Adds sequential numbered identifiers to main containers
+ * Each set of related cards/panes has its own container
+ * Based on the WHMCS addon approach
  */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Section Identifiers system');
@@ -90,11 +91,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const existingIdentifiers = document.querySelectorAll('.section-identifier');
         existingIdentifiers.forEach(identifier => identifier.remove());
         
-        // Select only main containers (not all elements)
-        const containers = document.querySelectorAll('.container, .container-fluid, .card, .alert');
+        // Only select the main containers (parent containers that group related cards)
+        // Use direct children of main content area to avoid selecting nested containers
+        const mainContentArea = document.querySelector('main') || document.body;
+        const topLevelContainers = Array.from(mainContentArea.children).filter(el => {
+            return (
+                el.classList.contains('container') || 
+                el.classList.contains('container-fluid') ||
+                (el.tagName === 'DIV' && el.querySelector('.card, .alert, .row'))
+            );
+        });
         
         // Add sequential numbered identifiers
-        containers.forEach((container, index) => {
+        topLevelContainers.forEach((container, index) => {
             // Create the section identifier element
             const identifier = document.createElement('div');
             identifier.className = 'section-identifier';
@@ -109,6 +118,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        console.log(`Added identifiers to ${containers.length} containers`);
+        // Also add identifiers to alert boxes that might be direct children of the body
+        const alertContainers = document.querySelectorAll('.alert:not(.section-identifier)');
+        alertContainers.forEach((alert, index) => {
+            // Skip alerts that are inside already marked containers
+            if (alert.closest('[class*="container"]')) {
+                return;
+            }
+            
+            const identifier = document.createElement('div');
+            identifier.className = 'section-identifier';
+            identifier.textContent = topLevelContainers.length + index + 1;
+            
+            alert.appendChild(identifier);
+            
+            if (getComputedStyle(alert).position === 'static') {
+                alert.style.position = 'relative';
+            }
+        });
+        
+        console.log(`Added identifiers to ${topLevelContainers.length} main containers`);
     }
 });
