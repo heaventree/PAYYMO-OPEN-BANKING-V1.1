@@ -22,7 +22,8 @@ from decimal import Decimal
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from flask_backend.app import app, db
-from flask_backend.models.auth import User, UserRole, Tenant
+from flask_backend.models.auth import User, UserRole
+from flask_backend.models.core import Tenant, TenantStatus, PlanType
 from flask_backend.models.financial import (
     StandardizedTransaction, StandardizedInvoice, InvoiceTransaction,
     ReconciliationRule, TransactionStatus, InvoiceStatus, MatchStatus
@@ -48,18 +49,18 @@ def create_test_tenant():
     # Create new test tenant
     test_tenant = Tenant(
         name='Test Company',
-        subdomain='test',
-        plan='pro',
-        status='active',
-        country='US',
-        timezone='America/New_York',
-        currency='USD',
-        email='admin@test.com',
-        phone='+1234567890',
-        website='https://example.com',
-        address='123 Test Street, Test City, 12345',
-        max_users=10,
-        max_integrations=5
+        slug='test-company',
+        domain='test.example.com',
+        status=TenantStatus.ACTIVE.value,
+        plan_id=PlanType.PROFESSIONAL.value,
+        settings={
+            'timezone': 'America/New_York',
+            'currency': 'USD',
+            'contact_email': 'admin@test.com',
+            'contact_phone': '+1234567890',
+            'website': 'https://example.com',
+            'address': '123 Test Street, Test City, 12345'
+        }
     )
     
     db.session.add(test_tenant)
@@ -73,13 +74,12 @@ def create_test_tenant():
     if not admin_user:
         admin_user = User(
             tenant_id=test_tenant.id,
-            username='admin',
+            name='Admin User',
             email='admin@test.com',
             password_hash='$2b$12$8M55ZaJ15n9y7AKuBCavreG51RyQ9lA1RcXUdugTuGW4aLPEFJ/oe',  # password123
             role=UserRole.ADMIN.value,
-            status='active',
-            first_name='Admin',
-            last_name='User'
+            status=UserStatus.ACTIVE.value,
+            email_verified=True
         )
         
         db.session.add(admin_user)
@@ -110,12 +110,12 @@ def create_test_integrations(tenant_id):
         config={
             'default_currency': 'GBP',
             'auto_sync': True,
-            'sync_frequency': 'daily'
-        },
-        credentials={
-            'access_token': 'sample_access_token',
-            'refresh_token': 'sample_refresh_token',
-            'token_expires_at': (datetime.now() + timedelta(days=30)).isoformat()
+            'sync_frequency': 'daily',
+            'credentials': {
+                'access_token': 'sample_access_token',
+                'refresh_token': 'sample_refresh_token',
+                'token_expires_at': (datetime.now() + timedelta(days=30)).isoformat()
+            }
         },
         last_sync_at=datetime.now() - timedelta(hours=12)
     )
@@ -130,12 +130,12 @@ def create_test_integrations(tenant_id):
         config={
             'default_currency': 'USD',
             'auto_sync': True,
-            'sync_frequency': 'daily'
-        },
-        credentials={
-            'account_id': 'acct_sample12345',
-            'access_token': 'sample_stripe_token',
-            'publishable_key': 'pk_test_sample'
+            'sync_frequency': 'daily',
+            'credentials': {
+                'account_id': 'acct_sample12345',
+                'access_token': 'sample_stripe_token',
+                'publishable_key': 'pk_test_sample'
+            }
         },
         last_sync_at=datetime.now() - timedelta(hours=6)
     )
@@ -150,11 +150,11 @@ def create_test_integrations(tenant_id):
         config={
             'domain': 'whmcs.example.com',
             'auto_sync': True,
-            'sync_frequency': 'hourly'
-        },
-        credentials={
-            'api_identifier': 'sample_api_identifier',
-            'api_secret': 'sample_api_secret'
+            'sync_frequency': 'hourly',
+            'credentials': {
+                'api_identifier': 'sample_api_identifier',
+                'api_secret': 'sample_api_secret'
+            }
         },
         last_sync_at=datetime.now() - timedelta(hours=1)
     )
