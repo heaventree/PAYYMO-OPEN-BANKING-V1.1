@@ -98,6 +98,36 @@ body, .page-content {
     color: #e9ecef;
 }
 
+/* Dashboard page title styles */
+.page-title-box {
+    background-color: #262e3f !important;
+    color: #e9ecef !important;
+    border-bottom: 1px solid #323b54 !important;
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+}
+
+.page-title-box h4, .page-title-box .mb-sm-0 {
+    color: #e9ecef !important;
+}
+
+.breadcrumb-item, .breadcrumb-item a {
+    color: #9aa3b2 !important;
+}
+
+.breadcrumb-item.active {
+    color: #e9ecef !important;
+}
+
+/* Additional background fixes */
+.bg-white, .bg-light {
+    background-color: #262e3f !important;
+}
+
+.text-dark {
+    color: #e9ecef !important;
+}
+
 .topbar {
     background-color: #262e3f !important;
     border-color: #323b54 !important;
