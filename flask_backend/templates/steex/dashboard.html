@@ -386,6 +386,54 @@
         </div>
     </div>
 </div>
+<!-- Quick Insights Widget -->
+<div id="quick-insights-widget" class="card position-fixed" style="bottom: 20px; right: 20px; width: 350px; z-index: 1050; display: none;">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 fs-5">
+            <i class="ri-lightbulb-flash-line me-1"></i> Financial Insights
+        </h5>
+        <div class="ms-auto">
+            <button type="button" class="btn btn-sm btn-icon btn-primary minimize-btn">
+                <i data-lucide="minimize-2"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-icon btn-primary close-btn ms-1">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="loading-indicator text-center" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div class="insights-content">
+            <div class="d-flex">
+                <div class="insight-icon me-3">
+                    <i data-lucide="trending-up"></i>
+                </div>
+                <div>
+                    <h6 class="insight-title mb-1">Improve Cash Flow</h6>
+                    <p class="insight-content mb-0 text-muted">Based on your transaction history, setting up automatic invoice reminders could improve payment times by up to 30%.</p>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="pagination-indicator text-muted">1/3</div>
+                <div class="navigation-buttons">
+                    <button class="btn btn-sm btn-icon btn-soft-primary prev-btn">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <button class="btn btn-sm btn-icon btn-soft-primary refresh-btn">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                    <button class="btn btn-sm btn-icon btn-soft-primary next-btn">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block extra_js %}
@@ -519,6 +567,26 @@
         
         var distributionChart = new ApexCharts(document.querySelector("#transactionDoughnutChart"), distributionOptions);
         distributionChart.render();
+    });
+</script>
+<!-- Quick Insights Widget JS -->
+<script src="{{ url_for('static', filename='js/quick_insights.js') }}"></script>
+
+<!-- Initialize widget visibility -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make the Quick Insights Widget visible after a delay
+        setTimeout(function() {
+            const widget = document.getElementById('quick-insights-widget');
+            if (widget) {
+                widget.style.display = 'block';
+            }
+        }, 1500);
+        
+        // Initialize the lucide icons in the widget
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     });
 </script>
 {% endblock extra_js %}

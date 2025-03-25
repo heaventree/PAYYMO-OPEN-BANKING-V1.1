@@ -183,3 +183,63 @@
 .section-reports:before {
     background-color: #f7b84b;
 }
+
+/* Quick Insights Widget */
+#quick-insights-widget {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+#quick-insights-widget.widget-minimized .card-body {
+    display: none;
+}
+
+#quick-insights-widget .card-header {
+    cursor: move;
+    padding: 0.75rem 1.25rem;
+}
+
+#quick-insights-widget .btn-icon {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.insight-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(114, 124, 245, 0.1);
+    border-radius: 50%;
+}
+
+.text-success .insight-icon {
+    color: #0ab39c;
+}
+
+.text-warning .insight-icon {
+    color: #f7b84b;
+}
+
+.text-info .insight-icon {
+    color: #299cdb;
+}
+
+.navigation-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.navigation-buttons .btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
