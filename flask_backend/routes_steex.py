@@ -198,8 +198,9 @@ def steex_dashboard():
             ).all()
         
         # Calculate financial summary data
-        total_transactions = stats.get('transactions', {}).get('total', 0)
-        total_amount = stats.get('transactions', {}).get('total_amount', 0)
+        transaction_stats = stats.get('transactions', {})
+        total_transactions = transaction_stats.get('total', 0) if isinstance(transaction_stats, dict) else 0
+        total_amount = transaction_stats.get('total_amount', 0) if isinstance(transaction_stats, dict) else 0
         
         # Get current month's transactions for the chart
         monthly_transactions = []
