@@ -50,6 +50,88 @@ function setupSectionIdentifiers() {
 }
 
 /**
+ * Initialize sidebar and menus
+ */
+function initializeSidebar() {
+    console.log("Initializing sidebar and menu functions");
+    
+    // Toggle sidebar
+    document.querySelectorAll('.vertical-menu-btn, #vertical-hover, #topnav-hamburger-icon').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            document.body.classList.toggle('sidebar-enable');
+            
+            if (window.innerWidth >= 992) {
+                document.body.classList.toggle('vertical-collpsed');
+            }
+            
+            // Toggle hamburger icon animation
+            if (this.id === 'topnav-hamburger-icon') {
+                this.classList.toggle('open');
+            }
+            
+            // Close open submenus when sidebar is collapsed
+            if (document.body.classList.contains('vertical-collpsed')) {
+                document.querySelectorAll('.sidebar-submenu, .menu-dropdown').forEach(submenu => {
+                    submenu.classList.remove('show');
+                });
+            }
+        });
+    });
+    
+    // Add active class to sidebar menu items when clicked
+    document.querySelectorAll('.nav-link.menu-link').forEach(item => {
+        item.addEventListener('click', function() {
+            if (!this.hasAttribute('data-bs-toggle')) {
+                document.querySelectorAll('.nav-link.menu-link').forEach(i => {
+                    i.classList.remove('active');
+                });
+                this.classList.add('active');
+            }
+        });
+    });
+    
+    // Close sidebar when click outside (for mobile)
+    document.addEventListener('click', function(e) {
+        if (document.body.classList.contains('sidebar-enable') && 
+            !e.target.closest('.app-menu') && 
+            !e.target.closest('.vertical-menu-btn') &&
+            !e.target.closest('#topnav-hamburger-icon')) {
+            document.body.classList.remove('sidebar-enable');
+        }
+    });
+    
+    // Apply default sidebar state based on screen size
+    function setSidebarState() {
+        if (window.innerWidth >= 992) {
+            document.body.classList.add('vertical-collpsed');
+        } else {
+            document.body.classList.remove('vertical-collpsed');
+        }
+    }
+    
+    // Set initial state
+    setSidebarState();
+    
+    // Update on resize
+    window.addEventListener('resize', setSidebarState);
+
+    // Make sure navbar-menu gets proper visibility and display
+    const appMenu = document.querySelector('.app-menu');
+    if (appMenu) {
+        appMenu.style.display = 'block';
+        appMenu.style.visibility = 'visible';
+        
+        // Force the height calculation 
+        setTimeout(() => {
+            const scrollbar = document.getElementById('scrollbar');
+            if (scrollbar) {
+                scrollbar.style.height = (window.innerHeight - 70) + 'px';
+            }
+        }, 100);
+    }
+}
+
+/**
  * Initialize all charts on the dashboard
  */
 function initDashboardCharts() {
@@ -91,6 +173,9 @@ function formatDate(dateStr) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Initializing Section Identifiers system");
     setupSectionIdentifiers();
+    
+    // Initialize the sidebar
+    initializeSidebar();
     
     // Initialize charts after a short delay to ensure containers are ready
     setTimeout(() => {

@@ -93,19 +93,188 @@
 /* Sidebar styling */
 .app-menu {
   background-color: #1e1e2d;
+  width: 250px;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1001;
+  bottom: 0;
+  transition: all 0.2s ease-in-out;
+  border-right: 1px solid #313347;
+  box-shadow: 0 2px 4px rgba(15, 34, 58, 0.12);
+}
+
+.vertical-collpsed .app-menu {
+  width: 70px;
+}
+
+#layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+body:not(.vertical-collpsed) .app-menu {
+  display: block !important;
+  visibility: visible !important;
+}
+
+.main-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  transition: all 0.2s ease-in-out;
+}
+
+.vertical-collpsed .main-content {
+  margin-left: 70px;
+  width: calc(100% - 70px);
+}
+
+.navbar-brand-box {
+  padding: 0 1.5rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
 }
 
 .app-menu .menu-title {
   color: #9a9cab;
+  margin: 15px 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .navbar-menu .navbar-nav .nav-link {
   color: #9a9cab;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.95rem;
+  position: relative;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
+.navbar-menu .navbar-nav .nav-link:hover,
 .navbar-menu .navbar-nav .nav-link.active {
   color: #fff;
   background-color: rgba(13, 110, 253, 0.1);
+}
+
+.navbar-menu .navbar-nav .nav-link.active {
+  border-left: 3px solid var(--payymo-primary);
+}
+
+.navbar-menu .navbar-nav .nav-link i {
+  width: 20px;
+  margin-right: 10px;
+  font-size: 1.1rem;
+  vertical-align: middle;
+}
+
+/* Dropdown menus */
+.menu-dropdown {
+  padding-left: 1.5rem;
+}
+
+.menu-dropdown .nav-sm .nav-link {
+  padding: 0.5rem 1.5rem;
+  color: #9a9cab;
+  font-size: 0.875rem;
+}
+
+.menu-dropdown .nav-sm .nav-link:hover {
+  color: #fff;
+}
+
+.navbar-menu .navbar-nav .menu-link[data-bs-toggle="collapse"]:after {
+  display: block;
+  content: "\f0140";
+  font-family: "Material Design Icons";
+  float: right;
+  font-size: 1rem;
+  transition: transform .2s;
+}
+
+.navbar-menu .navbar-nav .menu-link[data-bs-toggle="collapse"][aria-expanded="true"]:after {
+  transform: rotate(180deg);
+}
+
+#scrollbar {
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 50px;
+}
+
+.vertical-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: none;
+}
+
+.sidebar-enable .vertical-overlay {
+  display: block;
+}
+
+/* Hamburger Menu styles */
+.topnav-hamburger-icon {
+  cursor: pointer;
+}
+
+.hamburger-icon {
+  position: relative;
+  height: 20px;
+  width: 25px;
+  display: block;
+}
+
+.hamburger-icon span {
+  background-color: #adb5bd;
+  position: absolute;
+  border-radius: 2px;
+  transition: .3s cubic-bezier(.8, .5, .2, 1.4);
+  width: 100%;
+  height: 2px;
+  display: block;
+  left: 0;
+}
+
+.hamburger-icon span:nth-child(1) {
+  top: 0;
+  width: 80%;
+}
+
+.hamburger-icon span:nth-child(2) {
+  top: 9px;
+}
+
+.hamburger-icon span:nth-child(3) {
+  bottom: 0;
+  width: 60%;
+}
+
+/* Hamburger animation for open state */
+#topnav-hamburger-icon.open .hamburger-icon span:nth-child(1) {
+  top: 8px;
+  transform: rotate(45deg);
+  width: 100%;
+}
+
+#topnav-hamburger-icon.open .hamburger-icon span:nth-child(2) {
+  transform: scale(0);
+}
+
+#topnav-hamburger-icon.open .hamburger-icon span:nth-child(3) {
+  bottom: 10px;
+  transform: rotate(-45deg);
+  width: 100%;
 }
 
 /* Button styling */
