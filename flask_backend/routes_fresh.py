@@ -21,45 +21,75 @@ def fresh_dashboard():
         # For development mode, auto-authenticate
         session['authenticated'] = True
         
-        # Get dashboard statistics
-        from flask_backend.routes_steex import get_dashboard_stats
-        stats = get_dashboard_stats()
+        # Default stats structure
+        stats = {
+            'transactions': {
+                'total': 0,
+                'total_amount': 0,
+                'month': {
+                    'count': 0,
+                    'amount': 0
+                }
+            },
+            'bank_connections': {
+                'total': 0,
+                'active': 0
+            },
+            'matches': {
+                'total': 0,
+                'confirmed': 0,
+                'pending': 0
+            },
+            'stripe_connections': {
+                'total': 0,
+                'active': 0
+            },
+            'stripe_payments': {
+                'total': 0,
+                'total_amount': 0
+            }
+        }
+        
+        # Try to get dashboard statistics from the main function
+        try:
+            from flask_backend.routes_steex import get_dashboard_stats
+            stats_data = get_dashboard_stats()
+            if stats_data and stats_data.get('status') == 'success':
+                stats = stats_data
+        except Exception as e:
+            logger.error(f"Error getting dashboard stats: {str(e)}")
         
         # Get recent transactions for the dashboard
         recent_transactions = []
-        if tenant_id:
-            from flask_backend.models import BankConnection, Transaction
-            # Get bank connections for this tenant
-            bank_connections = BankConnection.query.filter_by(
-                whmcs_instance_id=tenant_id
-            ).all()
-            
-            # Get bank IDs
-            bank_ids = [conn.bank_id for conn in bank_connections]
-            
-            # Get transactions
-            if bank_ids:
-                recent_transactions = Transaction.query.filter(
-                    Transaction.bank_id.in_(bank_ids)
-                ).order_by(
-                    Transaction.transaction_date.desc()
-                ).limit(10).all()
-        
-        # Get bank connections for the dashboard
         bank_connections = []
-        if tenant_id:
-            from flask_backend.models import BankConnection
-            bank_connections = BankConnection.query.filter_by(
-                whmcs_instance_id=tenant_id
-            ).all()
-        
-        # Get Stripe connections for the dashboard
         stripe_connections = []
-        if tenant_id:
-            from flask_backend.models import StripeConnection
-            stripe_connections = StripeConnection.query.filter_by(
-                whmcs_instance_id=tenant_id
-            ).all()
+        
+        try:
+            if tenant_id:
+                from flask_backend.models import BankConnection, Transaction
+                # Get bank connections for this tenant
+                bank_connections = BankConnection.query.filter_by(
+                    whmcs_instance_id=tenant_id
+                ).all()
+                
+                # Get bank IDs
+                bank_ids = [conn.bank_id for conn in bank_connections]
+                
+                # Get transactions
+                if bank_ids:
+                    recent_transactions = Transaction.query.filter(
+                        Transaction.bank_id.in_(bank_ids)
+                    ).order_by(
+                        Transaction.transaction_date.desc()
+                    ).limit(10).all()
+                
+                # Get Stripe connections for the dashboard
+                from flask_backend.models import StripeConnection
+                stripe_connections = StripeConnection.query.filter_by(
+                    whmcs_instance_id=tenant_id
+                ).all()
+        except Exception as e:
+            logger.error(f"Error fetching tenant data: {str(e)}")
                 
         return render_template(
             'steex_fresh/dashboard.html',
@@ -72,4 +102,20 @@ def fresh_dashboard():
         )
     except Exception as e:
         logger.error(f"Error rendering Fresh dashboard: {str(e)}")
-        return render_template('steex_fresh/dashboard.html', error=str(e))
+        # Create empty data structures to prevent template errors
+        return render_template(
+            'steex_fresh/dashboard.html', 
+            error=str(e),
+            admin_session=False,
+            tenant_id=None,
+            stats={
+                'transactions': {'total': 0, 'total_amount': 0, 'month': {'count': 0, 'amount': 0}},
+                'bank_connections': {'total': 0, 'active': 0},
+                'matches': {'total': 0, 'confirmed': 0, 'pending': 0},
+                'stripe_connections': {'total': 0, 'active': 0},
+                'stripe_payments': {'total': 0, 'total_amount': 0}
+            },
+            recent_transactions=[],
+            bank_connections=[],
+            stripe_connections=[]
+        )

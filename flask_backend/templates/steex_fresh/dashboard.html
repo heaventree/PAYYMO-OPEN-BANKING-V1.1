@@ -4,6 +4,12 @@
 
 {% block content %}
 <div class="container-fluid px-4">
+    {% if error %}
+    <div class="alert alert-danger mt-4">
+        <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+    </div>
+    {% endif %}
+    
     <!-- Page Title -->
     <div class="row mb-4">
         <div class="col-12">
@@ -59,12 +65,12 @@
                             <h6 class="mb-0">Total Amount</h6>
                         </div>
                     </div>
-                    <h2 class="mb-2">£12,586.25</h2>
+                    <h2 class="mb-2">£{{ stats.transactions.total_amount|default(0)|round(2) }}</h2>
                     <div class="d-flex align-items-center">
                         <span class="badge bg-success-subtle text-success me-2">
-                            <i class="fas fa-arrow-up me-1"></i>4.2%
+                            <i class="fas fa-arrow-up me-1"></i>£{{ stats.transactions.month.amount|default(0)|round(2) }}
                         </span>
-                        <span class="text-muted small">vs. last month</span>
+                        <span class="text-muted small">this month</span>
                     </div>
                 </div>
             </div>
@@ -84,12 +90,12 @@
                             <h6 class="mb-0">Bank Connections</h6>
                         </div>
                     </div>
-                    <h2 class="mb-2">3</h2>
+                    <h2 class="mb-2">{{ stats.bank_connections.total|default(0) }}</h2>
                     <div class="d-flex align-items-center">
                         <span class="badge bg-success-subtle text-success me-2">
-                            <i class="fas fa-plus me-1"></i>1
+                            <i class="fas fa-check me-1"></i>{{ stats.bank_connections.active|default(0) }}
                         </span>
-                        <span class="text-muted small">new this month</span>
+                        <span class="text-muted small">active</span>
                     </div>
                 </div>
             </div>
@@ -109,12 +115,12 @@
                             <h6 class="mb-0">Invoice Matches</h6>
                         </div>
                     </div>
-                    <h2 class="mb-2">186</h2>
+                    <h2 class="mb-2">{{ stats.matches.total|default(0) }}</h2>
                     <div class="d-flex align-items-center">
                         <span class="badge bg-success-subtle text-success me-2">
-                            <i class="fas fa-arrow-up me-1"></i>12.6%
+                            <i class="fas fa-check me-1"></i>{{ stats.matches.confirmed|default(0) }}
                         </span>
-                        <span class="text-muted small">vs. last month</span>
+                        <span class="text-muted small">confirmed</span>
                     </div>
                 </div>
             </div>
@@ -144,86 +150,33 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-success-subtle rounded-circle p-2">
-                                        <i class="fas fa-arrow-down text-success"></i>
+                        {% if recent_transactions %}
+                            {% for tx in recent_transactions %}
+                            <div class="list-group-item border-0 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-success-subtle rounded-circle p-2">
+                                            <i class="fas fa-arrow-down text-success"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ tx.reference or 'Transaction #' + tx.id|string }}</h6>
+                                        <p class="text-muted small mb-0">{{ tx.transaction_date.strftime('%d %b %Y') }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <h6 class="text-success mb-0">£{{ tx.amount|round(2) }}</h6>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Invoice #1234</h6>
-                                    <p class="text-muted small mb-0">23 Mar 2025</p>
-                                </div>
-                                <div class="text-end">
-                                    <h6 class="text-success mb-0">£259.35</h6>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item border-0">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exchange-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">No recent transactions</p>
                                 </div>
                             </div>
-                        </div>
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-success-subtle rounded-circle p-2">
-                                        <i class="fas fa-arrow-down text-success"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Invoice #1233</h6>
-                                    <p class="text-muted small mb-0">22 Mar 2025</p>
-                                </div>
-                                <div class="text-end">
-                                    <h6 class="text-success mb-0">£125.00</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-success-subtle rounded-circle p-2">
-                                        <i class="fas fa-arrow-down text-success"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Invoice #1232</h6>
-                                    <p class="text-muted small mb-0">21 Mar 2025</p>
-                                </div>
-                                <div class="text-end">
-                                    <h6 class="text-success mb-0">£75.50</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-success-subtle rounded-circle p-2">
-                                        <i class="fas fa-arrow-down text-success"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Invoice #1231</h6>
-                                    <p class="text-muted small mb-0">20 Mar 2025</p>
-                                </div>
-                                <div class="text-end">
-                                    <h6 class="text-success mb-0">£199.99</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="list-group-item border-0">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-success-subtle rounded-circle p-2">
-                                        <i class="fas fa-arrow-down text-success"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Invoice #1230</h6>
-                                    <p class="text-muted small mb-0">20 Mar 2025</p>
-                                </div>
-                                <div class="text-end">
-                                    <h6 class="text-success mb-0">£349.50</h6>
-                                </div>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -243,48 +196,33 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <img src="https://ui-avatars.com/api/?name=HSBC&background=E42728&color=fff" alt="HSBC" class="rounded" width="40" height="40">
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">HSBC UK</h6>
-                                    <p class="text-muted small mb-0">Business Account</p>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-success">Active</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <img src="https://ui-avatars.com/api/?name=BB&background=002D72&color=fff" alt="Barclays" class="rounded" width="40" height="40">
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Barclays Bank</h6>
-                                    <p class="text-muted small mb-0">Current Account</p>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-success">Active</span>
+                        {% if bank_connections %}
+                            {% for bank in bank_connections %}
+                            <div class="list-group-item border-0 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name={{ bank.bank_name[0:2] }}&background=002D72&color=fff" alt="{{ bank.bank_name }}" class="rounded" width="40" height="40">
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ bank.bank_name }}</h6>
+                                        <p class="text-muted small mb-0">{{ bank.account_name }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge {% if bank.status == 'active' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ bank.status|capitalize }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="list-group-item border-0">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <img src="https://ui-avatars.com/api/?name=LB&background=6F2C91&color=fff" alt="Lloyds" class="rounded" width="40" height="40">
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Lloyds Bank</h6>
-                                    <p class="text-muted small mb-0">Savings Account</p>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-success">Active</span>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item border-0">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-university fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">No bank connections</p>
                                 </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -301,26 +239,38 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <img src="https://ui-avatars.com/api/?name=S&background=635BFF&color=fff" alt="Stripe" class="rounded" width="40" height="40">
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Test Company Ltd</h6>
-                                    <p class="text-muted small mb-0">United Kingdom</p>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-success">Active</span>
+                        {% if stripe_connections %}
+                            {% for stripe in stripe_connections %}
+                            <div class="list-group-item border-0 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name=S&background=635BFF&color=fff" alt="Stripe" class="rounded" width="40" height="40">
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ stripe.account_name }}</h6>
+                                        <p class="text-muted small mb-0">{{ stripe.account_email }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge {% if stripe.status == 'active' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ stripe.status|capitalize }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="list-group-item border-0">
-                            <div class="d-flex align-items-center justify-content-center py-4">
-                                <div class="text-center">
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item border-0">
+                                <div class="text-center py-4">
                                     <i class="fab fa-stripe fa-2x text-muted mb-2"></i>
-                                    <p class="mb-0 text-muted">Connect another Stripe account</p>
+                                    <p class="mb-0 text-muted">No Stripe connections</p>
                                 </div>
+                            </div>
+                        {% endif %}
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center justify-content-center py-3">
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="fab fa-stripe me-1"></i> Connect Stripe Account
+                                </button>
                             </div>
                         </div>
                     </div>
