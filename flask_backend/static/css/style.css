@@ -1,327 +1,185 @@
-/* Custom styles for Payymo */
+/**
+ * Payymo - Financial Management Dashboard
+ * Custom styling for the Steex theme
+ */
 
-/* Main layout styles */
-#layout-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.main-content {
-    flex: 1;
-    background-color: #2a3142; /* Dark theme background */
-    color: #e9ecef;
-}
-
-/* Sidebar styles */
-.app-menu {
-    background-color: #1a2942 !important;
-}
-
-.navbar-menu {
-    background-color: #1a2942 !important;
-}
-
-.navbar-menu .navbar-nav .nav-link {
-    color: #9aa3b2 !important;
-}
-
-.navbar-menu .navbar-nav .nav-link:hover {
-    color: #fff !important;
-}
-
-.navbar-menu .navbar-nav .nav-link.active {
-    color: #fff !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-.navbar-menu .navbar-brand-box {
-    background-color: #1a2942 !important;
-}
-
-.menu-title {
-    color: #8c97a6 !important;
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.menu-link {
-    color: #9aa3b2 !important;
-}
-
-.menu-link:hover {
-    color: #fff !important;
-}
-
-.menu-dropdown {
-    background-color: #1a2942 !important;
-}
-
-.vertical-overlay {
-    background-color: rgba(0, 0, 0, 0.5) !important;
-}
-
-.sidebar-background {
-    background-color: #1a2942 !important;
-}
-
-/* Card styles */
-.card {
-    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
-    margin-bottom: 1.5rem;
-    border-radius: 0.375rem;
-    background-color: #262e3f; /* Dark card background */
-    border-color: #323b54; /* Dark card border */
-}
-
-.card-header {
-    background-color: #2a3142; /* Dark card header background */
-    border-bottom: 1px solid #374151; /* Dark border */
-    padding: 0.75rem 1.25rem;
-    color: #e9ecef; /* Light text */
-}
-
-.table {
-    color: #c9d1d9 !important; /* Light text for tables */
-}
-
-.table-bordered, .table-bordered th, .table-bordered td {
-    border-color: #353e52 !important; /* Dark borders for tables */
-}
-
-/* Dark theme overrides */
-body, .page-content {
-    background-color: #2a3142; 
-    color: #e9ecef;
-}
-
-/* Dashboard page title styles */
-.page-title-box {
-    background-color: #262e3f !important;
-    color: #e9ecef !important;
-    border-bottom: 1px solid #323b54 !important;
-    margin-bottom: 1.5rem;
-    padding: 1rem 0;
-}
-
-.page-title-box h4, .page-title-box .mb-sm-0 {
-    color: #e9ecef !important;
-}
-
-.breadcrumb-item, .breadcrumb-item a {
-    color: #9aa3b2 !important;
-}
-
-.breadcrumb-item.active {
-    color: #e9ecef !important;
-}
-
-/* Additional background fixes */
-.bg-white, .bg-light {
-    background-color: #262e3f !important;
-}
-
-.text-dark {
-    color: #e9ecef !important;
-}
-
-.topbar {
-    background-color: #262e3f !important;
-    border-color: #323b54 !important;
-}
-
-#page-topbar {
-    background-color: #262e3f !important;
-    border-bottom: 1px solid #323b54 !important;
-}
-
-.navbar-header {
-    background-color: #262e3f !important;
-}
-
-.logo-dark {
-    display: none !important;
-}
-
-.logo-light {
-    display: block !important;
-}
-
-.user-name-text, .user-name-sub-text {
-    color: #e9ecef !important;
-}
-
-.app-search .form-control {
-    background-color: #323b54 !important;
-    border-color: #3a4257 !important;
-    color: #e9ecef !important;
-}
-
-.app-search .search-widget-icon {
-    color: #9aa3b2 !important;
-}
-
-.dropdown-menu {
-    background-color: #262e3f;
-    border-color: #323b54;
-}
-
-.dropdown-item {
-    color: #e9ecef;
-}
-
-.dropdown-item:hover {
-    background-color: #323b54;
-    color: #ffffff;
-}
-
-/* Footer styles */
-.footer {
-    background-color: #262e3f !important;
-    color: #9aa3b2 !important;
-    border-top: 1px solid #323b54 !important;
-    padding: 1.25rem 1.5rem;
-}
-
-/* Dashboard widget styles */
-.widget-card {
-    border: none;
-    transition: transform 0.3s ease;
-}
-
-.widget-card:hover {
-    transform: translateY(-5px);
-}
-
-.widget-icon {
-    height: 45px;
-    width: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 1.5rem;
-}
-
-/* Status indicators */
+/* Status badges for transaction matches */
 .status-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
     font-weight: 500;
+    line-height: 1;
+    border-radius: 0.25rem;
 }
 
 .status-active {
-    background-color: rgba(10, 179, 156, 0.1);
+    background-color: rgba(10, 179, 156, 0.18);
     color: #0ab39c;
 }
 
 .status-pending {
-    background-color: rgba(247, 184, 75, 0.1);
+    background-color: rgba(247, 184, 75, 0.18);
     color: #f7b84b;
 }
 
-.status-failed {
-    background-color: rgba(240, 101, 72, 0.1);
+.status-rejected {
+    background-color: rgba(240, 101, 72, 0.18);
     color: #f06548;
 }
 
-/* Form Controls */
-.form-control, .form-select {
-    background-color: #323b54 !important;
-    border-color: #3a4257 !important;
+/* Widget cards on dashboard */
+.widget-card .widget-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    width: 48px;
+    border-radius: 50%;
+    font-size: 24px;
+}
+
+/* Custom tabs styling */
+.custom-tabs .nav-link {
+    color: var(--bs-gray-400);
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+.custom-tabs .nav-link.active {
+    color: var(--bs-primary);
+    background-color: transparent;
+    border-bottom: 2px solid var(--bs-primary);
+}
+
+/* Chart tooltips */
+.apexcharts-tooltip {
+    background-color: #212529 !important;
+    border: 1px solid #495057 !important;
     color: #e9ecef !important;
 }
 
-.form-control:focus, .form-select:focus {
-    background-color: #2b3245 !important;
-    border-color: #4a5370 !important;
-    color: #e9ecef !important;
-    box-shadow: 0 0 0 0.2rem rgba(62, 108, 234, 0.25) !important;
+/* Quick Insights panel */
+.quick-insights {
+    position: relative;
+    padding: 15px;
+    border-radius: 0.25rem;
+    background-color: rgba(114, 124, 245, 0.1);
+    border-left: 3px solid #727cf5;
 }
 
-.form-control::placeholder {
-    color: #8892a0 !important;
+.quick-insights-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
 }
 
-.input-group-text {
-    background-color: #2b3245 !important;
-    border-color: #3a4257 !important;
-    color: #9aa3b2 !important;
+.quick-insights-content {
+    font-size: 13px;
 }
 
-.form-check-input {
-    background-color: #323b54 !important;
-    border-color: #3a4257 !important;
+/* Wizard steps */
+.wizard-steps {
+    display: flex;
+    position: relative;
+    margin-bottom: 30px;
 }
 
-.form-check-input:checked {
-    background-color: #3e6cea !important;
-    border-color: #3e6cea !important;
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
 }
 
-.form-label {
-    color: #c9d1d9 !important;
+.wizard-step-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bs-gray-800);
+    color: var(--bs-gray-400);
+    font-weight: 600;
+    margin-bottom: 10px;
+    z-index: 5;
+    position: relative;
 }
 
-/* Button styles */
-.btn-light {
-    background-color: #323b54 !important;
-    border-color: #323b54 !important;
-    color: #e9ecef !important;
+.wizard-step.completed .wizard-step-icon {
+    background-color: var(--bs-success);
+    color: #fff;
 }
 
-.btn-light:hover, .btn-light:focus {
-    background-color: #3a4257 !important;
-    border-color: #3a4257 !important;
-    color: #ffffff !important;
+.wizard-step.active .wizard-step-icon {
+    background-color: var(--bs-primary);
+    color: #fff;
 }
 
-.btn-outline-light {
-    border-color: #323b54 !important;
-    color: #e9ecef !important;
+.wizard-step-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--bs-gray-400);
 }
 
-.btn-outline-light:hover, .btn-outline-light:focus {
-    background-color: #323b54 !important;
-    color: #ffffff !important;
+.wizard-step.active .wizard-step-text {
+    color: var(--bs-primary);
 }
 
-/* Modal styles */
-.modal-content {
-    background-color: #262e3f !important;
-    border-color: #323b54 !important;
+.wizard-step.completed .wizard-step-text {
+    color: var(--bs-success);
 }
 
-.modal-header {
-    border-bottom-color: #323b54 !important;
+.wizard-steps:before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--bs-gray-800);
+    z-index: 1;
 }
 
-.modal-footer {
-    border-top-color: #323b54 !important;
+.wizard-step:first-child:before {
+    display: none;
 }
 
-.modal-title {
-    color: #e9ecef !important;
+.wizard-content {
+    padding: 20px 0;
 }
 
-.btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%) !important;
+.wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 992px) {
-    .navbar-menu {
-        width: 250px;
-        max-width: 100%;
-    }
+/* Section identifiers for organization */
+.section-identifier {
+    position: relative;
+    margin-bottom: 20px;
 }
 
-@media (max-width: 767.98px) {
-    .card-body {
-        padding: 1rem;
-    }
+.section-identifier:before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 2px;
+}
+
+.section-bank:before {
+    background-color: #0ab39c;
+}
+
+.section-stripe:before {
+    background-color: #6259ca;
+}
+
+.section-reports:before {
+    background-color: #f7b84b;
 }
