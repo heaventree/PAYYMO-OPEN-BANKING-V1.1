@@ -1,0 +1,150 @@
+/* Payymo Dashboard Core Styles */
+
+/* Apply dark theme colors to complement the Bootstrap agent dark theme */
+:root {
+  --payymo-primary: #0d6efd;
+  --payymo-secondary: #6c757d;
+  --payymo-success: #198754;
+  --payymo-info: #0dcaf0;
+  --payymo-warning: #ffc107;
+  --payymo-danger: #dc3545;
+  --payymo-light: #f8f9fa;
+  --payymo-dark: #212529;
+  --payymo-bg-subtle: rgba(13, 110, 253, 0.1);
+}
+
+/* Consistent card styling */
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+}
+
+.card-animate {
+  transition: all 0.4s;
+}
+
+.card-animate:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Avatar styling */
+.avatar-xs {
+  height: 2rem;
+  width: 2rem;
+}
+
+.avatar-sm {
+  height: 3rem;
+  width: 3rem;
+}
+
+.avatar-title {
+  align-items: center;
+  display: flex;
+  font-weight: 500;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Status badges */
+.bg-primary-subtle {
+  background-color: rgba(13, 110, 253, 0.2) !important;
+}
+
+.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.2) !important;
+}
+
+.bg-warning-subtle {
+  background-color: rgba(255, 193, 7, 0.2) !important;
+}
+
+.bg-danger-subtle {
+  background-color: rgba(220, 53, 69, 0.2) !important;
+}
+
+.bg-info-subtle {
+  background-color: rgba(13, 202, 240, 0.2) !important;
+}
+
+.text-primary {
+  color: var(--payymo-primary) !important;
+}
+
+.text-success {
+  color: var(--payymo-success) !important;
+}
+
+.text-warning {
+  color: var(--payymo-warning) !important;
+}
+
+.text-danger {
+  color: var(--payymo-danger) !important;
+}
+
+.text-info {
+  color: var(--payymo-info) !important;
+}
+
+/* Sidebar styling */
+.app-menu {
+  background-color: #1e1e2d;
+}
+
+.app-menu .menu-title {
+  color: #9a9cab;
+}
+
+.navbar-menu .navbar-nav .nav-link {
+  color: #9a9cab;
+}
+
+.navbar-menu .navbar-nav .nav-link.active {
+  color: #fff;
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Button styling */
+.btn-soft-primary {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: var(--payymo-primary);
+}
+
+.btn-soft-secondary {
+  background-color: rgba(108, 117, 125, 0.1);
+  color: var(--payymo-secondary);
+}
+
+.btn-soft-success {
+  background-color: rgba(25, 135, 84, 0.1);
+  color: var(--payymo-success);
+}
+
+.btn-soft-info {
+  background-color: rgba(13, 202, 240, 0.1);
+  color: var(--payymo-info);
+}
+
+.btn-soft-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--payymo-warning);
+}
+
+.btn-soft-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--payymo-danger);
+}
+
+/* Table styling */
+.table-card th {
+  border-top: none;
+}
+
+/* Chart containers */
+.apex-charts {
+  min-height: 300px;
+}
