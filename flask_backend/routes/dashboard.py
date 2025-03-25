@@ -256,6 +256,33 @@ def redesign():
         logger.error(f"Error rendering redesigned dashboard: {str(e)}")
         return render_template('dashboard_redesign.html', error=str(e))
 
+@dashboard_bp.route('/steex-dashboard')
+@tenant_from_subdomain
+def steex_dashboard():
+    """Dashboard using the Steex theme"""
+    # For development mode, auto-authenticate
+    session['authenticated'] = True
+    
+    # In production, we would check for user login and tenant context
+    # if 'user_id' not in session:
+    #     return redirect(url_for('auth.login'))
+    # if not hasattr(g, 'tenant'):
+    #     return redirect(url_for('auth.select_tenant'))
+    
+    try:
+        # Get dashboard stats
+        # In a real implementation, we would use tenant-specific data
+        # stats = get_tenant_dashboard_stats(g.tenant.id)
+        
+        # For now, we'll use placeholder data for the initial template implementation
+        # Later this will be replaced with real data from the database
+        
+        # Render the Steex dashboard template
+        return render_template('steex/dashboard.html')
+    except Exception as e:
+        logger.error(f"Error rendering Steex dashboard: {str(e)}")
+        return render_template('error.html', error=str(e))
+
 # Helper functions
 def get_tenant_dashboard_stats(tenant_id):
     """Get dashboard statistics for a tenant"""

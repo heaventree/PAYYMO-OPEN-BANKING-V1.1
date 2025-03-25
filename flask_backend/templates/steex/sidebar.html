@@ -2,7 +2,7 @@
 <div class="app-menu navbar-menu">
     <!-- LOGO -->
     <div class="navbar-brand-box">
-        <a href="{{ url_for('main.dashboard') }}" class="logo logo-dark">
+        <a href="{{ url_for('dashboard.index') }}" class="logo logo-dark">
             <span class="logo-sm">
                 <img src="{{ url_for('static', filename='steex/images/logo-sm.png') }}" alt="Logo" height="22">
             </span>
@@ -10,7 +10,7 @@
                 <img src="{{ url_for('static', filename='steex/images/logo-dark.png') }}" alt="Logo" height="22">
             </span>
         </a>
-        <a href="{{ url_for('main.dashboard') }}" class="logo logo-light">
+        <a href="{{ url_for('dashboard.index') }}" class="logo logo-light">
             <span class="logo-sm">
                 <img src="{{ url_for('static', filename='steex/images/logo-sm.png') }}" alt="Logo" height="22">
             </span>
@@ -32,7 +32,7 @@
                 <li class="menu-title"><span>Menu</span></li>
 
                 <li class="nav-item">
-                    <a href="{{ url_for('main.dashboard') }}" class="nav-link"> 
+                    <a href="{{ url_for('dashboard.index') }}" class="nav-link"> 
                         <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
                     </a>
                 </li>
