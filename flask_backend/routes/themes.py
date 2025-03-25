@@ -1,12 +1,13 @@
 """
 Theme Previewer Blueprint
 Allows viewing and previewing the HTML themes uploaded
+Also serves static theme assets for use in the main application
 """
 
 import os
 from flask import Blueprint, render_template, request, send_from_directory, redirect, url_for, Response
 
-# Create blueprint
+# Create blueprint - we need both /themes for previews and /static/steex for application use
 themes_bp = Blueprint('themes', __name__, url_prefix='/themes')
 
 # Theme paths (using absolute paths for better reliability)
@@ -330,3 +331,32 @@ def flask_admin_content(filename):
             content = f.read()
         return Response(content, mimetype='text/plain')
     return "File not found", 404
+
+@themes_bp.route('/steex/<path:path>')
+def steex_assets(path):
+    """Serve static assets from the Steex admin theme for use in the main app"""
+    # First check if file exists in the main steex directory
+    asset_path = os.path.join(FLASK_ADMIN_THEME_PATH, path)
+    if os.path.exists(asset_path):
+        return send_from_directory(FLASK_ADMIN_THEME_PATH, path)
+    
+    # Check if it's in assets folder
+    if path.startswith('assets/'):
+        relative_path = path[7:]  # Remove 'assets/' prefix
+        asset_path = os.path.join(FLASK_ADMIN_THEME_PATH, 'assets', relative_path)
+        if os.path.exists(asset_path):
+            return send_from_directory(os.path.join(FLASK_ADMIN_THEME_PATH, 'assets'), relative_path)
+    
+    # Check if it's in the static folder
+    if path.startswith('static/'):
+        relative_path = path[7:]  # Remove 'static/' prefix
+        asset_path = os.path.join(FLASK_ADMIN_THEME_PATH, 'static', relative_path)
+        if os.path.exists(asset_path):
+            return send_from_directory(os.path.join(FLASK_ADMIN_THEME_PATH, 'static'), relative_path)
+    
+    # If all else fails, check if it's directly in the assets folder
+    asset_path = os.path.join(FLASK_ADMIN_THEME_PATH, 'assets', path)
+    if os.path.exists(asset_path):
+        return send_from_directory(os.path.join(FLASK_ADMIN_THEME_PATH, 'assets'), path)
+    
+    return f"Steex asset not found: {path}", 404

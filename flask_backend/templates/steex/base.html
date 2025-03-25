@@ -16,17 +16,23 @@
     <link id="fontsLink" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     {% block css %}
-    {% block extra_css %}
-    {% endblock extra_css %}
-
-    <!-- Use Bootstrap CSS from CDN until we set up the asset copying -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="{{ url_for('themes.steex_assets', path='assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
     
-    <!-- Temporary fallback styles for icon fonts -->
+    <!-- Icons CSS -->
+    <link href="{{ url_for('themes.steex_assets', path='assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
+    
+    <!-- App CSS -->
+    <link href="{{ url_for('themes.steex_assets', path='assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
+    
+    <!-- Fallback fonts for icons (if needed) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}
+    {% endblock extra_css %}
     {% endblock css %}
 
 </head>
