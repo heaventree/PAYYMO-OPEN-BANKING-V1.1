@@ -366,7 +366,9 @@
                 type: 'area',
                 toolbar: {
                     show: false
-                }
+                },
+                background: 'transparent',
+                foreColor: '#c9d1d9' // Light text for dark theme
             },
             colors: ['#727cf5'],
             dataLabels: {
@@ -385,12 +387,39 @@
                 }
             },
             xaxis: {
-                categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                labels: {
+                    style: {
+                        colors: '#c9d1d9' // Light text for dark theme
+                    }
+                },
+                axisBorder: {
+                    color: '#374151' // Dark border
+                },
+                axisTicks: {
+                    color: '#374151' // Dark ticks
+                }
             },
             yaxis: {
                 title: {
-                    text: 'Transactions'
+                    text: 'Transactions',
+                    style: {
+                        color: '#c9d1d9' // Light text for dark theme
+                    }
+                },
+                labels: {
+                    style: {
+                        colors: '#c9d1d9' // Light text for dark theme
+                    }
                 }
+            },
+            grid: {
+                borderColor: '#374151', // Dark grid lines
+                strokeDashArray: 4,
+                position: 'back'
+            },
+            tooltip: {
+                theme: 'dark' // Dark tooltip
             }
         };
         
@@ -403,18 +432,44 @@
             chart: {
                 height: 300,
                 type: 'donut',
+                background: 'transparent',
+                foreColor: '#c9d1d9' // Light text for dark theme
             },
             labels: ['Matched', 'Unmatched', 'Pending'],
             colors: ['#0ab39c', '#f7b84b', '#f06548'],
             legend: {
-                position: 'bottom'
+                position: 'bottom',
+                labels: {
+                    colors: '#c9d1d9' // Light text for dark theme
+                }
             },
             plotOptions: {
                 pie: {
                     donut: {
-                        size: '60%'
+                        size: '60%',
+                        labels: {
+                            show: true,
+                            name: {
+                                color: '#c9d1d9' // Light text for dark theme
+                            },
+                            value: {
+                                color: '#c9d1d9' // Light text for dark theme
+                            }
+                        }
                     }
                 }
+            },
+            stroke: {
+                width: 2,
+                colors: ['#262e3f'] // Background color to match card background
+            },
+            dataLabels: {
+                style: {
+                    colors: ['#c9d1d9'] // Light text for dark theme
+                }
+            },
+            tooltip: {
+                theme: 'dark' // Dark tooltip
             }
         };
         
