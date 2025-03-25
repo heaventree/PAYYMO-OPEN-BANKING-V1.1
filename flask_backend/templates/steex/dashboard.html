@@ -1,0 +1,415 @@
+{% extends 'steex/base.html' %}
+{% block title %}Dashboard{% endblock title %}
+
+{% block extra_css %}
+    <!-- jsvectormap css -->
+    <link href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.1/dist/css/jsvectormap.min.css" rel="stylesheet" type="text/css">
+
+    <!-- Chart.js -->
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+{% endblock extra_css %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Financial Dashboard</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Payymo</a></li>
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate widget-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-3">Total Transactions</h6>
+                        <h2 class="mb-0">157</h2>
+                    </div>
+                    <div class="widget-icon" style="background-color: rgba(10, 179, 156, 0.1);">
+                        <i class="ri-exchange-dollar-line text-success"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-light text-success">+12.5%</span> <span class="text-muted ms-1">from last month</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate widget-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-3">Matched Invoices</h6>
+                        <h2 class="mb-0">92</h2>
+                    </div>
+                    <div class="widget-icon" style="background-color: rgba(114, 124, 245, 0.1);">
+                        <i class="ri-links-line text-primary"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-light text-success">+8.4%</span> <span class="text-muted ms-1">from last month</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate widget-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-3">Unmatched Transactions</h6>
+                        <h2 class="mb-0">65</h2>
+                    </div>
+                    <div class="widget-icon" style="background-color: rgba(249, 179, 42, 0.1);">
+                        <i class="ri-question-mark text-warning"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-light text-danger">+5.7%</span> <span class="text-muted ms-1">from last month</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate widget-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-3">Bank Connections</h6>
+                        <h2 class="mb-0">3</h2>
+                    </div>
+                    <div class="widget-icon" style="background-color: rgba(247, 108, 108, 0.1);">
+                        <i class="ri-bank-line text-danger"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-light text-success">+1</span> <span class="text-muted ms-1">new connection</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction and Revenue Charts -->
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Monthly Transactions</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="transactionChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Transaction Distribution</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="transactionDoughnutChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Recent Transactions</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Transaction Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Bank</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>TRX-001</td>
+                                <td>2025-03-20</td>
+                                <td>Invoice #5321 Payment</td>
+                                <td>£243.50</td>
+                                <td>Barclays</td>
+                                <td><span class="badge status-badge status-active">Matched</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Edit Match</a></li>
+                                            <li><a href="#" class="dropdown-item">Remove Match</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>TRX-002</td>
+                                <td>2025-03-19</td>
+                                <td>Monthly Subscription</td>
+                                <td>£99.00</td>
+                                <td>HSBC</td>
+                                <td><span class="badge status-badge status-pending">Unmatched</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Match to Invoice</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>TRX-003</td>
+                                <td>2025-03-18</td>
+                                <td>Service Payment</td>
+                                <td>£175.25</td>
+                                <td>Lloyds</td>
+                                <td><span class="badge status-badge status-active">Matched</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Edit Match</a></li>
+                                            <li><a href="#" class="dropdown-item">Remove Match</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>TRX-004</td>
+                                <td>2025-03-17</td>
+                                <td>Hosting Renewal</td>
+                                <td>£58.99</td>
+                                <td>Monzo</td>
+                                <td><span class="badge status-badge status-pending">Unmatched</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Match to Invoice</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>TRX-005</td>
+                                <td>2025-03-16</td>
+                                <td>Website Development</td>
+                                <td>£1200.00</td>
+                                <td>Natwest</td>
+                                <td><span class="badge status-badge status-active">Matched</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Edit Match</a></li>
+                                            <li><a href="#" class="dropdown-item">Remove Match</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stripe Transactions -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h4 class="card-title flex-grow-1 mb-0">Recent Stripe Payments</h4>
+                <div class="flex-shrink-0">
+                    <a href="#" class="btn btn-soft-info btn-sm">View All Payments</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>STR-001</td>
+                                <td>John Smith</td>
+                                <td>Premium Plan</td>
+                                <td>$49.99</td>
+                                <td>2025-03-20</td>
+                                <td><span class="badge bg-success">Succeeded</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Match to Invoice</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>STR-002</td>
+                                <td>Sarah Johnson</td>
+                                <td>Basic Plan</td>
+                                <td>$29.99</td>
+                                <td>2025-03-19</td>
+                                <td><span class="badge bg-success">Succeeded</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Match to Invoice</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>STR-003</td>
+                                <td>Michael Brown</td>
+                                <td>Enterprise Plan</td>
+                                <td>$199.99</td>
+                                <td>2025-03-18</td>
+                                <td><span class="badge bg-success">Succeeded</span></td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="dropdown-toggle card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill fs-14"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a href="#" class="dropdown-item">View Details</a></li>
+                                            <li><a href="#" class="dropdown-item">Match to Invoice</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Dashboard Charts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Monthly Transactions Chart
+            var ctx = document.getElementById('transactionChart').getContext('2d');
+            var transactionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Bank Transactions',
+                        data: [42, 55, 59, 65, 73, 85, 70, 75, 82, 95, 115, 132],
+                        backgroundColor: 'rgba(10, 179, 156, 0.2)',
+                        borderColor: 'rgba(10, 179, 156, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }, {
+                        label: 'Stripe Payments',
+                        data: [25, 29, 35, 32, 38, 41, 45, 47, 52, 55, 58, 63],
+                        backgroundColor: 'rgba(114, 124, 245, 0.2)',
+                        borderColor: 'rgba(114, 124, 245, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Transaction Distribution Chart
+            var dctx = document.getElementById('transactionDoughnutChart').getContext('2d');
+            var transactionDoughnutChart = new Chart(dctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Matched', 'Pending', 'Failed'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: [
+                            'rgba(10, 179, 156, 0.8)',
+                            'rgba(249, 179, 42, 0.8)',
+                            'rgba(247, 108, 108, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(10, 179, 156, 1)',
+                            'rgba(249, 179, 42, 1)',
+                            'rgba(247, 108, 108, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock extra_js %}

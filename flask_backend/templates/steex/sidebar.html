@@ -1,0 +1,125 @@
+<!-- ========== App Menu ========== -->
+<div class="app-menu navbar-menu">
+    <!-- LOGO -->
+    <div class="navbar-brand-box">
+        <a href="{{ url_for('main.dashboard') }}" class="logo logo-dark">
+            <span class="logo-sm">
+                <img src="{{ url_for('static', filename='steex/images/logo-sm.png') }}" alt="Logo" height="22">
+            </span>
+            <span class="logo-lg">
+                <img src="{{ url_for('static', filename='steex/images/logo-dark.png') }}" alt="Logo" height="22">
+            </span>
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="logo logo-light">
+            <span class="logo-sm">
+                <img src="{{ url_for('static', filename='steex/images/logo-sm.png') }}" alt="Logo" height="22">
+            </span>
+            <span class="logo-lg">
+                <img src="{{ url_for('static', filename='steex/images/logo-light.png') }}" alt="Logo" height="22">
+            </span>
+        </a>
+        <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
+            <i class="ri-record-circle-line"></i>
+        </button>
+    </div>
+
+    <div id="scrollbar">
+        <div class="container-fluid">
+            <div id="two-column-menu">
+            </div>
+            <ul class="navbar-nav" id="navbar-nav">
+
+                <li class="menu-title"><span>Menu</span></li>
+
+                <li class="nav-item">
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link"> 
+                        <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#bankingSidebar" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="bankingSidebar">
+                        <i class="ri-bank-line"></i> <span>Banking</span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="bankingSidebar">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Connect Bank</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Transactions</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Match Transactions</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#stripeSidebar" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="stripeSidebar">
+                        <i class="ri-secure-payment-line"></i> <span>Stripe</span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="stripeSidebar">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Connect Stripe</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Payments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Match Payments</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#reportSidebar" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="reportSidebar">
+                        <i class="ri-pie-chart-line"></i> <span>Reports</span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="reportSidebar">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Payment Summary</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Transaction Analysis</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Match Statistics</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="menu-title"><span>Settings</span></li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="ri-user-settings-line"></i> <span>Profile</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="ri-settings-2-line"></i> <span>Settings</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link">
+                        <i class="ri-logout-box-line"></i> <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- Sidebar -->
+    </div>
+
+    <div class="sidebar-background"></div>
+</div>
+<!-- Left Sidebar End -->
+<!-- Vertical Overlay-->
+<div class="vertical-overlay"></div>
