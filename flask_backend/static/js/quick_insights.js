@@ -6,14 +6,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Quick Insights Widget');
     
-    // Find the widget container (or create it if it doesn't exist)
+    // Wait a moment for all elements to be fully loaded and rendered
+    setTimeout(function() {
+        initializeWidget();
+    }, 500);
+});
+
+function initializeWidget() {
+    // Find the widget container
     let widget = document.getElementById('quick-insights-widget');
     
     if (!widget) {
         console.warn('Quick Insights Widget element not found');
-        // We'll not create it dynamically since this is a placeholder implementation
+        // Try again in a second - the DOM might still be loading
+        setTimeout(function() {
+            initializeWidget();
+        }, 1000);
         return;
     }
+    
+    console.log('Quick Insights Widget found and initializing')
     
     // Widget state
     let currentInsightIndex = 0;
@@ -230,4 +242,4 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize
     initialize();
-});
+}

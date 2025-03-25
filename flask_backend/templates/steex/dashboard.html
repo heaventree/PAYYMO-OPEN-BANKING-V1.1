@@ -387,7 +387,7 @@
     </div>
 </div>
 <!-- Quick Insights Widget -->
-<div id="quick-insights-widget" class="card position-fixed" style="bottom: 20px; right: 20px; width: 350px; z-index: 1050; display: none;">
+<div id="quick-insights-widget" class="card position-fixed" style="bottom: 20px; right: 20px; width: 350px; z-index: 1050;">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0 fs-5">
             <i class="ri-lightbulb-flash-line me-1"></i> Financial Insights
@@ -572,20 +572,17 @@
 <!-- Quick Insights Widget JS -->
 <script src="{{ url_for('static', filename='js/quick_insights.js') }}"></script>
 
-<!-- Initialize widget visibility -->
+<!-- Initialize widget visibility and Lucide icons -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Make the Quick Insights Widget visible after a delay
-        setTimeout(function() {
-            const widget = document.getElementById('quick-insights-widget');
-            if (widget) {
-                widget.style.display = 'block';
-            }
-        }, 1500);
+        console.log('Dashboard script initializing Lucide icons');
         
-        // Initialize the lucide icons in the widget
+        // Initialize Lucide icons throughout the page
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
+            console.log('Lucide icons initialized');
+        } else {
+            console.warn('Lucide library not loaded');
         }
     });
 </script>
