@@ -54,6 +54,7 @@ with app.app_context():
     from flask_backend.routes_testing import *
     from flask_backend.routes_test_data import *
     from flask_backend.routes_steex import *  # Import Steex dashboard routes
+    from flask_backend.routes_fresh import *  # Import Fresh Steex dashboard routes
     import flask_backend.models
     
     # Register blueprints

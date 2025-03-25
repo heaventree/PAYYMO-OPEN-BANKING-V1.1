@@ -1,0 +1,399 @@
+{% extends "steex_fresh/base.html" %}
+
+{% block title %}Dashboard - Payymo{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Dashboard</h4>
+                <div>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <!-- Transactions Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary-subtle rounded p-2">
+                                <i class="fas fa-exchange-alt text-primary fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Total Transactions</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">{{ stats.transactions.total|default(0) }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-arrow-up me-1"></i>{{ stats.transactions.month.count|default(0) }}
+                        </span>
+                        <span class="text-muted small">this month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success-subtle rounded p-2">
+                                <i class="fas fa-pound-sign text-success fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Total Amount</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">£12,586.25</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-arrow-up me-1"></i>4.2%
+                        </span>
+                        <span class="text-muted small">vs. last month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Connections Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info-subtle rounded p-2">
+                                <i class="fas fa-university text-info fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Bank Connections</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">3</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-plus me-1"></i>1
+                        </span>
+                        <span class="text-muted small">new this month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matches Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning-subtle rounded p-2">
+                                <i class="fas fa-link text-warning fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Invoice Matches</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">186</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-arrow-up me-1"></i>12.6%
+                        </span>
+                        <span class="text-muted small">vs. last month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Chart & Recent Transactions -->
+    <div class="row">
+        <!-- Transactions Chart -->
+        <div class="col-xl-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Transaction Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="transactionChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-xl-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Transactions</h5>
+                    <a href="#" class="btn btn-sm btn-link text-info">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success-subtle rounded-circle p-2">
+                                        <i class="fas fa-arrow-down text-success"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Invoice #1234</h6>
+                                    <p class="text-muted small mb-0">23 Mar 2025</p>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success mb-0">£259.35</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success-subtle rounded-circle p-2">
+                                        <i class="fas fa-arrow-down text-success"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Invoice #1233</h6>
+                                    <p class="text-muted small mb-0">22 Mar 2025</p>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success mb-0">£125.00</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success-subtle rounded-circle p-2">
+                                        <i class="fas fa-arrow-down text-success"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Invoice #1232</h6>
+                                    <p class="text-muted small mb-0">21 Mar 2025</p>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success mb-0">£75.50</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success-subtle rounded-circle p-2">
+                                        <i class="fas fa-arrow-down text-success"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Invoice #1231</h6>
+                                    <p class="text-muted small mb-0">20 Mar 2025</p>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success mb-0">£199.99</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success-subtle rounded-circle p-2">
+                                        <i class="fas fa-arrow-down text-success"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Invoice #1230</h6>
+                                    <p class="text-muted small mb-0">20 Mar 2025</p>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success mb-0">£349.50</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Connections & Stripe Connections -->
+    <div class="row">
+        <!-- Bank Connections -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Bank Connections</h5>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Bank
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name=HSBC&background=E42728&color=fff" alt="HSBC" class="rounded" width="40" height="40">
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">HSBC UK</h6>
+                                    <p class="text-muted small mb-0">Business Account</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name=BB&background=002D72&color=fff" alt="Barclays" class="rounded" width="40" height="40">
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Barclays Bank</h6>
+                                    <p class="text-muted small mb-0">Current Account</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name=LB&background=6F2C91&color=fff" alt="Lloyds" class="rounded" width="40" height="40">
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Lloyds Bank</h6>
+                                    <p class="text-muted small mb-0">Savings Account</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stripe Connections -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Stripe Accounts</h5>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Connect Stripe
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name=S&background=635BFF&color=fff" alt="Stripe" class="rounded" width="40" height="40">
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Test Company Ltd</h6>
+                                    <p class="text-muted small mb-0">United Kingdom</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center justify-content-center py-4">
+                                <div class="text-center">
+                                    <i class="fab fa-stripe fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">Connect another Stripe account</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Transaction Chart
+        var ctx = document.getElementById('transactionChart').getContext('2d');
+        var transactionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['01 Mar', '05 Mar', '10 Mar', '15 Mar', '20 Mar', '25 Mar', '30 Mar'],
+                datasets: [{
+                    label: 'Transactions',
+                    data: [650, 750, 720, 880, 950, 1050, 1100],
+                    backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                    borderColor: 'rgba(13, 202, 240, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#23262f',
+                        titleColor: '#e3e2e7',
+                        bodyColor: '#e3e2e7',
+                        borderColor: '#313442',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '£' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6c757d'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(156, 156, 156, 0.1)'
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            callback: function(value) {
+                                return '£' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
