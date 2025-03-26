@@ -68,10 +68,49 @@ with app.app_context():
     
     @app.route('/')
     def index():
-        """Root route redirects to dashboard if logged in, otherwise to login page"""
-        if 'user_id' in session:
-            return redirect(url_for('dashboard.index'))
-        else:
-            return redirect(url_for('auth.login'))
+        """Root route now includes links to both dashboards"""
+        from flask import render_template_string
+        html = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payymo - Dashboard Selection</title>
+            <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-dark text-light">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h1>Payymo Dashboard</h1>
+                    <p class="lead">Select which dashboard version you'd like to use</p>
+                </div>
+                
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-primary mb-4">
+                            <div class="card-body text-center">
+                                <h2 class="card-title">Original Dashboard</h2>
+                                <p class="card-text">The current production dashboard implementation</p>
+                                <a href="/dashboard" class="btn btn-primary">Open Original Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-success">
+                            <div class="card-body text-center">
+                                <h2 class="card-title">Fresh Dashboard</h2>
+                                <p class="card-text">The new Bootstrap 5 based implementation</p>
+                                <a href="/fresh-dashboard" class="btn btn-success">Open Fresh Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return render_template_string(html)
     
     logger.info("Flask backend started successfully")
