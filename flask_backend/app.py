@@ -87,7 +87,7 @@ with app.app_context():
                 </div>
                 
                 <div class="row justify-content-center">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="card bg-dark border-primary mb-4">
                             <div class="card-body text-center">
                                 <h2 class="card-title">Original Dashboard</h2>
@@ -97,12 +97,22 @@ with app.app_context():
                         </div>
                     </div>
                     
-                    <div class="col-md-6">
-                        <div class="card bg-dark border-success">
+                    <div class="col-md-4">
+                        <div class="card bg-dark border-success mb-4">
+                            <div class="card-body text-center">
+                                <h2 class="card-title">NobleUI Dashboard</h2>
+                                <p class="card-text">The new NobleUI themed dashboard implementation</p>
+                                <a href="/nobleui-dashboard" class="btn btn-success">Open NobleUI Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card bg-dark border-info mb-4">
                             <div class="card-body text-center">
                                 <h2 class="card-title">Fresh Dashboard</h2>
                                 <p class="card-text">The new Bootstrap 5 based implementation</p>
-                                <a href="/fresh-dashboard" class="btn btn-success">Open Fresh Dashboard</a>
+                                <a href="/fresh-dashboard" class="btn btn-info">Open Fresh Dashboard</a>
                             </div>
                         </div>
                     </div>
