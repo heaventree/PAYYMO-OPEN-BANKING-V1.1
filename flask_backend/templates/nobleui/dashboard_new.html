@@ -1,0 +1,432 @@
+{% extends "nobleui/base.html" %}
+
+{% block title %}Payymo - Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+  <div>
+    <h4 class="mb-3 mb-md-0">Welcome to Payymo Dashboard</h4>
+  </div>
+  <div class="d-flex align-items-center flex-wrap text-nowrap">
+    <div class="input-group date datepicker wd-200 me-2 mb-2 mb-md-0" id="dashboardDate">
+      <span class="input-group-text input-group-addon bg-transparent border-primary"><i data-feather="calendar" class="text-primary"></i></span>
+      <input type="text" class="form-control border-primary bg-transparent" placeholder="Select date">
+    </div>
+    <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
+      <i class="btn-icon-prepend" data-feather="download-cloud"></i>
+      Download Report
+    </button>
+    <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
+      <i class="btn-icon-prepend" data-feather="plus-circle"></i>
+      Add Bank Account
+    </button>
+  </div>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="row">
+  <div class="col-12 col-xl-12 stretch-card">
+    <div class="row flex-grow-1">
+      <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-baseline">
+              <h6 class="card-title mb-0">Total Transactions</h6>
+              <div class="dropdown mb-2">
+                <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
+                  <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6 col-md-12 col-xl-5">
+                <h3 class="mb-2">{{ transactions_count|default('253') }}</h3>
+                <div class="d-flex align-items-baseline">
+                  <p class="text-success">
+                    <span>+3.3%</span>
+                    <i data-feather="arrow-up" class="icon-sm mb-1"></i>
+                  </p>
+                </div>
+              </div>
+              <div class="col-6 col-md-12 col-xl-7">
+                <div id="transactionsChart" class="mt-md-3 mt-xl-0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-baseline">
+              <h6 class="card-title mb-0">Total Matched</h6>
+              <div class="dropdown mb-2">
+                <button class="btn p-0" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                  <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
+                  <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6 col-md-12 col-xl-5">
+                <h3 class="mb-2">{{ matches_count|default('187') }}</h3>
+                <div class="d-flex align-items-baseline">
+                  <p class="text-success">
+                    <span>+2.8%</span>
+                    <i data-feather="arrow-up" class="icon-sm mb-1"></i>
+                  </p>
+                </div>
+              </div>
+              <div class="col-6 col-md-12 col-xl-7">
+                <div id="matchesChart" class="mt-md-3 mt-xl-0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-baseline">
+              <h6 class="card-title mb-0">Pending Approval</h6>
+              <div class="dropdown mb-2">
+                <button class="btn p-0" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                  <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
+                  <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6 col-md-12 col-xl-5">
+                <h3 class="mb-2">{{ pending_count|default('42') }}</h3>
+                <div class="d-flex align-items-baseline">
+                  <p class="text-danger">
+                    <span>-2.8%</span>
+                    <i data-feather="arrow-down" class="icon-sm mb-1"></i>
+                  </p>
+                </div>
+              </div>
+              <div class="col-6 col-md-12 col-xl-7">
+                <div id="pendingChart" class="mt-md-3 mt-xl-0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Transactions Table -->
+<div class="row">
+  <div class="col-lg-7 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <h6 class="card-title mb-0">Recent Transactions</h6>
+          <div class="dropdown mb-2">
+            <button class="btn p-0" type="button" id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
+              <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View all</span></a>
+              <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th class="pt-0">#</th>
+                <th class="pt-0">Description</th>
+                <th class="pt-0">Date</th>
+                <th class="pt-0">Amount</th>
+                <th class="pt-0">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in recent_transactions|default([
+                {'id': 1, 'description': 'Monthly Subscription', 'date': '26 Mar 2025', 'amount': '£59.99', 'status': 'Matched'},
+                {'id': 2, 'description': 'Website Hosting', 'date': '25 Mar 2025', 'amount': '£29.00', 'status': 'Pending'},
+                {'id': 3, 'description': 'Annual License', 'date': '24 Mar 2025', 'amount': '£149.00', 'status': 'Matched'},
+                {'id': 4, 'description': 'Domain Renewal', 'date': '24 Mar 2025', 'amount': '£12.99', 'status': 'Matched'},
+                {'id': 5, 'description': 'Technical Support', 'date': '23 Mar 2025', 'amount': '£45.00', 'status': 'Pending'}
+              ]) %}
+              <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.amount }}</td>
+                <td>
+                  {% if transaction.status == 'Matched' %}
+                  <span class="badge bg-success">{{ transaction.status }}</span>
+                  {% else %}
+                  <span class="badge bg-warning">{{ transaction.status }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title">Match Distribution</h6>
+        <div id="matchDistributionChart"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Connected Bank Accounts -->
+<div class="row">
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <h6 class="card-title mb-0">Connected Bank Accounts</h6>
+          <div class="dropdown mb-2">
+            <button class="btn p-0" type="button" id="dropdownMenuButton5" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton5">
+              <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="plus-circle" class="icon-sm me-2"></i> <span class="">Add new account</span></a>
+              <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="refresh-ccw" class="icon-sm me-2"></i> <span class="">Refresh all</span></a>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          {% for account in bank_accounts|default([
+            {'name': 'Business Current Account', 'bank': 'Barclays', 'last_sync': '26 Mar 2025', 'balance': '£12,450.75', 'status': 'Active'},
+            {'name': 'Savings Account', 'bank': 'HSBC', 'last_sync': '25 Mar 2025', 'balance': '£34,567.89', 'status': 'Active'},
+            {'name': 'USD Account', 'bank': 'Revolut', 'last_sync': '24 Mar 2025', 'balance': '$4,890.50', 'status': 'Active'}
+          ]) %}
+          <div class="col-md-4 grid-margin">
+            <div class="card bg-light border">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-baseline">
+                  <h6 class="card-title mb-0">{{ account.name }}</h6>
+                  <div class="dropdown">
+                    <button class="btn p-0" type="button" id="account{{ loop.index }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <i class="icon-lg text-muted pb-3px" data-feather="more-vertical"></i>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="account{{ loop.index }}">
+                      <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View details</span></a>
+                      <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="refresh-cw" class="icon-sm me-2"></i> <span class="">Sync now</span></a>
+                      <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="trash" class="icon-sm me-2"></i> <span class="">Disconnect</span></a>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-muted mb-1">{{ account.bank }}</p>
+                <h4 class="mb-3">{{ account.balance }}</h4>
+                <div class="d-flex align-items-baseline">
+                  <p class="text-muted mb-0">Last sync: {{ account.last_sync }}</p>
+                  <span class="badge bg-success ms-2">{{ account.status }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Initialize datepicker
+  if($('#dashboardDate').length) {
+    flatpickr("#dashboardDate", {
+      wrap: true,
+      dateFormat: "d-M-Y",
+      defaultDate: "today"
+    });
+  }
+  
+  // Charts initialization
+  document.addEventListener('DOMContentLoaded', function() {
+    // Transactions Chart
+    var transactionsOptions = {
+      chart: {
+        type: 'line',
+        height: 60,
+        sparkline: {
+          enabled: true
+        }
+      },
+      series: [{
+        name: 'Transactions',
+        data: [25, 66, 41, 89, 63, 25, 44, 12, 36, 9, 54]
+      }],
+      stroke: {
+        width: 2,
+        curve: 'smooth'
+      },
+      markers: {
+        size: 0
+      },
+      colors: ['#727cf5'],
+      tooltip: {
+        fixed: {
+          enabled: false
+        },
+        x: {
+          show: false
+        },
+        y: {
+          title: {
+            formatter: function (seriesName) {
+              return '';
+            }
+          }
+        },
+        marker: {
+          show: false
+        }
+      }
+    };
+    new ApexCharts(document.querySelector("#transactionsChart"), transactionsOptions).render();
+    
+    // Matches Chart
+    var matchesOptions = {
+      chart: {
+        type: 'line',
+        height: 60,
+        sparkline: {
+          enabled: true
+        }
+      },
+      series: [{
+        name: 'Matches',
+        data: [12, 14, 2, 47, 42, 15, 47, 75, 65, 19, 14]
+      }],
+      stroke: {
+        width: 2,
+        curve: 'smooth'
+      },
+      markers: {
+        size: 0
+      },
+      colors: ['#10b759'],
+      tooltip: {
+        fixed: {
+          enabled: false
+        },
+        x: {
+          show: false
+        },
+        y: {
+          title: {
+            formatter: function (seriesName) {
+              return '';
+            }
+          }
+        },
+        marker: {
+          show: false
+        }
+      }
+    };
+    new ApexCharts(document.querySelector("#matchesChart"), matchesOptions).render();
+    
+    // Pending Chart
+    var pendingOptions = {
+      chart: {
+        type: 'line',
+        height: 60,
+        sparkline: {
+          enabled: true
+        }
+      },
+      series: [{
+        name: 'Pending',
+        data: [47, 45, 74, 32, 56, 31, 44, 33, 45, 19, 34]
+      }],
+      stroke: {
+        width: 2,
+        curve: 'smooth'
+      },
+      markers: {
+        size: 0
+      },
+      colors: ['#f1b44c'],
+      tooltip: {
+        fixed: {
+          enabled: false
+        },
+        x: {
+          show: false
+        },
+        y: {
+          title: {
+            formatter: function (seriesName) {
+              return '';
+            }
+          }
+        },
+        marker: {
+          show: false
+        }
+      }
+    };
+    new ApexCharts(document.querySelector("#pendingChart"), pendingOptions).render();
+    
+    // Match Distribution Chart
+    var matchDistributionOptions = {
+      chart: {
+        height: 300,
+        type: 'donut'
+      },
+      series: [74, 21, 5],
+      labels: ['Matched', 'Pending', 'Unmatched'],
+      colors: ['#10b759', '#f1b44c', '#ff5c5c'],
+      legend: {
+        position: 'bottom'
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '70%',
+            labels: {
+              show: true,
+              name: {
+                show: true
+              },
+              value: {
+                show: true,
+                formatter: function (val) {
+                  return val + '%';
+                }
+              },
+              total: {
+                show: true,
+                formatter: function (w) {
+                  return '100%';
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    new ApexCharts(document.querySelector("#matchDistributionChart"), matchDistributionOptions).render();
+  });
+</script>
+{% endblock %}

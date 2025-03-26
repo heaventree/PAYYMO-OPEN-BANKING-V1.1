@@ -1,6 +1,6 @@
 """
 Fresh Dashboard Routes
-This module contains all routes related to the fresh Steex-themed dashboard implementation.
+This module contains all routes related to the fresh Steex-themed and NobleUI dashboard implementations.
 """
 
 import os
@@ -138,4 +138,73 @@ def fresh_dashboard():
             recent_transactions=[],
             bank_connections=[],
             stripe_connections=[]
+        )
+
+@app.route('/nobleui-dashboard')
+def nobleui_dashboard():
+    """NobleUI-themed dashboard implementation"""
+    try:
+        admin_session = session.get('admin_logged_in', False)
+        tenant_id = session.get('tenant_id')
+        
+        # For development mode, auto-authenticate
+        session['authenticated'] = True
+        
+        # Initialize data structures for the dashboard
+        transactions_count = 0
+        matches_count = 0
+        pending_count = 0
+        recent_transactions = []
+        bank_accounts = []
+        
+        try:
+            if tenant_id:
+                from flask_backend.models import (
+                    BankConnection, Transaction, InvoiceMatch,
+                    StripeConnection, StripePayment, StripeInvoiceMatch
+                )
+                
+                # Get transactions count
+                transactions_count = Transaction.query.count()
+                
+                # Get matches count
+                matches_count = InvoiceMatch.query.filter_by(status='approved').count()
+                
+                # Get pending count
+                pending_count = InvoiceMatch.query.filter_by(status='pending').count()
+                
+                # Get recent transactions
+                recent_transactions = Transaction.query.order_by(
+                    Transaction.transaction_date.desc()
+                ).limit(5).all()
+                
+                # Get bank connections
+                bank_accounts = BankConnection.query.filter_by(
+                    whmcs_instance_id=tenant_id
+                ).all()
+        except Exception as e:
+            logger.error(f"Error fetching data for NobleUI dashboard: {str(e)}")
+        
+        return render_template(
+            'nobleui/dashboard_new.html',
+            admin_session=admin_session,
+            tenant_id=tenant_id,
+            transactions_count=transactions_count,
+            matches_count=matches_count,
+            pending_count=pending_count,
+            recent_transactions=recent_transactions,
+            bank_accounts=bank_accounts
+        )
+    except Exception as e:
+        logger.error(f"Error rendering NobleUI dashboard: {str(e)}")
+        return render_template(
+            'nobleui/dashboard_new.html',
+            error=str(e),
+            admin_session=False,
+            tenant_id=None,
+            transactions_count=0,
+            matches_count=0,
+            pending_count=0,
+            recent_transactions=[],
+            bank_accounts=[]
         )
