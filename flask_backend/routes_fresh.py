@@ -11,6 +11,26 @@ from flask_backend.app import app
 # Set up logging
 logger = logging.getLogger(__name__)
 
+@app.route('/test-route')
+def test_route():
+    """A simple test route to verify routing is working"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test Route</title>
+        <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-dark text-light p-5">
+        <div class="container">
+            <h1>Test Route Works!</h1>
+            <p class="lead">This confirms our routing is functioning correctly.</p>
+            <a href="/fresh-dashboard" class="btn btn-primary mt-3">Go to Fresh Dashboard</a>
+        </div>
+    </body>
+    </html>
+    """
+
 @app.route('/fresh-dashboard')
 def fresh_dashboard():
     """Fresh Steex-themed dashboard with the new UI"""
