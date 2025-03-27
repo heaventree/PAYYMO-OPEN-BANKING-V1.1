@@ -68,8 +68,8 @@ with app.app_context():
     
     @app.route('/')
     def index():
-        """Root route redirects to the Steex dashboard as the default dashboard"""
-        # Redirect directly to the Steex dashboard since it's more stable
-        return redirect(url_for('steex_dashboard'))
+        """Root route redirects to the NobleUI dashboard as the default dashboard"""
+        # Redirect directly to the NobleUI dashboard
+        return redirect(url_for('nobleui_dashboard'))
     
     logger.info("Flask backend started successfully")

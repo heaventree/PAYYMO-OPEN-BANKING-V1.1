@@ -550,9 +550,9 @@ def get_stripe_balance():
 
 # ============= Admin Dashboard =============
 
-@app.route('/')
+@app.route('/old-dashboard')
 def dashboard():
-    """Main dashboard page"""
+    """Old dashboard page - kept for reference"""
     # For development mode, auto-authenticate
     session['authenticated'] = True
     
@@ -736,7 +736,7 @@ def login():
         
         if username == admin_username and password == admin_password:
             session['authenticated'] = True
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('nobleui_dashboard'))
         else:
             return render_template('login.html', error="Invalid credentials")
     
@@ -746,7 +746,7 @@ def login():
 def logout():
     """Log out from the admin dashboard"""
     session.pop('authenticated', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('nobleui_dashboard'))
 
 # ============= Health Check =============
 
