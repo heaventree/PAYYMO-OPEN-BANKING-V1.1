@@ -68,59 +68,8 @@ with app.app_context():
     
     @app.route('/')
     def index():
-        """Root route now includes links to both dashboards"""
-        from flask import render_template_string
-        html = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Payymo - Dashboard Selection</title>
-            <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
-        </head>
-        <body class="bg-dark text-light">
-            <div class="container py-5">
-                <div class="text-center mb-5">
-                    <h1>Payymo Dashboard</h1>
-                    <p class="lead">Select which dashboard version you'd like to use</p>
-                </div>
-                
-                <div class="row justify-content-center">
-                    <div class="col-md-4">
-                        <div class="card bg-dark border-primary mb-4">
-                            <div class="card-body text-center">
-                                <h2 class="card-title">Original Dashboard</h2>
-                                <p class="card-text">The current production dashboard implementation</p>
-                                <a href="/dashboard" class="btn btn-primary">Open Original Dashboard</a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="card bg-dark border-success mb-4">
-                            <div class="card-body text-center">
-                                <h2 class="card-title">NobleUI Dashboard</h2>
-                                <p class="card-text">The new NobleUI themed dashboard implementation</p>
-                                <a href="/nobleui-dashboard" class="btn btn-success">Open NobleUI Dashboard</a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="card bg-dark border-info mb-4">
-                            <div class="card-body text-center">
-                                <h2 class="card-title">Fresh Dashboard</h2>
-                                <p class="card-text">The new Bootstrap 5 based implementation</p>
-                                <a href="/fresh-dashboard" class="btn btn-info">Open Fresh Dashboard</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        return render_template_string(html)
+        """Root route redirects to the NobleUI dashboard as the default dashboard"""
+        # Redirect directly to the NobleUI dashboard
+        return redirect(url_for('nobleui_dashboard'))
     
     logger.info("Flask backend started successfully")

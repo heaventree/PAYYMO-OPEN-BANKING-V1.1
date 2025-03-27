@@ -62,11 +62,35 @@
     <!-- core:js -->
     <script src="{{ url_for('static', filename='nobleui/vendors/core/core.js') }}"></script>
     <!-- endinject -->
+    
+    <!-- Add jQuery (needed by some NobleUI components) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Add Feather Icons - needed for the sidebar -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
     <!-- Plugin js for this page -->
     <script src="{{ url_for('static', filename='nobleui/vendors/flatpickr/flatpickr.min.js') }}"></script>
     <script src="{{ url_for('static', filename='nobleui/vendors/apexcharts/apexcharts.min.js') }}"></script>
     <!-- End plugin js for this page -->
+    
+    <!-- Add global config variables that are needed by dashboard.js -->
+    <script>
+        window.config = {
+            colors: {
+                primary: '#7366ff',
+                secondary: '#6c757d',
+                success: '#1bcfb4',
+                info: '#198ae3',
+                warning: '#fed713',
+                danger: '#fe7c96',
+                light: '#f8f9fa',
+                dark: '#343a40',
+                gridBorder: 'rgba(77, 138, 240, .15)'
+            },
+            fontFamily: '"Roboto", Helvetica, sans-serif'
+        };
+    </script>
 
     <!-- inject:js -->
     <script src="{{ url_for('static', filename='nobleui/js/template.js') }}"></script>
@@ -75,6 +99,13 @@
     <!-- Custom js for this page -->
     <script src="{{ url_for('static', filename='nobleui/js/dashboard.js') }}"></script>
     <!-- End custom js for this page -->
+    
+    <!-- Initialize Feather icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
