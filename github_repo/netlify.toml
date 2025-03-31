@@ -1,0 +1,35 @@
+[build]
+  # Directory with the built frontend assets to deploy
+  publish = "flask_backend/static"
+  
+  # Use our custom build script
+  command = "npm install && npm run build"
+
+# Redirects all paths to index.html for SPA-like behavior
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  
+# Environment variables
+[build.environment]
+  FLASK_ENV = "production"
+  NODE_VERSION = "16"
+
+# These plugins will run during the build
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+
+# Build processing settings
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true
+[build.processing.images]
+  compress = true

@@ -1,0 +1,823 @@
+{% extends "nobleui_base.html" %}
+
+{% block title %}Dashboard - Payymo{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+        <div>
+            <h4 class="mb-3 mb-md-0">Welcome to the Payymo Dashboard</h4>
+            <div class="d-flex align-items-center">
+                <span class="ai-insight-badge me-2"><i data-feather="zap" class="icon-xs me-1"></i> AI Insights:</span>
+                <span>{{ stats.matches.total }} invoice matches found by our AI</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap text-nowrap">
+            <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0 me-2" data-bs-toggle="modal" data-bs-target="#aiAssistantModal">
+                <i data-feather="cpu" class="btn-icon-prepend"></i>
+                AI Assistant
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-icon-text mb-2 mb-md-0">
+                <i data-feather="download" class="btn-icon-prepend"></i>
+                Download Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="row">
+        <div class="col-12 col-xl-12 stretch-card">
+            <div class="row flex-grow-1">
+                <!-- Total Transactions -->
+                <div class="col-md-6 col-lg-3 grid-margin stretch-card">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <h6 class="card-title mb-0">Total Transactions</h6>
+                                <div class="dropdown mb-2">
+                                    <a type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                        <a class="dropdown-item d-flex align-items-center" href="{{ url_for('transactions') }}"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View All</span></a>
+                                        <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 col-md-12 col-xl-5">
+                                    <h3 class="mb-2">{{ stats.transactions.total|default(0) }}</h3>
+                                    <div class="d-flex align-items-baseline">
+                                        <p class="text-success">
+                                            <span>+{{ stats.transactions.month.count|default(0) }}</span>
+                                            <i data-feather="arrow-up" class="icon-sm mb-1"></i>
+                                        </p>
+                                        <p class="text-muted ms-2">vs. last month</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-12 col-xl-7">
+                                    <div id="transactionsChart" class="mt-md-3 mt-xl-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Total Amount -->
+                <div class="col-md-6 col-lg-3 grid-margin stretch-card">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <h6 class="card-title mb-0">Total Amount</h6>
+                                <div class="dropdown mb-2">
+                                    <a type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                        <a class="dropdown-item d-flex align-items-center" href="{{ url_for('transactions') }}"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View All</span></a>
+                                        <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 col-md-12 col-xl-5">
+                                    <h3 class="mb-2">£{{ stats.transactions.total_amount|default(0)|round(2) }}</h3>
+                                    <div class="d-flex align-items-baseline">
+                                        <p class="text-success">
+                                            <span>+£{{ stats.transactions.month.amount|default(0)|round(2) }}</span>
+                                            <i data-feather="arrow-up" class="icon-sm mb-1"></i>
+                                        </p>
+                                        <p class="text-muted ms-2">this month</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-12 col-xl-7">
+                                    <div id="amountChart" class="mt-md-3 mt-xl-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bank Connections -->
+                <div class="col-md-6 col-lg-3 grid-margin stretch-card">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <h6 class="card-title mb-0">Bank Connections</h6>
+                                <div class="dropdown mb-2">
+                                    <a type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                                        <a class="dropdown-item d-flex align-items-center" href="{{ url_for('bank_connections') }}"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View All</span></a>
+                                        <a class="dropdown-item d-flex align-items-center" href="{{ url_for('connect_bank') }}"><i data-feather="plus" class="icon-sm me-2"></i> <span class="">Add New</span></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 col-md-12 col-xl-5">
+                                    <h3 class="mb-2">{{ stats.bank_connections.total|default(0) }}</h3>
+                                    <div class="d-flex align-items-baseline">
+                                        <p class="text-{{ 'success' if stats.bank_connections.active else 'warning' }}">
+                                            <span>{{ stats.bank_connections.active|default(0) }} active</span>
+                                            <i data-feather="{{ 'check' if stats.bank_connections.active else 'alert-circle' }}" class="icon-sm mb-1"></i>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-12 col-xl-7">
+                                    <div id="bankConnectionsChart" class="mt-md-3 mt-xl-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoice Matches -->
+                <div class="col-md-6 col-lg-3 grid-margin stretch-card">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <h6 class="card-title mb-0">Invoice Matches</h6>
+                                <div class="dropdown mb-2">
+                                    <a type="button" id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton3">
+                                        <a class="dropdown-item d-flex align-items-center" href="{{ url_for('matches') }}"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View All</span></a>
+                                        <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="check-square" class="icon-sm me-2"></i> <span class="">Pending Approval</span></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 col-md-12 col-xl-5">
+                                    <h3 class="mb-2">{{ stats.matches.total|default(0) }}</h3>
+                                    <div class="d-flex align-items-baseline">
+                                        <p class="text-success">
+                                            <span>{{ stats.matches.confirmed|default(0) }} confirmed</span>
+                                            <i data-feather="check" class="icon-sm mb-1"></i>
+                                        </p>
+                                    </div>
+                                    {% if stats.matches.pending %}
+                                    <div>
+                                        <span class="badge bg-warning">{{ stats.matches.pending }} pending</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-6 col-md-12 col-xl-7">
+                                    <div id="matchesChart" class="mt-md-3 mt-xl-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Transactions Chart -->
+        <div class="col-lg-8 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-baseline mb-2">
+                        <h6 class="card-title mb-0">Transaction Overview</h6>
+                        <div class="dropdown mb-2">
+                            <a type="button" id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="icon-lg text-muted pb-3px" data-feather="more-horizontal"></i>
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
+                                <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
+                                <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="download" class="icon-sm me-2"></i> <span class="">Export</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">Track your financial transactions over time</p>
+                    <div id="transactionOverviewChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Transactions -->
+        <div class="col-lg-4 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-baseline mb-2">
+                        <h6 class="card-title mb-0">Recent Transactions</h6>
+                        <div class="dropdown mb-2">
+                            <a type="button" id="transactionFilterDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="icon-lg text-muted pb-3px" data-feather="filter"></i>
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="transactionFilterDropdown">
+                                <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="dollar-sign" class="icon-sm me-2"></i> <span class="">All</span></a>
+                                <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="arrow-down" class="icon-sm me-2"></i> <span class="">Incoming</span></a>
+                                <a class="dropdown-item d-flex align-items-center" href="#"><i data-feather="arrow-up" class="icon-sm me-2"></i> <span class="">Outgoing</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column">
+                        {% if recent_transactions %}
+                            {% for tx in recent_transactions[:5] %}
+                            <div class="d-flex align-items-center border-bottom pb-3 mb-3 transaction-item">
+                                <div class="transaction-icon bg-{{ 'success' if tx.amount > 0 else 'danger' }}-light rounded-circle me-3">
+                                    <i data-feather="{{ 'arrow-down' if tx.amount > 0 else 'arrow-up' }}" class="text-{{ 'success' if tx.amount > 0 else 'danger' }} icon-md"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="text-body fw-medium mb-1">{{ tx.reference or 'Transaction #' + tx.id|string }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">{{ tx.transaction_date.strftime('%d %b %Y') }}</small>
+                                        {% if tx.matches|length > 0 %}
+                                        <small class="badge bg-success text-white">Matched</small>
+                                        {% else %}
+                                        <small class="badge bg-warning text-white">Unmatched</small>
+                                        {% endif %}
+                                    </div>
+                                    {% if tx.description %}
+                                    <small class="text-muted d-block mt-1 text-truncate" style="max-width: 100%;" title="{{ tx.description }}">{{ tx.description }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end ms-2">
+                                    <h6 class="text-{{ 'success' if tx.amount > 0 else 'danger' }} mb-0">{{ '£' + (tx.amount|abs|round(2)|string) }}</h6>
+                                    {% if tx.bank_name %}
+                                    <small class="text-muted d-block">{{ tx.bank_name }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if recent_transactions|length > 5 %}
+                            <a href="{{ url_for('transactions') }}" class="btn btn-outline-primary btn-sm">View all transactions</a>
+                            {% endif %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i data-feather="credit-card" class="empty-state-icon mb-3"></i>
+                                <p class="text-muted mb-3">No recent transactions found</p>
+                                <a href="{{ url_for('connect_bank') }}" class="btn btn-payymo-primary btn-sm">Connect Bank</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank & Stripe Connections -->
+    <div class="row">
+        <!-- Bank Connections -->
+        <div class="col-md-6 grid-margin stretch-card">
+            <div class="card connection-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-baseline mb-4">
+                        <h6 class="card-title mb-0">Bank Connections</h6>
+                        <button class="btn btn-payymo-primary btn-sm">
+                            <i data-feather="plus" class="icon-sm"></i> Add Bank
+                        </button>
+                    </div>
+                    {% if bank_connections %}
+                        {% for bank in bank_connections %}
+                        <div class="d-flex align-items-center border-bottom pb-3 mb-3 transaction-item">
+                            <div class="connection-icon bg-primary-light rounded me-3 d-flex align-items-center justify-content-center">
+                                <i data-feather="credit-card" class="text-primary icon-md"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="text-body mb-1">{{ bank.bank_name or 'Bank Account' }}</h6>
+                                <p class="text-muted mb-0">Account: {{ bank.account_number[-4:] if bank.account_number else 'N/A' }}</p>
+                            </div>
+                            <div class="ms-3">
+                                <span class="badge bg-{{ 'success' if bank.status == 'active' else 'warning' }}">{{ bank.status|title }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i data-feather="credit-card" class="empty-state-icon mb-3"></i>
+                            <p class="text-muted mb-3">No bank connections found</p>
+                            <button class="btn btn-payymo-primary btn-sm">Add Bank Connection</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stripe Connections -->
+        <div class="col-md-6 grid-margin stretch-card">
+            <div class="card connection-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-baseline mb-4">
+                        <h6 class="card-title mb-0">Stripe Connections</h6>
+                        <button class="btn btn-payymo-primary btn-sm">
+                            <i data-feather="plus" class="icon-sm"></i> Add Stripe
+                        </button>
+                    </div>
+                    {% if stripe_connections %}
+                        {% for stripe in stripe_connections %}
+                        <div class="d-flex align-items-center border-bottom pb-3 mb-3 transaction-item">
+                            <div class="connection-icon bg-info-light rounded me-3 d-flex align-items-center justify-content-center">
+                                <i data-feather="zap" class="text-info icon-md"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="text-body mb-1">{{ stripe.account_name or 'Stripe Account' }}</h6>
+                                <p class="text-muted mb-0">{{ stripe.email or 'No email' }}</p>
+                            </div>
+                            <div class="ms-3">
+                                <span class="badge bg-{{ 'success' if stripe.status == 'active' else 'warning' }}">{{ stripe.status|title }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i data-feather="zap" class="empty-state-icon mb-3"></i>
+                            <p class="text-muted mb-3">No Stripe connections found</p>
+                            <button class="btn btn-payymo-primary btn-sm">Add Stripe Connection</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Assistant Modal -->
+<div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="aiAssistantModalLabel">
+                    <i data-feather="cpu" class="me-2"></i>
+                    Payymo AI Assistant
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ai-assistant-container">
+                    <div class="ai-assistant-messages" id="aiAssistantMessages">
+                        <div class="ai-message">
+                            <div class="ai-avatar">
+                                <i data-feather="cpu"></i>
+                            </div>
+                            <div class="ai-content">
+                                <p>Hello! I'm your Payymo AI Assistant. Here are some insights from your financial data:</p>
+                                <ul class="ai-insights-list">
+                                    {% if stats.transactions.total > 0 %}
+                                    <li class="insight-item">
+                                        <i data-feather="trending-up" class="text-success"></i>
+                                        <span>You've processed {{ stats.transactions.total }} transactions totaling £{{ stats.transactions.total_amount|round(2) }}.</span>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% if stats.matches.total > 0 %}
+                                    <li class="insight-item">
+                                        <i data-feather="check-circle" class="text-info"></i>
+                                        <span>{{ stats.matches.total }} transactions have been matched to invoices{% if stats.matches.confirmed > 0 %}, with {{ stats.matches.confirmed }} confirmed matches{% endif %}.</span>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% if recent_transactions|length > 0 %}
+                                    <li class="insight-item">
+                                        <i data-feather="calendar" class="text-primary"></i>
+                                        <span>Your most recent transaction was on {{ recent_transactions[0].transaction_date.strftime('%d %b %Y') }} for £{{ recent_transactions[0].amount|abs|round(2) }}.</span>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% if stats.bank_connections.total == 0 %}
+                                    <li class="insight-item">
+                                        <i data-feather="alert-circle" class="text-warning"></i>
+                                        <span>You haven't connected any bank accounts yet. Would you like to set up a new connection?</span>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                                <p>How can I help you today?</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-assistant-input">
+                        <form id="aiAssistantForm" class="d-flex">
+                            <input type="text" class="form-control" id="aiAssistantInput" placeholder="Ask me anything about your finances..." aria-label="Ask AI Assistant">
+                            <button type="submit" class="btn btn-primary ms-2">
+                                <i data-feather="send"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="ai-features d-flex flex-wrap w-100 justify-content-between">
+                    <button class="btn btn-outline-primary btn-sm mb-2" onclick="suggestQuestion('How many unmatched transactions do I have?')">
+                        <i data-feather="help-circle" class="icon-sm me-1"></i> Unmatched Transactions
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm mb-2" onclick="suggestQuestion('What is my invoicing status?')">
+                        <i data-feather="file-text" class="icon-sm me-1"></i> Invoicing Status
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm mb-2" onclick="suggestQuestion('Analyze my transaction patterns')">
+                        <i data-feather="bar-chart-2" class="icon-sm me-1"></i> Transaction Analysis
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm mb-2" onclick="suggestQuestion('Suggest optimizations for my banking')">
+                        <i data-feather="zap" class="icon-sm me-1"></i> Optimization Tips
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* AI Assistant Styles */
+    .ai-insight-badge {
+        background-color: rgba(var(--bs-warning-rgb), 0.15);
+        color: var(--bs-warning);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 13px;
+    }
+    
+    .ai-assistant-container {
+        display: flex;
+        flex-direction: column;
+        height: 400px;
+    }
+    
+    .ai-assistant-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: rgba(var(--bs-light-rgb), 0.05);
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .ai-message {
+        display: flex;
+        margin-bottom: 1rem;
+    }
+    
+    .ai-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(var(--bs-primary-rgb), 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .ai-avatar i {
+        color: var(--bs-primary);
+    }
+    
+    .ai-content {
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        max-width: 80%;
+    }
+    
+    .ai-content p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .user-message {
+        flex-direction: row-reverse;
+    }
+    
+    .user-message .ai-avatar {
+        margin-right: 0;
+        margin-left: 1rem;
+        background-color: rgba(var(--bs-success-rgb), 0.15);
+    }
+    
+    .user-message .ai-avatar i {
+        color: var(--bs-success);
+    }
+    
+    .user-message .ai-content {
+        background-color: rgba(var(--bs-success-rgb), 0.05);
+    }
+    
+    .ai-insights-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+    
+    .insight-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background-color: rgba(var(--bs-light-rgb), 0.1);
+        border-radius: 0.5rem;
+    }
+    
+    .insight-item i {
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts
+    
+    // Get theme
+    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    const isDarkMode = currentTheme === 'dark';
+    
+    // Chart colors based on theme
+    const chartTextColor = isDarkMode ? '#8391a2' : '#6c757d';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    
+    // Transaction Overview Chart
+    var transactionOverviewOptions = {
+        chart: {
+            type: 'area',
+            height: 300,
+            parentHeightOffset: 0,
+            toolbar: {
+                show: false
+            },
+            foreColor: chartTextColor
+        },
+        series: [{
+            name: 'Transactions',
+            data: {{ chart_data.amounts|default([30, 45, 32, 70, 40, 60, 80])|tojson }}
+        }],
+        xaxis: {
+            categories: {{ chart_data.dates|default(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'])|tojson }},
+            axisBorder: {
+                show: false
+            },
+            grid: {
+                borderColor: gridColor,
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        colors: ['#0061f2'],
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.3,
+                stops: [0, 90, 100]
+            }
+        },
+        tooltip: {
+            theme: isDarkMode ? 'dark' : 'light',
+            y: {
+                formatter: function(val) {
+                    return "£" + val.toFixed(2);
+                }
+            }
+        },
+        grid: {
+            borderColor: gridColor,
+            padding: {
+                left: 0,
+                right: 0
+            }
+        }
+    };
+
+    if (document.getElementById('transactionOverviewChart')) {
+        var transactionOverviewChart = new ApexCharts(document.getElementById('transactionOverviewChart'), transactionOverviewOptions);
+        transactionOverviewChart.render();
+    }
+    
+    // Small Sparkline Charts for Stats Cards
+    const sparklineOptions = {
+        chart: {
+            type: 'line',
+            height: 50,
+            sparkline: {
+                enabled: true
+            },
+            foreColor: chartTextColor
+        },
+        series: [{
+            data: [25, 66, 41, 89, 63, 25, 44, 12, 36, 9, 54]
+        }],
+        stroke: {
+            width: 2,
+            curve: 'smooth'
+        },
+        tooltip: {
+            fixed: {
+                enabled: false
+            },
+            x: {
+                show: false
+            },
+            y: {
+                title: {
+                    formatter: function(seriesName) {
+                        return '';
+                    }
+                },
+                formatter: function(value) {
+                    if (this.chart.opts.chart.id === 'amountChart') {
+                        return "£" + value.toFixed(2);
+                    }
+                    return value;
+                }
+            },
+            marker: {
+                show: false
+            },
+            theme: isDarkMode ? 'dark' : 'light'
+        }
+    };
+    
+    // Transactions Chart
+    if (document.getElementById('transactionsChart')) {
+        const transactionsChart = new ApexCharts(document.getElementById('transactionsChart'), {
+            ...sparklineOptions,
+            chart: {
+                ...sparklineOptions.chart,
+                id: 'transactionsChart'
+            },
+            colors: ['#0061f2']
+        });
+        transactionsChart.render();
+    }
+    
+    // Amount Chart
+    if (document.getElementById('amountChart')) {
+        const amountChart = new ApexCharts(document.getElementById('amountChart'), {
+            ...sparklineOptions,
+            chart: {
+                ...sparklineOptions.chart,
+                id: 'amountChart'
+            },
+            colors: ['#00ac69']
+        });
+        amountChart.render();
+    }
+    
+    // Bank Connections Chart
+    if (document.getElementById('bankConnectionsChart')) {
+        const bankConnectionsChart = new ApexCharts(document.getElementById('bankConnectionsChart'), {
+            ...sparklineOptions,
+            chart: {
+                ...sparklineOptions.chart,
+                id: 'bankConnectionsChart'
+            },
+            colors: ['#00cfd5']
+        });
+        bankConnectionsChart.render();
+    }
+    
+    // Matches Chart
+    if (document.getElementById('matchesChart')) {
+        const matchesChart = new ApexCharts(document.getElementById('matchesChart'), {
+            ...sparklineOptions,
+            chart: {
+                ...sparklineOptions.chart,
+                id: 'matchesChart'
+            },
+            colors: ['#f4a100']
+        });
+        matchesChart.render();
+    }
+    
+    // AI Assistant functionality
+    function initAIAssistant() {
+        const aiAssistantForm = document.getElementById('aiAssistantForm');
+        const aiAssistantInput = document.getElementById('aiAssistantInput');
+        const aiAssistantMessages = document.getElementById('aiAssistantMessages');
+        
+        if (!aiAssistantForm || !aiAssistantInput || !aiAssistantMessages) return;
+        
+        aiAssistantForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userMessage = aiAssistantInput.value.trim();
+            if (!userMessage) return;
+            
+            // Add user message to chat
+            addUserMessage(userMessage);
+            
+            // Clear input
+            aiAssistantInput.value = '';
+            
+            // Show loading message
+            const loadingMessage = document.createElement('div');
+            loadingMessage.className = 'ai-message';
+            loadingMessage.innerHTML = 
+                '<div class="ai-avatar">' +
+                    '<i data-feather="cpu"></i>' +
+                '</div>' +
+                '<div class="ai-content">' +
+                    '<p><i>Thinking...</i></p>' +
+                '</div>';
+            aiAssistantMessages.appendChild(loadingMessage);
+            feather.replace();
+            scrollToBottom();
+            
+            // Call the AI Assistant API
+            fetch('/api/ai-assistant', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                // Remove loading message
+                aiAssistantMessages.removeChild(loadingMessage);
+                
+                if (data.status === 'success') {
+                    // Format the response text for better readability
+                    const formattedResponse = data.response.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+                    addAIMessage(formattedResponse);
+                } else {
+                    addAIMessage('Sorry, I encountered an error: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(function(error) {
+                // Remove loading message
+                if (loadingMessage.parentNode) {
+                    aiAssistantMessages.removeChild(loadingMessage);
+                }
+                
+                addAIMessage('Sorry, I encountered a technical issue. Please try again later.');
+                console.error('Error:', error);
+            });
+        });
+        
+        // Helper functions
+        function addUserMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'ai-message user-message';
+            messageDiv.innerHTML = 
+                '<div class="ai-avatar">' +
+                    '<i data-feather="user"></i>' +
+                '</div>' +
+                '<div class="ai-content">' +
+                    '<p>' + escapeHtml(message) + '</p>' +
+                '</div>';
+            aiAssistantMessages.appendChild(messageDiv);
+            feather.replace();
+            scrollToBottom();
+        }
+        
+        function addAIMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'ai-message';
+            messageDiv.innerHTML = 
+                '<div class="ai-avatar">' +
+                    '<i data-feather="cpu"></i>' +
+                '</div>' +
+                '<div class="ai-content">' +
+                    '<p>' + message + '</p>' +
+                '</div>';
+            aiAssistantMessages.appendChild(messageDiv);
+            feather.replace();
+            scrollToBottom();
+        }
+        
+        function scrollToBottom() {
+            if (aiAssistantMessages) {
+                aiAssistantMessages.scrollTop = aiAssistantMessages.scrollHeight;
+            }
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    }
+    
+    // Initialize AI Assistant
+    initAIAssistant();
+    
+    // Expose suggest question function to global scope
+    window.suggestQuestion = function(question) {
+        const aiAssistantInput = document.getElementById('aiAssistantInput');
+        if (aiAssistantInput) {
+            aiAssistantInput.value = question;
+            aiAssistantInput.focus();
+        }
+    };
+    
+    // Listen for theme changes
+    window.addEventListener('themeChanged', function(e) {
+        location.reload(); // Reload the page to reinitialize charts with correct theme colors
+    });
+});
+</script>
+{% endblock %} 

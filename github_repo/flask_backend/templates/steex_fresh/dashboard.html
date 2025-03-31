@@ -1,0 +1,349 @@
+{% extends "steex_fresh/base.html" %}
+
+{% block title %}Dashboard - Payymo{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    {% if error %}
+    <div class="alert alert-danger mt-4">
+        <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+    </div>
+    {% endif %}
+    
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Dashboard</h4>
+                <div>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <!-- Transactions Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary-subtle rounded p-2">
+                                <i class="fas fa-exchange-alt text-primary fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Total Transactions</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">{{ stats.transactions.total|default(0) }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-arrow-up me-1"></i>{{ stats.transactions.month.count|default(0) }}
+                        </span>
+                        <span class="text-muted small">this month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success-subtle rounded p-2">
+                                <i class="fas fa-pound-sign text-success fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Total Amount</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">£{{ stats.transactions.total_amount|default(0)|round(2) }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-arrow-up me-1"></i>£{{ stats.transactions.month.amount|default(0)|round(2) }}
+                        </span>
+                        <span class="text-muted small">this month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Connections Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info-subtle rounded p-2">
+                                <i class="fas fa-university text-info fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Bank Connections</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">{{ stats.bank_connections.total|default(0) }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-check me-1"></i>{{ stats.bank_connections.active|default(0) }}
+                        </span>
+                        <span class="text-muted small">active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matches Card -->
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning-subtle rounded p-2">
+                                <i class="fas fa-link text-warning fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">Invoice Matches</h6>
+                        </div>
+                    </div>
+                    <h2 class="mb-2">{{ stats.matches.total|default(0) }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-subtle text-success me-2">
+                            <i class="fas fa-check me-1"></i>{{ stats.matches.confirmed|default(0) }}
+                        </span>
+                        <span class="text-muted small">confirmed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Chart & Recent Transactions -->
+    <div class="row">
+        <!-- Transactions Chart -->
+        <div class="col-xl-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Transaction Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="transactionChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-xl-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Transactions</h5>
+                    <a href="#" class="btn btn-sm btn-link text-info">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% if recent_transactions %}
+                            {% for tx in recent_transactions %}
+                            <div class="list-group-item border-0 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-success-subtle rounded-circle p-2">
+                                            <i class="fas fa-arrow-down text-success"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ tx.reference or 'Transaction #' + tx.id|string }}</h6>
+                                        <p class="text-muted small mb-0">{{ tx.transaction_date.strftime('%d %b %Y') }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <h6 class="text-success mb-0">£{{ tx.amount|round(2) }}</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item border-0">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exchange-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">No recent transactions</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Connections & Stripe Connections -->
+    <div class="row">
+        <!-- Bank Connections -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Bank Connections</h5>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Bank
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% if bank_connections %}
+                            {% for bank in bank_connections %}
+                            <div class="list-group-item border-0 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name={{ bank.bank_name[0:2] }}&background=002D72&color=fff" alt="{{ bank.bank_name }}" class="rounded" width="40" height="40">
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ bank.bank_name }}</h6>
+                                        <p class="text-muted small mb-0">{{ bank.account_name }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge {% if bank.status == 'active' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ bank.status|capitalize }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item border-0">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-university fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">No bank connections</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stripe Connections -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Stripe Accounts</h5>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Connect Stripe
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% if stripe_connections %}
+                            {% for stripe in stripe_connections %}
+                            <div class="list-group-item border-0 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name=S&background=635BFF&color=fff" alt="Stripe" class="rounded" width="40" height="40">
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ stripe.account_name }}</h6>
+                                        <p class="text-muted small mb-0">{{ stripe.account_email }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge {% if stripe.status == 'active' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ stripe.status|capitalize }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item border-0">
+                                <div class="text-center py-4">
+                                    <i class="fab fa-stripe fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">No Stripe connections</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center justify-content-center py-3">
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="fab fa-stripe me-1"></i> Connect Stripe Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Transaction Chart
+        var ctx = document.getElementById('transactionChart').getContext('2d');
+        var transactionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['01 Mar', '05 Mar', '10 Mar', '15 Mar', '20 Mar', '25 Mar', '30 Mar'],
+                datasets: [{
+                    label: 'Transactions',
+                    data: [650, 750, 720, 880, 950, 1050, 1100],
+                    backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                    borderColor: 'rgba(13, 202, 240, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#23262f',
+                        titleColor: '#e3e2e7',
+                        bodyColor: '#e3e2e7',
+                        borderColor: '#313442',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '£' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6c757d'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(156, 156, 156, 0.1)'
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            callback: function(value) {
+                                return '£' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

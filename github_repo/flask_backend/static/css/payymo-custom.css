@@ -1,0 +1,223 @@
+/**
+ * Payymo Custom Styles
+ */
+
+/* Custom Brand Colors */
+:root {
+    --payymo-primary: #0061f2;
+    --payymo-secondary: #6900c7;
+    --payymo-success: #00ac69;
+    --payymo-info: #00cfd5;
+    --payymo-warning: #f4a100;
+    --payymo-danger: #e81500;
+    --payymo-light: #f0f5ff;
+    --payymo-dark: #1f2b3d;
+}
+
+/* Custom Brand Styling */
+.sidebar-brand span,
+.navbar-brand span {
+    color: var(--payymo-primary);
+}
+
+/* Dashboard Card Styling */
+.stats-card,
+.shadow-hover {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.stats-card:hover,
+.shadow-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Custom Button Styling */
+.btn-payymo-primary {
+    background-color: var(--payymo-primary);
+    border-color: var(--payymo-primary);
+    color: #fff;
+}
+
+.btn-payymo-primary:hover {
+    background-color: #0052d9;
+    border-color: #0052d9;
+    color: #fff;
+}
+
+/* Custom Charts Styling */
+.chart-container {
+    min-height: 300px;
+    position: relative;
+}
+
+/* Custom Transaction List Styling */
+.transaction-item {
+    transition: background-color 0.2s ease;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.transaction-item:hover {
+    background-color: rgba(0, 97, 242, 0.05);
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Connection Card Styling */
+.connection-card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.connection-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+}
+
+.connection-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Empty State Styling */
+.empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background-color: rgba(240, 245, 255, 0.05);
+    border-radius: 0.5rem;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+}
+
+/* Dark Mode Adjustments */
+[data-bs-theme=dark] .stats-card,
+[data-bs-theme=dark] .shadow-hover {
+    background-color: #1f2b3d;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme=dark] .transaction-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Tables Styling */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 97, 242, 0.05);
+}
+
+/* Additional Helper Classes */
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.shadow-sm-hover:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Background Utilities */
+.bg-primary-light {
+    background-color: rgba(0, 97, 242, 0.1);
+}
+
+.bg-success-light {
+    background-color: rgba(0, 172, 105, 0.1);
+}
+
+.bg-info-light {
+    background-color: rgba(0, 207, 213, 0.1);
+}
+
+.bg-warning-light {
+    background-color: rgba(244, 161, 0, 0.1);
+}
+
+.bg-danger-light {
+    background-color: rgba(232, 21, 0, 0.1);
+}
+
+/* Text colors */
+.text-primary {
+    color: var(--payymo-primary) !important;
+}
+
+.text-success {
+    color: var(--payymo-success) !important;
+}
+
+.text-info {
+    color: var(--payymo-info) !important;
+}
+
+.text-warning {
+    color: var(--payymo-warning) !important;
+}
+
+.text-danger {
+    color: var(--payymo-danger) !important;
+}
+
+/* Notification Dot */
+.notification-dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--payymo-danger);
+}
+
+/* Added transition effects for better UX */
+.btn, .nav-link, .dropdown-item {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Custom Focus Styles */
+.form-control:focus, .btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--payymo-primary-rgb), 0.25);
+}
+
+/* Make sure NobleUI theme works well with our additions */
+[data-bs-theme=light] {
+    --bs-primary: var(--payymo-primary);
+    --bs-primary-rgb: 0, 97, 242;
+}
+
+[data-bs-theme=dark] {
+    --bs-primary: var(--payymo-primary);
+    --bs-primary-rgb: 0, 97, 242;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-container {
+        min-height: 250px;
+    }
+} 

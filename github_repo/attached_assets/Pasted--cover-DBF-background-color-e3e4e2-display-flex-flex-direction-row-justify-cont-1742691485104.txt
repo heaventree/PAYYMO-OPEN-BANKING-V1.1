@@ -1,0 +1,186 @@
+.cover-DBF {
+  background-color: #e3e4e2;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.cover-DBF .overlap-wrapper {
+  background-color: #e3e4e2;
+  width: 2340px;
+  height: 1560px;
+}
+
+.cover-DBF .overlap {
+  position: relative;
+  width: 2281px;
+  height: 1560px;
+  left: 59px;
+}
+
+.cover-DBF .vector {
+  position: absolute;
+  width: 1887px;
+  height: 1560px;
+  top: 0;
+  left: 393px;
+}
+
+.cover-DBF .shadow {
+  position: absolute;
+  width: 2220px;
+  height: 1376px;
+  top: 184px;
+  left: 0;
+}
+
+.cover-DBF .interface-DBF {
+  position: absolute;
+  width: 1975px;
+  height: 1314px;
+  top: 246px;
+  left: 124px;
+  object-fit: cover;
+}
+
+.cover-DBF .header {
+  position: absolute;
+  width: 1975px;
+  height: 80px;
+  top: 100px;
+  left: 124px;
+  background-color: transparent;
+}
+
+.cover-DBF .figma {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  top: 0;
+  left: 1895px;
+  background-color: #ffffffb2;
+  border-radius: 40px;
+}
+
+.cover-DBF .logo-figma {
+  position: absolute;
+  width: 30px;
+  height: 44px;
+  top: 17px;
+  left: 25px;
+  object-fit: cover;
+}
+
+.cover-DBF .label {
+  position: absolute;
+  width: 526px;
+  height: 80px;
+  top: 0;
+  left: 0;
+}
+
+.cover-DBF .overlap-group {
+  position: relative;
+  width: 524px;
+  height: 80px;
+  background-color: #ffffff33;
+  border-radius: 50px;
+}
+
+.cover-DBF .text-wrapper {
+  position: absolute;
+  top: 26px;
+  left: 96px;
+  font-family: "Rubik-Medium", Helvetica;
+  font-weight: 500;
+  color: var(--white);
+  font-size: 40px;
+  letter-spacing: 0.80px;
+  line-height: 35.2px;
+  white-space: nowrap;
+}
+
+.cover-DBF .logo-peterdraw {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  top: 15px;
+  left: 22px;
+}
+/* Original CSS code should be injected here */
+
+/* Additional refactored styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Urbanist", Helvetica, Arial, sans-serif;
+}
+
+.cover-DBF {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlap-wrapper {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.overlap {
+  position: relative;
+  max-width: 100%;
+}
+
+.vector,
+.shadow,
+.interface-DBF {
+  max-width: 100%;
+  height: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.figma {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.label {
+  flex-grow: 1;
+}
+
+.overlap-group {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.text-wrapper {
+  margin: 0;
+  font-size: 2.5rem;
+  color: var(--white);
+}
+
+@media (max-width: 768px) {
+  .cover-DBF .overlap {
+    left: 0;
+  }
+
+  .cover-DBF .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cover-DBF .text-wrapper {
+    font-size: 1.8rem;
+  }
+}

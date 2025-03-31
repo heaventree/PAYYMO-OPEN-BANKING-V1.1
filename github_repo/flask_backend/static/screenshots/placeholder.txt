@@ -1,0 +1,10 @@
+This directory will contain screenshots of the dashboard in light and dark mode.
+
+To generate screenshots:
+1. Start the Flask application: python -m flask run
+2. Install Node.js dependencies: npm install
+3. Run the screenshot script: npm run screenshot
+
+This will create:
+- nobleui_dashboard_light.png
+- nobleui_dashboard_dark.png 

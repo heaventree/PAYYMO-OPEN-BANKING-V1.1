@@ -1,0 +1,62 @@
+/* Container Numbering System
+ * This stylesheet adds subtle visual identifiers to container elements
+ * to make them easier to identify during development
+ */
+
+/* Base identifiers */
+[data-container-id] {
+  position: relative;
+}
+
+[data-container-id]::before {
+  content: attr(data-container-id);
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  background-color: rgba(13, 110, 253, 0.5);
+  border-radius: 0 0 0 4px;
+  z-index: 1000;
+}
+
+/* Highlight active container when hovering for easier visualization */
+[data-container-id]:hover {
+  outline: 1px solid rgba(13, 110, 253, 0.5);
+}
+
+/* Container color coding by type */
+[data-container-type="data-card"] {
+  border-left: 3px solid #0d6efd !important;
+}
+
+[data-container-type="chart"] {
+  border-left: 3px solid #dc3545 !important;
+}
+
+[data-container-type="table"] {
+  border-left: 3px solid #198754 !important;
+}
+
+[data-container-type="form"] {
+  border-left: 3px solid #ffc107 !important;
+}
+
+[data-container-type="control"] {
+  border-left: 3px solid #6f42c1 !important;
+}
+
+/* Hide container IDs in production mode */
+.production-mode [data-container-id]::before {
+  display: none;
+}
+
+.production-mode [data-container-id]:hover {
+  outline: none;
+}
+
+.production-mode [data-container-type] {
+  border-left: none !important;
+}

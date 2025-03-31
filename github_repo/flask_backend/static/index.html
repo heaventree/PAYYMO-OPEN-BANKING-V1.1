@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Payymo Admin Dashboard Preview">
+    <meta name="author" content="Payymo">
+
+    <title>Payymo Dashboard - NobleUI Preview</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Feather icons -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    
+    <!-- NobleUI CSS (Path may need to be adjusted based on your deployment) -->
+    <link rel="stylesheet" href="nobleui/NobleUI-HTML-v3.0/template/assets/css/demo1/style.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/payymo-custom.css">
+    
+    <style>
+        /* Theme Switcher Styles */
+        .theme-switcher {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 26px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .theme-switcher input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #6571ff;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #6571ff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(34px);
+        }
+        .dark-mode-icon, .light-mode-icon {
+            position: absolute;
+            top: 5px;
+            font-size: 14px;
+        }
+        .dark-mode-icon {
+            right: 8px;
+            color: #fff;
+        }
+        .light-mode-icon {
+            left: 8px;
+            color: #fff;
+        }
+        
+        /* Preview Specific Styles */
+        .preview-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .preview-image:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        /* Fallback styles */
+        :root {
+            --payymo-primary: #0061f2;
+            --payymo-secondary: #6900c7;
+            --payymo-success: #00ac69;
+            --payymo-info: #00cfd5;
+            --payymo-warning: #f4a100;
+            --payymo-danger: #e81500;
+            --payymo-light: #f0f5ff;
+            --payymo-dark: #1f2b3d;
+        }
+        
+        .btn-payymo-primary {
+            background-color: var(--payymo-primary);
+            border-color: var(--payymo-primary);
+            color: #fff;
+        }
+        
+        .btn-payymo-primary:hover {
+            background-color: #0052d9;
+            border-color: #0052d9;
+            color: #fff;
+        }
+        
+        /* Template links */
+        .template-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .template-card img {
+            height: 160px;
+            object-fit: cover;
+            object-position: top;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-badge">
+        <span class="badge bg-warning p-2">Preview Mode</span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Payy<span class="text-warning">MO</span></a>
+            <div class="d-flex align-items-center">
+                <i data-feather="sun" class="text-white me-1" id="lightIcon"></i>
+                <label class="theme-switcher mb-0">
+                    <input type="checkbox" id="themeSwitch">
+                    <span class="slider">
+                        <i class="dark-mode-icon" data-feather="moon"></i>
+                        <i class="light-mode-icon" data-feather="sun"></i>
+                    </span>
+                </label>
+                <i data-feather="moon" class="text-white ms-1" id="darkIcon"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 mb-3">Payymo Dashboard</h1>
+                <p class="lead mb-4">Powered by NobleUI - A modern admin template integrated with WHMCS</p>
+            </div>
+        </div>
+
+        <!-- NobleUI Templates Section -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center mb-4">
+                <h2 class="mb-3">NobleUI Dashboard Templates</h2>
+                <p class="text-muted">Access the original NobleUI templates below</p>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card template-card">
+                    <img src="https://via.placeholder.com/300x160/6571ff/ffffff?text=Dashboard" class="card-img-top" alt="Dashboard Template">
+                    <div class="card-body">
+                        <h5 class="card-title">Main Dashboard</h5>
+                        <p class="card-text">The main dashboard template with charts and widgets.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/dashboard.html" class="btn btn-payymo-primary w-100" target="_blank">View Template</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card template-card">
+                    <img src="https://via.placeholder.com/300x160/00ac69/ffffff?text=Components" class="card-img-top" alt="UI Components">
+                    <div class="card-body">
+                        <h5 class="card-title">UI Components</h5>
+                        <p class="card-text">Various UI components and elements.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/pages/ui-components/accordion.html" class="btn btn-payymo-primary w-100" target="_blank">View Components</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card template-card">
+                    <img src="https://via.placeholder.com/300x160/e81500/ffffff?text=Forms" class="card-img-top" alt="Forms">
+                    <div class="card-body">
+                        <h5 class="card-title">Forms</h5>
+                        <p class="card-text">Form layouts and validation templates.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/pages/forms/basic-elements.html" class="btn btn-payymo-primary w-100" target="_blank">View Forms</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Templates -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="card template-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Charts</h5>
+                        <p class="card-text">Various chart components and data visualization.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/pages/charts/apex.html" class="btn btn-outline-primary w-100" target="_blank">View Charts</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card template-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tables</h5>
+                        <p class="card-text">Data tables and grid layouts.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/pages/tables/basic-table.html" class="btn btn-outline-primary w-100" target="_blank">View Tables</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card template-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Auth Pages</h5>
+                        <p class="card-text">Login, register and other auth pages.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/pages/auth/login.html" class="btn btn-outline-primary w-100" target="_blank">View Auth Pages</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card template-card">
+                    <div class="card-body">
+                        <h5 class="card-title">General Pages</h5>
+                        <p class="card-text">Profile, pricing, error pages and more.</p>
+                        <a href="nobleui/NobleUI-HTML-v3.0/template/demo1/pages/general/profile.html" class="btn btn-outline-primary w-100" target="_blank">View Pages</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card border-0 overflow-hidden">
+                    <div class="card-body p-0">
+                        <img src="https://assets.startbootstrap.com/img/screenshots/premium/sb-admin-pro.png" class="preview-image w-100" alt="Dashboard Preview">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="mb-4">Key Features</h2>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary-light mx-auto">
+                            <i data-feather="moon" class="text-primary"></i>
+                        </div>
+                        <h4>Light & Dark Modes</h4>
+                        <p class="text-muted">Fully implemented light and dark themes with automatic system preference detection.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-success-light mx-auto">
+                            <i data-feather="bar-chart-2" class="text-success"></i>
+                        </div>
+                        <h4>Interactive Charts</h4>
+                        <p class="text-muted">Theme-aware charts that automatically adjust to the current theme.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-info-light mx-auto">
+                            <i data-feather="layout" class="text-info"></i>
+                        </div>
+                        <h4>Responsive Design</h4>
+                        <p class="text-muted">Fully responsive layout that works great on desktop, tablet, and mobile devices.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="mb-4">Ready to Deploy</h2>
+                <p class="lead mb-4">This dashboard is ready to be deployed to your production environment.</p>
+                <button class="btn btn-payymo-primary btn-lg px-5 py-3">
+                    <i data-feather="upload-cloud" class="me-2"></i> Deploy to Production
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Payymo Dashboard</h5>
+                    <p class="text-muted">A beautiful admin interface powered by NobleUI and integrated with WHMCS.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0 text-muted">Copyright © 2024 Payymo</p>
+                    <p class="text-muted">Powered by <span class="text-primary">NobleUI</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap and core JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Theme switcher JS -->
+    <script src="js/theme-switcher.js"></script>
+    
+    <script>
+        // Initialize Feather icons
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            
+            // Theme switcher functionality
+            const themeSwitch = document.getElementById('themeSwitch');
+            
+            // Set initial state based on stored theme or system preference
+            const storedTheme = localStorage.getItem('payymo-theme-preference');
+            if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                themeSwitch.checked = true;
+            }
+            
+            // Add change event listener
+            themeSwitch.addEventListener('change', function() {
+                const theme = this.checked ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-bs-theme', theme);
+                localStorage.setItem('payymo-theme-preference', theme);
+            });
+        });
+    </script>
+</body>
+</html> 

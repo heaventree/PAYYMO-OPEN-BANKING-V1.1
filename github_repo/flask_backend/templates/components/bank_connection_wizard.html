@@ -1,0 +1,229 @@
+<!-- Bank Connection Wizard Modal -->
+<div class="modal fade" id="bankConnectionModal" tabindex="-1" aria-labelledby="bankConnectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title" id="bankConnectionModalLabel">Connect Bank Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <!-- Wizard Progress -->
+                <div class="wizard-progress py-2 px-4 bg-light border-bottom">
+                    <div class="d-flex justify-content-between align-items-center position-relative">
+                        <div class="progress position-absolute" style="height: 2px; width: 100%; z-index: 1;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="step d-flex flex-column align-items-center" style="z-index: 2;">
+                            <div class="step-icon bg-primary text-white d-flex align-items-center justify-content-center">
+                                <span>1</span>
+                            </div>
+                            <div class="step-label">Select Bank</div>
+                        </div>
+                        <div class="step d-flex flex-column align-items-center" style="z-index: 2;">
+                            <div class="step-icon bg-light border d-flex align-items-center justify-content-center">
+                                <span>2</span>
+                            </div>
+                            <div class="step-label">Authorize</div>
+                        </div>
+                        <div class="step d-flex flex-column align-items-center" style="z-index: 2;">
+                            <div class="step-icon bg-light border d-flex align-items-center justify-content-center">
+                                <span>3</span>
+                            </div>
+                            <div class="step-label">Complete</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4">
+                    <!-- Step 1: Select Bank -->
+                    <div class="step-content step-1">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="mb-3">Select Your Bank</h5>
+                                
+                                <div class="bank-search d-flex mb-3 gap-2">
+                                    <div class="flex-grow-1">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i data-lucide="search" style="width: 16px; height: 16px;"></i></span>
+                                            <input type="text" class="form-control" id="bankSearchInput" placeholder="Search for your bank...">
+                                        </div>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <select class="form-select" id="bankCountryFilter">
+                                            <option value="GB" selected>United Kingdom</option>
+                                            <option value="US">United States</option>
+                                            <option value="EU">European Union</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="bank-list">
+                                    <div class="row bank-options-container">
+                                        <!-- Bank options will be loaded here dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3">
+                                    <h6>What is Open Banking?</h6>
+                                    <p class="text-muted small mb-3">Open Banking allows you to securely share your financial data with trusted third-party providers.</p>
+                                    
+                                    <h6>How it works</h6>
+                                    <ol class="text-muted small mb-3 ps-3">
+                                        <li>Select your bank</li>
+                                        <li>Log in with your online banking credentials</li>
+                                        <li>Authorize read-only access to your account</li>
+                                    </ol>
+                                    
+                                    <div class="alert alert-info d-flex align-items-center small mb-0">
+                                        <i data-lucide="shield" class="me-2 flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                                        <div>
+                                            Your credentials are never stored. We use secure Open Banking APIs.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Authorize -->
+                    <div class="step-content step-2 d-none">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Authorize Your Bank</h5>
+                                <p class="text-muted">You'll be redirected to your bank's secure login page.</p>
+                                
+                                <div class="auth-permissions mt-4">
+                                    <h6 class="mb-2">You're granting permission to:</h6>
+                                    <div class="row g-0">
+                                        <div class="col-md-6">
+                                            <ul class="list-group mb-0">
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center">
+                                                    <i data-lucide="check-circle" class="text-success me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>Access account information</span>
+                                                </li>
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center">
+                                                    <i data-lucide="check-circle" class="text-success me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>View transaction history</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <ul class="list-group mb-0">
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center text-muted">
+                                                    <i data-lucide="x-circle" class="text-muted me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>No permission to move money</span>
+                                                </li>
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center text-muted">
+                                                    <i data-lucide="x-circle" class="text-muted me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>No permission to make payments</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="alert alert-light border mt-3 mb-0 small">
+                                        <p class="mb-0">Your consent will be valid for 90 days and can be revoked at any time.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bank-preview border rounded p-3 text-center">
+                                    <div class="d-flex justify-content-center align-items-center mb-3">
+                                        <div class="bank-logo bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+                                            <i data-lucide="landmark" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <img class="bank-preview-logo" src="" style="display: none; height: 40px;">
+                                        <h5 class="mb-0 ms-2 bank-name">Bank Name</h5>
+                                    </div>
+                                    <p class="mb-3 text-muted small">You will be redirected to your bank's secure login page to authorize access.</p>
+                                    <div class="bank-login-preview border rounded p-3 mx-auto" style="max-width: 300px;">
+                                        <div class="text-start mb-3">
+                                            <label class="form-label small text-muted">Username/ID</label>
+                                            <input type="text" class="form-control form-control-sm" disabled value="••••••••••">
+                                        </div>
+                                        <div class="text-start mb-3">
+                                            <label class="form-label small text-muted">Password</label>
+                                            <input type="password" class="form-control form-control-sm" disabled value="••••••••••">
+                                        </div>
+                                        <button class="btn btn-sm btn-primary w-100" disabled>Login</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Complete -->
+                    <div class="step-content step-3 d-none">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 text-center text-md-start">
+                                <i data-lucide="check-circle" style="width: 48px; height: 48px;" class="mb-3 text-success"></i>
+                                <h5 class="mb-3">Connection Successful</h5>
+                                <p class="text-muted">Your bank account has been successfully connected.</p>
+                                
+                                <div class="alert alert-success d-flex align-items-center">
+                                    <i data-lucide="check-circle" class="me-2 flex-shrink-0" style="width: 20px; height: 20px;"></i>
+                                    <div>
+                                        We've started importing your transactions.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bank-account-info border rounded p-3">
+                                    <h6 class="mb-2">Connected Account</h6>
+                                    <div class="d-flex align-items-center border-bottom pb-3 mb-3">
+                                        <div class="bank-logo bg-light rounded-circle d-flex align-items-center justify-content-center me-3">
+                                            <i data-lucide="landmark" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 bank-name">Bank Name</h6>
+                                            <p class="mb-0 small text-muted">Current Account **1234</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="mb-2">What's Next?</h6>
+                                    <ol class="mb-0 ps-3 small">
+                                        <li class="mb-2">We'll import your transaction history</li>
+                                        <li class="mb-2">Transactions will be matched to invoices</li>
+                                        <li>You'll be notified of any potential matches</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="bankWizardNextBtn" disabled>Continue to Authorization</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.bank-option {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bank-option:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.bank-logo {
+    width: 40px;
+    height: 40px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+</style>

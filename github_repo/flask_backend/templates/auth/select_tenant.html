@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+
+{% block title %}Select Tenant{% endblock %}
+
+{% block login_content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i data-lucide="building" style="width: 64px; height: 64px;" class="text-primary mb-3"></i>
+                    <h3 class="fw-bold">Select Organization</h3>
+                    <p class="text-muted">Choose which organization to access</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                        <i data-lucide="{{ 'alert-triangle' if category == 'error' else 'info' }}" class="me-2" style="width: 18px; height: 18px;"></i>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% if tenants %}
+                <div class="list-group">
+                    {% for tenant in tenants %}
+                    <a href="{{ url_for('auth.set_tenant', tenant_id=tenant.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <h5 class="mb-1">{{ tenant.name }}</h5>
+                            <p class="mb-0 text-muted small">{{ tenant.domain }}</p>
+                        </div>
+                        <span class="badge bg-{{ 'success' if tenant.status == 'active' else 'warning' if tenant.status == 'trial' else 'danger' }}">
+                            {{ tenant.status|title }}
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i data-lucide="info" class="me-2" style="width: 18px; height: 18px;"></i>
+                    You don't have access to any organizations yet. Please contact your administrator.
+                </div>
+                {% endif %}
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('auth.logout') }}" class="text-decoration-none">
+                        <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

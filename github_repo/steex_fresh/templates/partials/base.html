@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-layout="vertical" data-sidebar="dark" data-sidebar-size="lg" data-preloader="disable" data-theme="default" data-topbar="light" data-bs-theme="light">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock title %} | Payymo Financial Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Financial management dashboard for Payymo" name="description">
+    <meta content="Payymo" name="author">
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{{url_for('static', filename='images/favicon.ico')}}">
+
+    <!-- Fonts css load -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link id="fontsLink" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    {% block css %}
+    {% block extra_css %}
+    {% endblock extra_css %}
+
+    <!-- Layout config Js -->
+    <script src="{{url_for('static', filename='js/layout.js')}}"></script>
+    <!-- Bootstrap Css -->
+    <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" type="text/css">
+    <!-- Icons Css -->
+    <link href="{{url_for('static', filename='css/icons.min.css')}}" rel="stylesheet" type="text/css">
+    <!-- App Css-->
+    <link href="{{url_for('static', filename='css/app.min.css')}}" rel="stylesheet" type="text/css">
+    <!-- custom Css-->
+    <link href="{{url_for('static', filename='css/custom.min.css')}}" rel="stylesheet" type="text/css">
+
+    {% endblock css %}
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div id="layout-wrapper">
+
+        {% block header %}
+            {% include "partials/topbar.html" %}
+        {% endblock header %}
+
+        {% block sidebar %}
+            {% include "partials/sidebar.html" %}
+        {% endblock sidebar %}
+
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    {% block content %}
+                    {% endblock content %}
+                </div>
+                <!-- container-fluid -->
+            </div>
+            <!-- End Page-content -->
+
+            {% block footer %}
+                {% include "partials/footer.html" %}
+            {% endblock footer %}
+        </div>
+        <!-- end main content-->
+    </div>
+    <!-- END layout-wrapper -->
+
+    {% block customizer %}
+    <!-- Theme Settings -->
+    <div class="offcanvas offcanvas-end border-0" tabindex="-1" id="theme-settings-offcanvas">
+        <div class="d-flex align-items-center bg-primary bg-gradient p-3 offcanvas-header">
+            <h5 class="m-0 me-2 text-white">Theme Customizer</h5>
+            <button type="button" class="btn-close btn-close-white ms-auto" id="customizerclose-btn" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div data-simplebar class="h-100">
+                <div class="p-4">
+                    <h6 class="mb-0 fw-semibold text-uppercase">Layout</h6>
+                    <p class="text-muted">Choose your layout</p>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-check card-radio">
+                                <input id="customizer-layout01" name="data-layout" type="radio" value="vertical" class="form-check-input">
+                                <label class="form-check-label p-0 avatar-md w-100" for="customizer-layout01">
+                                    <span class="d-flex gap-1 h-100">
+                                        <span class="flex-shrink-0">
+                                            <span class="bg-light d-flex h-100 flex-column gap-1 p-1">
+                                                <span class="d-block p-1 px-2 bg-primary-subtle rounded mb-2"></span>
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                            </span>
+                                        </span>
+                                        <span class="flex-grow-1">
+                                            <span class="d-flex h-100 flex-column">
+                                                <span class="bg-light d-block p-1"></span>
+                                                <span class="bg-light d-block p-1 mt-auto"></span>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                            <h5 class="fs-sm text-center fw-medium mt-2">Vertical</h5>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check card-radio">
+                                <input id="customizer-layout02" name="data-layout" type="radio" value="horizontal" class="form-check-input">
+                                <label class="form-check-label p-0 avatar-md w-100" for="customizer-layout02">
+                                    <span class="d-flex h-100 flex-column gap-1">
+                                        <span class="bg-light d-flex p-1 gap-1 align-items-center">
+                                            <span class="d-block p-1 bg-primary-subtle rounded me-1"></span>
+                                            <span class="d-block p-1 pb-0 px-2 bg-primary-subtle ms-auto"></span>
+                                            <span class="d-block p-1 pb-0 px-2 bg-primary-subtle"></span>
+                                        </span>
+                                        <span class="bg-light d-block p-1"></span>
+                                        <span class="bg-light d-block p-1 mt-auto"></span>
+                                    </span>
+                                </label>
+                            </div>
+                            <h5 class="fs-sm text-center fw-medium mt-2">Horizontal</h5>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check card-radio">
+                                <input id="customizer-layout03" name="data-layout" type="radio" value="twocolumn" class="form-check-input">
+                                <label class="form-check-label p-0 avatar-md w-100" for="customizer-layout03">
+                                    <span class="d-flex gap-1 h-100">
+                                        <span class="flex-shrink-0">
+                                            <span class="bg-light d-flex h-100 flex-column gap-1">
+                                                <span class="d-block p-1 bg-primary-subtle mb-2"></span>
+                                                <span class="d-block p-1 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 pb-0 bg-primary-subtle"></span>
+                                            </span>
+                                        </span>
+                                        <span class="flex-shrink-0">
+                                            <span class="bg-light d-flex h-100 flex-column gap-1 p-1">
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                                <span class="d-block p-1 px-2 pb-0 bg-primary-subtle"></span>
+                                            </span>
+                                        </span>
+                                        <span class="flex-grow-1">
+                                            <span class="d-flex h-100 flex-column">
+                                                <span class="bg-light d-block p-1"></span>
+                                                <span class="bg-light d-block p-1 mt-auto"></span>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                            <h5 class="fs-sm text-center fw-medium mt-2">Two Column</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock customizer %}
+
+    {% block javascript %}
+    
+    <!-- JAVASCRIPT -->
+    <script src="{{url_for('static', filename='libs/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{url_for('static', filename='libs/simplebar/simplebar.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/plugins.js')}}"></script>
+
+    {% block extra_js %}
+    {% endblock extra_js %}
+
+    <!-- App js -->
+    <script src="{{url_for('static', filename='js/app.js')}}"></script>
+
+    {% endblock javascript %}
+
+</body>
+</html>

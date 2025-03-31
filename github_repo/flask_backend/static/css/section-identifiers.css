@@ -1,0 +1,50 @@
+/* 
+ * Section Identifiers for Payymo
+ * Simple sequential section numbering system
+ * Based on the original WHMCS addon approach
+ */
+
+/* Core section identifier styles */
+.section-identifier {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    background-color: rgba(0, 0, 255, 0.7);
+    color: white;
+    border-radius: 0 0 4px 0;
+    z-index: 999;
+    font-family: monospace;
+    pointer-events: none;
+}
+
+/* Only show identifiers when enabled */
+.section-identifiers-enabled .section-identifier {
+    display: block;
+}
+
+/* Main section containers - light outline when section identifiers are enabled */
+.section-identifiers-enabled .card,
+.section-identifiers-enabled .container-fluid,
+.section-identifiers-enabled .container,
+.section-identifiers-enabled footer,
+.section-identifiers-enabled .alert {
+    position: relative;
+    outline: 1px dashed rgba(13, 110, 253, 0.5);
+}
+
+/* Floating toggle button */
+.section-identifiers-toggle {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    font-size: 12px;
+}
