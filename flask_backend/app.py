@@ -70,19 +70,17 @@ with app.app_context():
     @app.route('/')
     def index():
         """
-        Root route redirects to the selected dashboard based on environment
-        variable or configuration
+        Root route redirects to the NobleUI dashboard.
+        This override ensures we always show the NobleUI interface.
         """
-        dashboard_type = os.environ.get('DEFAULT_DASHBOARD', 'nobleui')
+        # Always redirect to the NobleUI dashboard
+        force_nobleui = os.environ.get('FORCE_NOBLEUI', 'true').lower() == 'true'
         
         # Log which dashboard we're redirecting to
-        logger.info(f"Redirecting to {dashboard_type} dashboard")
+        logger.info(f"FORCE_NOBLEUI is set to: {force_nobleui}")
+        logger.info("Redirecting DIRECTLY to NobleUI dashboard")
         
-        if dashboard_type == 'nobleui':
-            # This is the new dashboard we want to use
-            return redirect('/nobleui-dashboard')
-        else:
-            # Fall back to the old dashboard if specifically requested
-            return redirect('/dashboard')
+        # ALWAYS redirect to the NobleUI dashboard, ignoring any other settings
+        return redirect('/nobleui-dashboard')
     
     logger.info("Flask backend started successfully")
