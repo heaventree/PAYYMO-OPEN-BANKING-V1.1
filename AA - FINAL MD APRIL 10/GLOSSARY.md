@@ -1,0 +1,150 @@
+# __Glossary__
+
+This glossary defines key terms used throughout the project documentation to ensure consistency and clarity\.
+
+- __AI Agent:__ A software entity that uses artificial intelligence to perform specific tasks, such as code generation, debugging, or documentation\.
+- __API:__ Application Programming Interface\. A set of rules and protocols that allows different software applications to communicate with each other\.
+- __ARIA:__ Accessible Rich Internet Applications\. A set of attributes that improve the accessibility of web content and applications\.
+- __Atomic Design:__ A methodology for creating design systems, breaking interfaces down into atoms, molecules, organisms, templates, and pages\.
+- __Audit Log:__ A chronological record of system activities, user actions, or data modifications\.
+- __Autosave:__ A feature that automatically saves user work \(e\.g\., form drafts\) locally at regular intervals\.
+- __CI/CD:__ Continuous Integration/Continuous Delivery \(or Deployment\)\. A set of practices that automate the building, testing, and deployment of software\.
+- __CLI:__ Command\-Line Interface\. A text\-based interface used for interacting with software or operating systems\.
+- __CLS:__ Cumulative Layout Shift\. A Core Web Vital metric measuring visual stability\.
+- __CMS:__ Content Management System\. Software used to create, manage, and modify digital content\.
+- __Component Library:__ A collection of reusable UI components \(buttons, inputs, cards\) used to build interfaces consistently\. Often managed with tools like Storybook\.
+- __Conventional Commits:__ A specification for adding human and machine\-readable meaning to commit messages\.
+- __Core Web Vitals:__ A set of metrics defined by Google related to speed, responsiveness, and visual stability \(LCP, INP/FID, CLS\)\.
+- __Cron Job:__ A time\-based job scheduler in Unix\-like operating systems used to run scripts or commands automatically at specified intervals\.
+- __CRUD:__ Create, Read, Update, Delete\. The four basic functions of persistent storage\.
+- __CSRF:__ Cross\-Site Request Forgery\. An attack that tricks a user into submitting a malicious request\.
+- __CSP:__ Content Security Policy\. A security standard that helps prevent cross\-site scripting \(XSS\) and other injection attacks\.
+- __CDN:__ Content Delivery Network\. A distributed network of servers used to deliver static assets \(images, CSS, JS\) quickly to users based on their geographic location\.
+- __Design System:__ A collection of reusable components, guided by clear standards \(design tokens, patterns, guidelines\), that can be assembled to build applications\.
+- __Design Tokens:__ Named entities storing visual design attributes \(e\.g\., colors, typography, spacing\) used to maintain consistency across platforms\.
+- __DevOps:__ A set of practices that combines software development \(Dev\) and IT operations \(Ops\) to shorten the development life cycle and provide continuous delivery\.
+- __Docker:__ A platform for developing, shipping, and running applications in containers\.
+- __Docusaurus / Docsify:__ Tools for building documentation websites\.
+- __Domain\-Driven Design \(DDD\):__ An approach to software development that focuses on modeling software to match a domain according to input from domain experts\.
+- __DRY:__ Don't Repeat Yourself\. A principle of software development aimed at reducing repetition of information or logic\.
+- __Drizzle ORM:__ A TypeScript ORM \(Object\-Relational Mapper\) for SQL databases\.
+- __E2E Testing:__ End\-to\-End Testing\. A methodology testing an application's flow from start to finish as a user would experience it\.
+- __ESLint:__ A tool for identifying and reporting on patterns found in ECMAScript/JavaScript code, used for linting\.
+- __Fastify:__ A high\-performance Node\.js web framework\.
+- __FCP:__ First Contentful Paint\. A performance metric measuring the time until the first piece of DOM content is rendered\.
+- __FID:__ First Input Delay\. A Core Web Vital metric measuring interactivity \(largely replaced by INP\)\.
+- __Figma:__ A collaborative interface design tool used for UI/UX design\.
+- __Framer Motion:__ A React library for creating production\-ready animations\.
+- __Git:__ A distributed version control system for tracking changes in source code\.
+- __GitFlow:__ A Git branching model involving specific branch types \(main, develop, feature, release, hotfix\)\.
+- __GraphQL:__ A query language for APIs and a runtime for fulfilling those queries with existing data\.
+- __HMR:__ Hot Module Replacement\. A feature of bundlers \(like Vite\) that allows updating modules in a running application without a full reload\.
+- __HSTS:__ HTTP Strict Transport Security\. A security header that tells browsers to only interact with a site using HTTPS\.
+- __HTTP\-only Cookie:__ A cookie attribute restricting access from client\-side scripts, enhancing security against XSS\.
+- __Husky:__ A tool that allows running scripts \(like linters or tests\) against Git hooks \(e\.g\., pre\-commit\)\.
+- __IaC:__ Infrastructure as Code\. Managing and provisioning infrastructure through machine\-readable definition files \(e\.g\., Terraform\)\.
+- __Idempotency:__ An operation where applying it multiple times has the same effect as applying it once\. Important for API design and background jobs\.
+- __IMAP:__ Internet Message Access Protocol\. A protocol for accessing email messages on a mail server\.
+- __IndexedDB:__ A low\-level browser API for client\-side storage of significant amounts of structured data\.
+- __INP:__ Interaction to Next Paint\. A Core Web Vital metric measuring overall responsiveness to user interactions\.
+- __Integration Testing:__ Testing the interaction and communication between different modules or services\.
+- __Jest:__ A JavaScript testing framework\.
+- __JSON:__ JavaScript Object Notation\. A lightweight data\-interchange format\.
+- __JSON\-LD:__ JavaScript Object Notation for Linked Data\. A method of encoding linked data using JSON\.
+- __JWT:__ JSON Web Token\. An open standard for securely transmitting information between parties as a JSON object, commonly used for authentication\.
+- __Kubernetes \(K8s\):__ An open\-source container orchestration system for automating deployment, scaling, and management\.
+- __LCP:__ Largest Contentful Paint\. A Core Web Vital metric measuring loading performance\.
+- __Lighthouse:__ An open\-source, automated tool for improving the quality of web pages \(performance, accessibility, SEO\)\.
+- __Linting:__ The process of running code through a tool \(linter\) to analyze it for potential errors, stylistic issues, and adherence to standards\.
+- __LLM:__ Large Language Model\. An AI model designed to understand and generate human\-like text\.
+- __LocalForage:__ A JavaScript library providing a simple API for client\-side data storage using IndexedDB, WebSQL, or localStorage as backends\.
+- __LQIP:__ Low\-Quality Image Placeholder\. A technique using a very small, blurry version of an image as a placeholder while the full image loads\.
+- __Lucide Icons:__ A popular open\-source SVG icon library\.
+- __Markdown:__ A lightweight markup language for creating formatted text using a plain\-text editor\.
+- __Microservice:__ An architectural style structuring an application as a collection of small, independent, and loosely coupled services\.
+- __Minification:__ The process of removing unnecessary characters \(whitespace, comments\) from code \(HTML, CSS, JS\) to reduce file size\.
+- __MFA:__ Multi\-Factor Authentication\. A security process requiring multiple methods of verification\.
+- __Mocking:__ Creating fake versions of dependencies \(functions, modules, services\) for use during testing\.
+- __MSW:__ Mock Service Worker\. An API mocking library that uses Service Worker API to intercept actual network requests\.
+- __Multi\-Tenancy:__ An architecture where a single instance of software serves multiple distinct user groups \(tenants\) with data isolation\.
+- __Node\.js:__ A JavaScript runtime built on Chrome's V8 engine, used for server\-side development\.
+- __OAuth:__ Open Authorization\. An open standard for access delegation, commonly used for third\-party authentication\.
+- __Observability:__ The ability to measure a system's current state based on the data it generates, such as logs, metrics, and traces\.
+- __Ollama:__ A tool for running large language models locally\.
+- __OpenAPI \(Swagger\):__ A specification for describing, producing, consuming, and visualizing RESTful web services\.
+- __ORM:__ Object\-Relational Mapper\. A tool \(like Prisma or Drizzle\) that maps object\-oriented code to relational database tables\.
+- __OWASP:__ Open Web Application Security Project\. A non\-profit foundation focused on improving software security\. Known for the OWASP Top 10 list of critical web security risks\.
+- __PaaS:__ Platform as a Service\. Cloud computing services that provide a platform allowing customers to develop, run, and manage applications without the complexity of building and maintaining the infrastructure\.
+- __Pagination:__ Dividing large sets of data into discrete pages for easier handling and display\.
+- __PII:__ Personally Identifiable Information\. Data that can be used to identify a specific individual\.
+- __Pinecone:__ A managed vector database service\.
+- __PITR:__ Point\-in\-Time Recovery\. A database backup feature allowing restoration to a specific moment in time\.
+- __Playwright:__ A framework for end\-to\-end web testing and automation\.
+- __pnpm:__ A fast, disk space\-efficient package manager for Node\.js\.
+- __PostCSS:__ A tool for transforming CSS with JavaScript plugins\.
+- __PostgreSQL:__ A powerful, open\-source object\-relational database system\.
+- __Pre\-commit Hook:__ A Git hook that runs scripts before a commit is created, often used for linting or testing\.
+- __Prettier:__ An opinionated code formatter that enforces a consistent style\.
+- __Prisma:__ A next\-generation Node\.js and TypeScript ORM\.
+- __PRD:__ Product Requirements Document\. A document outlining the requirements for a product or feature\.
+- __Prompt Engineering:__ The process of structuring text \(prompts\) that can be interpreted and understood by a generative AI model\.
+- __QA:__ Quality Assurance\. Processes and activities aimed at ensuring quality in products or services\.
+- __RAG:__ Retrieval\-Augmented Generation\. An AI technique combining information retrieval \(from a knowledge base\) with generation \(by an LLM\)\.
+- __RBAC:__ Role\-Based Access Control\. A method of restricting system access based on user roles\.
+- __React:__ A JavaScript library for building user interfaces\.
+- __React Hook Form:__ A library for managing forms in React\.
+- __React Query \(TanStack Query\):__ A library for fetching, caching, synchronizing, and updating server state in React applications\.
+- __React Router:__ A standard library for routing in React applications\.
+- __React Testing Library \(RTL\):__ A library for testing React components in a user\-centric way\.
+- __Redis:__ An in\-memory data structure store, used as a database, cache, message broker, and queue\.
+- __RESTful API:__ Representational State Transfer\. An architectural style for designing networked applications based on resources and HTTP verbs\.
+- __RLS:__ Row\-Level Security\. A database feature restricting data access based on policies applied per row \(often used for multi\-tenancy\)\.
+- __RUM:__ Real User Monitoring\. Performance monitoring that captures data from actual user sessions\.
+- __SaaS:__ Software as a Service\. A software licensing and delivery model where software is licensed on subscription and centrally hosted\.
+- __SameSite Cookie:__ A cookie attribute \(Strict, Lax, None\) that helps mitigate CSRF attacks\.
+- __SCSS:__ Sassy CSS\. A CSS preprocessor adding features like variables, nesting, and mixins\.
+- __SDK:__ Software Development Kit\. A collection of tools, libraries, and documentation for developing applications for a specific platform or service\.
+- __Semantic HTML:__ Using HTML elements according to their meaning \(e\.g\., <nav>, <article>, <button>\) rather than just for presentation \(<div>, <span>\)\. Crucial for accessibility\.
+- __SemVer:__ Semantic Versioning\. A versioning scheme \(MAJOR\.MINOR\.PATCH\) used to convey the nature of changes\.
+- __SendGrid / Mailgun / AWS SES:__ Transactional email services for reliable email delivery\.
+- __Sentry:__ An error tracking and performance monitoring platform\.
+- __SEO:__ Search Engine Optimization\. Practices to improve a website's visibility in search engine results\.
+- __ShadCN UI:__ A collection of reusable UI components for React, often built with Radix UI and Tailwind CSS \(used as inspiration/example\)\.
+- __Snapshot \(Backup\):__ A point\-in\-time copy of data or configuration used for recovery\.
+- __Snapshot Testing:__ A testing technique that compares the rendered output of a component against a stored "snapshot" to detect unintended UI changes\.
+- __Socket\.io / Liveblocks:__ Libraries/services for enabling real\-time, bidirectional communication \(WebSockets\)\.
+- __SPA:__ Single\-Page Application\. A web application that loads a single HTML page and dynamically updates content via JavaScript\.
+- __SQL:__ Structured Query Language\. Language for managing data in relational databases\.
+- __SSG:__ Static Site Generation\. Pre\-building website pages as static HTML files during a build process\.
+- __SSR:__ Server\-Side Rendering\. Rendering React \(or other framework\) components on the server into HTML for the initial page load\.
+- __Storybook:__ A tool for developing, documenting, and testing UI components in isolation\.
+- __Stripe Connect:__ Stripe's platform for multi\-sided marketplaces and platforms to facilitate payments\.
+- __Swagger UI:__ A tool for rendering OpenAPI specifications as interactive API documentation\.
+- __SWR:__ A React Hooks library for data fetching \(Stale\-While\-Revalidate strategy\)\.
+- __Tailwind CSS:__ A utility\-first CSS framework for rapidly building custom designs\.
+- __TanStack Query:__ See React Query\.
+- __TanStack Table / React Table:__ Headless UI library for building powerful tables and datagrids\.
+- __TanStack Virtual:__ See React Virtualized / React Window\.
+- __Task Management:__ The process of defining, organizing, tracking, and executing work items \(tasks\) within a project\.
+- __Terraform / Pulumi / CDK:__ Infrastructure as Code \(IaC\) tools\.
+- __Theme:__ A collection of styles \(colors, fonts, spacing\) defining the visual appearance of a UI\.
+- __TOTP:__ Time\-based One\-Time Password\. An algorithm commonly used for MFA \(e\.g\., Google Authenticator\)\.
+- __Tree Shaking:__ A build optimization process that removes unused code from the final bundle\.
+- __TTI:__ Time to Interactive\. A performance metric measuring when a page becomes reliably responsive to user input\.
+- __TypeScript:__ A typed superset of JavaScript that compiles to plain JavaScript\.
+- __UI/UX:__ User Interface / User Experience\. Encompassing the design, usability, and interaction aspects of a product\.
+- __Unit Testing:__ Testing individual units of code \(functions, components\) in isolation\.
+- __UUID:__ Universally Unique Identifier\. A 128\-bit identifier used to uniquely identify information\.
+- __Vector Database:__ A database optimized for storing and querying high\-dimensional vectors, often used for similarity search in AI applications \(e\.g\., RAG\)\.
+- __Vite:__ A modern frontend build tool focused on speed and developer experience\.
+- __Vitest:__ A fast unit testing framework compatible with Vite\.
+- __WCAG:__ Web Content Accessibility Guidelines\. International standard for web accessibility\.
+- __Webhook:__ An automated message sent from one application to another when something happens \(an event\-driven HTTP callback\)\.
+- __WebP / AVIF:__ Modern image formats offering better compression than older formats like JPEG/PNG\.
+- __WebSocket:__ A protocol providing full\-duplex communication channels over a single TCP connection, used for real\-time applications\.
+- __White\-Label:__ A product or service produced by one company that other companies rebrand to make it appear as if they made it\.
+- __Wouter:__ A minimalist routing library for React \(Note: React Router v6 is the standard for this project\)\.
+- __XSS:__ Cross\-Site Scripting\. A type of security vulnerability where malicious scripts are injected into websites\.
+- __Zod:__ A TypeScript\-first schema declaration and validation library\.
+- __Zustand:__ A small, fast, and scalable state management solution for React\.
+
