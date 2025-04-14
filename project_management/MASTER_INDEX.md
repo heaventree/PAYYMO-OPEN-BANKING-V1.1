@@ -13,31 +13,37 @@ This document serves as the central navigation point for all Payymo project docu
 - [AI_AGENT_GUIDELINES.md](./AI_AGENT_GUIDELINES.md) - Guidelines for AI agents working on the project
 - [project.index.json](./project.index.json) - Machine-readable project structure
 
-## Development Guidelines
+## Technical Documentation
 
-- [md_docs/master_development_guide.md](../md_docs/master_development_guide.md) - Comprehensive development guidelines
-- [md_docs/development_guide.md](../md_docs/development_guide.md) - General development practices
-- [md_docs/api_reference.md](../md_docs/api_reference.md) - API documentation
-- [md_docs/error_handling_guide.md](../md_docs/error_handling_guide.md) - Error handling best practices
-- [md_docs/styling_guide.md](../md_docs/styling_guide.md) - CSS and styling standards
-- [md_docs/testing_guide.md](../md_docs/testing_guide.md) - Testing procedures and standards
+### Development Guidelines
 
-## Integration Documentation
+- [technical/master_development_guide.md](./technical/master_development_guide.md) - Comprehensive development guidelines
+- [technical/super_prompt_template.md](./technical/super_prompt_template.md) - Templates for AI-assisted development
 
-- [md_docs/gocardless_webhooks.md](../md_docs/gocardless_webhooks.md) - GoCardless webhook implementation
-- [md_docs/api_troubleshooting_guide.md](../md_docs/api_troubleshooting_guide.md) - Troubleshooting API issues
-- [md_docs/testing_with_gocardless_cli.md](../md_docs/testing_with_gocardless_cli.md) - Using GoCardless CLI for testing
+### API Documentation
 
-## User Documentation
+- [technical/api_reference.md](./technical/api_reference.md) - API documentation
+- [technical/api_troubleshooting_guide.md](./technical/api_troubleshooting_guide.md) - Troubleshooting API issues
 
-- [md_docs/INSTALL.md](../md_docs/INSTALL.md) - Installation instructions
-- [md_docs/usage_guide.md](../md_docs/usage_guide.md) - User guide for the application
-- [md_docs/troubleshooting.md](../md_docs/troubleshooting.md) - User-facing troubleshooting guide
+### Integration Documentation
 
-## System Documentation
+- [technical/gocardless_webhooks.md](./technical/gocardless_webhooks.md) - GoCardless webhook implementation
+- [technical/testing_with_gocardless_cli.md](./technical/testing_with_gocardless_cli.md) - Using GoCardless CLI for testing
 
-- [md_docs/safety_and_backup_systems.md](../md_docs/safety_and_backup_systems.md) - Backup and recovery procedures
-- [md_docs/non_breaking_implementation_guide.md](../md_docs/non_breaking_implementation_guide.md) - Guide for safe implementations
+### User Documentation
+
+- [technical/usage_guide.md](./technical/usage_guide.md) - User guide for the application
+- [technical/troubleshooting.md](./technical/troubleshooting.md) - User-facing troubleshooting guide
+
+### System Documentation
+
+- [technical/safety_and_backup_systems.md](./technical/safety_and_backup_systems.md) - Backup and recovery procedures
+- [technical/environment_setup.md](./technical/environment_setup.md) - Environment variables and setup guide
+
+### Test Data
+
+- [technical/test-transactions.json](./technical/test-transactions.json) - Sample transaction data for testing
+- [technical/test-webhook.json](./technical/test-webhook.json) - Sample webhook data for testing
 
 ## Updated Guidelines (April 10, 2025)
 

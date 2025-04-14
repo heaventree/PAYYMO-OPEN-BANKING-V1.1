@@ -1,0 +1,212 @@
+<!-- Stripe Connection Wizard Modal -->
+<div class="modal fade" id="stripeConnectionModal" tabindex="-1" aria-labelledby="stripeConnectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title" id="stripeConnectionModalLabel">Connect Your Stripe Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <!-- Wizard Progress -->
+                <div class="wizard-progress py-2 px-4 bg-light border-bottom">
+                    <div class="d-flex justify-content-between align-items-center position-relative">
+                        <div class="progress position-absolute" style="height: 2px; width: 100%; z-index: 1;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="step d-flex flex-column align-items-center" style="z-index: 2;">
+                            <div class="step-icon bg-primary text-white d-flex align-items-center justify-content-center">
+                                <span>1</span>
+                            </div>
+                            <div class="step-label">About Stripe</div>
+                        </div>
+                        <div class="step d-flex flex-column align-items-center" style="z-index: 2;">
+                            <div class="step-icon bg-light border d-flex align-items-center justify-content-center">
+                                <span>2</span>
+                            </div>
+                            <div class="step-label">Authorize</div>
+                        </div>
+                        <div class="step d-flex flex-column align-items-center" style="z-index: 2;">
+                            <div class="step-icon bg-light border d-flex align-items-center justify-content-center">
+                                <span>3</span>
+                            </div>
+                            <div class="step-label">Complete</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4">
+                    <!-- Step 1: About Stripe -->
+                    <div class="step-content step-1">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-2">Connect to Stripe</h5>
+                                <p class="text-muted mb-3">Link your Stripe account to match payments with invoices.</p>
+                                
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-start mb-2">
+                                        <div class="step-number me-2">1</div>
+                                        <div>
+                                            <h6 class="mb-1">Link your existing Stripe account</h6>
+                                            <p class="text-muted small mb-0">We'll connect to your Stripe account using OAuth.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-start mb-2">
+                                        <div class="step-number me-2">2</div>
+                                        <div>
+                                            <h6 class="mb-1">Grant limited permissions</h6>
+                                            <p class="text-muted small mb-0">We only need read access to match payments to invoices.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-start">
+                                        <div class="step-number me-2">3</div>
+                                        <div>
+                                            <h6 class="mb-1">Start reconciling payments</h6>
+                                            <p class="text-muted small mb-0">Payments will be automatically matched to invoices.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-warning d-flex align-items-center small">
+                                    <i data-lucide="alert-triangle" class="me-2 flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                                    <div>
+                                        <strong>Don't have a Stripe account?</strong>
+                                        <div>You'll need to <a href="https://dashboard.stripe.com/register" target="_blank" class="alert-link">create a Stripe account</a> first.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="https://stripe.com/img/v3/home/social.png" alt="Stripe Logo" height="40">
+                                    </div>
+                                    <h6>What is Stripe?</h6>
+                                    <p class="text-muted small mb-3">Stripe is a suite of payment APIs that powers commerce for online businesses of all sizes, including fraud prevention, and subscription management.</p>
+                                    
+                                    <h6>Benefits of connecting:</h6>
+                                    <ul class="text-muted small mb-0">
+                                        <li>Automatically match Stripe payments to invoices</li>
+                                        <li>View payment status in real-time</li>
+                                        <li>Reconcile payments with accounting systems</li>
+                                        <li>Reduce manual data entry and errors</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Authorize Stripe -->
+                    <div class="step-content step-2 d-none">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Connect to Stripe</h5>
+                                <p class="text-muted">You'll be redirected to Stripe to securely authorize access.</p>
+                                
+                                <div class="auth-permissions mt-4">
+                                    <h6 class="mb-2">You're granting permission to:</h6>
+                                    <div class="row g-0">
+                                        <div class="col-md-6">
+                                            <ul class="list-group mb-0">
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center">
+                                                    <i data-lucide="check-circle" class="text-success me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>Read payment information</span>
+                                                </li>
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center">
+                                                    <i data-lucide="check-circle" class="text-success me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>View customer data</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <ul class="list-group mb-0">
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center">
+                                                    <i data-lucide="check-circle" class="text-success me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>Match payments to invoices</span>
+                                                </li>
+                                                <li class="list-group-item border-0 ps-0 py-1 d-flex align-items-center text-muted">
+                                                    <i data-lucide="x-circle" class="text-muted me-2 flex-shrink-0" style="width: 16px; height: 16px;"></i>
+                                                    <span>No permission to create charges</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="auth-info border rounded p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i data-lucide="shield-check" class="text-success me-2 flex-shrink-0" style="width: 20px; height: 20px;"></i>
+                                        <h6 class="mb-0">Secure Connection</h6>
+                                    </div>
+                                    <p class="text-muted small mb-0">Your credentials are never stored. We use Stripe's OAuth APIs to securely connect to your account.</p>
+                                </div>
+                                
+                                <div class="stripe-preview mt-3 text-center p-3 border rounded">
+                                    <div class="d-flex justify-content-center mb-2">
+                                        <img src="https://stripe.com/img/v3/home/social.png" alt="Stripe Logo" height="48">
+                                    </div>
+                                    <h5 class="mb-1">Stripe Account Connection</h5>
+                                    <p class="text-muted small mb-0">You'll be redirected to Stripe's secure authorization page</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Complete -->
+                    <div class="step-content step-3 d-none">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 text-center text-md-start">
+                                <i data-lucide="check-circle" style="width: 48px; height: 48px;" class="mb-3 text-success"></i>
+                                <h5 class="mb-3">Connection Complete</h5>
+                                <p class="text-muted">Your Stripe account has been successfully connected.</p>
+                                
+                                <div class="connected-account border rounded p-3 mb-3 d-flex align-items-center">
+                                    <div class="d-flex align-items-center me-3">
+                                        <img src="https://stripe.com/img/v3/home/social.png" alt="Stripe Logo" height="40" class="me-2">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">Connected Stripe Account</h6>
+                                        <p class="mb-0 small text-muted" id="stripeAccountEmail">account@example.com</p>
+                                    </div>
+                                    <span class="badge bg-success">Connected</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="connection-info">
+                                    <h6 class="mb-2">What happens next?</h6>
+                                    <div class="alert alert-light border mb-0">
+                                        <ol class="mb-0 ps-3">
+                                            <li class="mb-2">We'll start importing your Stripe payments automatically</li>
+                                            <li class="mb-2">Payments will be matched to invoices</li>
+                                            <li>You'll receive notifications for any payments that need review</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="stripeWizardNextBtn">Continue to Authorization</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-number {
+    width: 24px;
+    height: 24px;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+</style>
