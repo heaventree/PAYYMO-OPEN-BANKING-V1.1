@@ -17,10 +17,23 @@ This document serves as the central navigation point for all Payymo project docu
 
 ## Technical Documentation
 
+### Architecture
+
+- [technical/architecture/MULTI_TENANT_ARCHITECTURE.md](./technical/architecture/MULTI_TENANT_ARCHITECTURE.md) - Multi-tenant architecture design
+
 ### Development Guidelines
 
 - [technical/master_development_guide.md](./technical/master_development_guide.md) - Comprehensive development guidelines
 - [technical/super_prompt_template.md](./technical/super_prompt_template.md) - Templates for AI-assisted development
+
+### Best Practices
+
+- [technical/best_practices/ERROR_HANDLING.md](./technical/best_practices/ERROR_HANDLING.md) - Error handling and debugging standards
+- [technical/best_practices/API_INTEGRATION_GUIDELINES.md](./technical/best_practices/API_INTEGRATION_GUIDELINES.md) - API integration best practices
+
+### Security
+
+- [technical/security/SECURITY_GUIDELINES.md](./technical/security/SECURITY_GUIDELINES.md) - Security standards and best practices
 
 ### API Documentation
 
