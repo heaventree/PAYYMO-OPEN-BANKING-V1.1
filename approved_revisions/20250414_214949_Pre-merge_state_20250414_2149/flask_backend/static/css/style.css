@@ -1,0 +1,245 @@
+/**
+ * Payymo - Financial Management Dashboard
+ * Custom styling for the Steex theme
+ */
+
+/* Status badges for transaction matches */
+.status-badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 500;
+    line-height: 1;
+    border-radius: 0.25rem;
+}
+
+.status-active {
+    background-color: rgba(10, 179, 156, 0.18);
+    color: #0ab39c;
+}
+
+.status-pending {
+    background-color: rgba(247, 184, 75, 0.18);
+    color: #f7b84b;
+}
+
+.status-rejected {
+    background-color: rgba(240, 101, 72, 0.18);
+    color: #f06548;
+}
+
+/* Widget cards on dashboard */
+.widget-card .widget-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    width: 48px;
+    border-radius: 50%;
+    font-size: 24px;
+}
+
+/* Custom tabs styling */
+.custom-tabs .nav-link {
+    color: var(--bs-gray-400);
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+.custom-tabs .nav-link.active {
+    color: var(--bs-primary);
+    background-color: transparent;
+    border-bottom: 2px solid var(--bs-primary);
+}
+
+/* Chart tooltips */
+.apexcharts-tooltip {
+    background-color: #212529 !important;
+    border: 1px solid #495057 !important;
+    color: #e9ecef !important;
+}
+
+/* Quick Insights panel */
+.quick-insights {
+    position: relative;
+    padding: 15px;
+    border-radius: 0.25rem;
+    background-color: rgba(114, 124, 245, 0.1);
+    border-left: 3px solid #727cf5;
+}
+
+.quick-insights-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.quick-insights-content {
+    font-size: 13px;
+}
+
+/* Wizard steps */
+.wizard-steps {
+    display: flex;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.wizard-step-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bs-gray-800);
+    color: var(--bs-gray-400);
+    font-weight: 600;
+    margin-bottom: 10px;
+    z-index: 5;
+    position: relative;
+}
+
+.wizard-step.completed .wizard-step-icon {
+    background-color: var(--bs-success);
+    color: #fff;
+}
+
+.wizard-step.active .wizard-step-icon {
+    background-color: var(--bs-primary);
+    color: #fff;
+}
+
+.wizard-step-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--bs-gray-400);
+}
+
+.wizard-step.active .wizard-step-text {
+    color: var(--bs-primary);
+}
+
+.wizard-step.completed .wizard-step-text {
+    color: var(--bs-success);
+}
+
+.wizard-steps:before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--bs-gray-800);
+    z-index: 1;
+}
+
+.wizard-step:first-child:before {
+    display: none;
+}
+
+.wizard-content {
+    padding: 20px 0;
+}
+
+.wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* Section identifiers for organization */
+.section-identifier {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.section-identifier:before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 2px;
+}
+
+.section-bank:before {
+    background-color: #0ab39c;
+}
+
+.section-stripe:before {
+    background-color: #6259ca;
+}
+
+.section-reports:before {
+    background-color: #f7b84b;
+}
+
+/* Quick Insights Widget */
+#quick-insights-widget {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+#quick-insights-widget.widget-minimized .card-body {
+    display: none;
+}
+
+#quick-insights-widget .card-header {
+    cursor: move;
+    padding: 0.75rem 1.25rem;
+}
+
+#quick-insights-widget .btn-icon {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.insight-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(114, 124, 245, 0.1);
+    border-radius: 50%;
+}
+
+.text-success .insight-icon {
+    color: #0ab39c;
+}
+
+.text-warning .insight-icon {
+    color: #f7b84b;
+}
+
+.text-info .insight-icon {
+    color: #299cdb;
+}
+
+.navigation-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.navigation-buttons .btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
