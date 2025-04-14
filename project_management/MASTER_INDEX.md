@@ -11,6 +11,8 @@ This document serves as the central navigation point for all Payymo project docu
 - [ISSUES.md](./ISSUES.md) - Known issues, bugs, and their resolution status
 - [CHANGELOG.md](./CHANGELOG.md) - History of changes to the project
 - [AI_AGENT_GUIDELINES.md](./AI_AGENT_GUIDELINES.md) - Guidelines for AI agents working on the project
+- [STRUCTURE.md](./STRUCTURE.md) - Documentation structure and organization
+- [CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md) - Plan for consolidating documentation
 - [project.index.json](./project.index.json) - Machine-readable project structure
 
 ## Technical Documentation
