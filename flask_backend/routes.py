@@ -112,6 +112,7 @@ def license_info():
         return handle_error(e)
 
 @app.route('/api/gocardless/auth', methods=['POST'])
+@limiter.limit("10 per minute")  # Rate limiting for GoCardless auth
 def gocardless_auth():
     """Get GoCardless authorization URL"""
     try:
@@ -151,6 +152,7 @@ def gocardless_auth():
         return handle_error(e)
 
 @app.route('/api/gocardless/callback', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")  # Rate limiting for GoCardless OAuth callback
 def gocardless_callback():
     """Handle GoCardless OAuth callback"""
     try:
@@ -264,6 +266,7 @@ def gocardless_webhook():
         return handle_error(e)
 
 @app.route('/api/transactions/fetch', methods=['POST'])
+@limiter.limit("30 per minute")  # Higher limit for transaction fetching as it's a common operation
 def fetch_transactions():
     """Fetch transactions from GoCardless for a specific bank account"""
     try:
@@ -319,6 +322,7 @@ def fetch_transactions():
         return handle_error(e)
 
 @app.route('/api/transactions/match', methods=['POST'])
+@limiter.limit("20 per minute")  # Limit match transaction requests
 def match_transaction():
     """Match a transaction to an invoice"""
     try:
@@ -355,6 +359,7 @@ def match_transaction():
         return handle_error(e)
 
 @app.route('/api/match/apply', methods=['POST'])
+@limiter.limit("15 per minute")  # Rate limiting for applying matches
 def apply_match():
     """Apply a match between a transaction and an invoice"""
     try:
@@ -391,6 +396,7 @@ def apply_match():
         return handle_error(e)
 
 @app.route('/api/match/reject', methods=['POST'])
+@limiter.limit("15 per minute")  # Rate limiting for rejecting matches
 def reject_match():
     """Reject a match between a transaction and an invoice"""
     try:
@@ -429,6 +435,7 @@ def reject_match():
 # ============= Stripe API Endpoints =============
 
 @app.route('/api/stripe/auth', methods=['POST'])
+@limiter.limit("10 per minute")  # Rate limiting for Stripe auth endpoint
 def stripe_auth():
     """Get Stripe authorization URL"""
     try:
@@ -465,6 +472,7 @@ def stripe_auth():
         return handle_error(e)
 
 @app.route('/api/stripe/callback', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")  # Rate limiting for Stripe OAuth callback
 def stripe_callback():
     """Handle Stripe OAuth callback"""
     try:
@@ -488,6 +496,7 @@ def stripe_callback():
         return handle_error(e)
 
 @app.route('/api/stripe/transactions/fetch', methods=['POST'])
+@limiter.limit("30 per minute")  # Higher limit for fetching Stripe transaction data
 def fetch_stripe_transactions():
     """Fetch transaction records from Stripe for a specific account"""
     try:
@@ -528,6 +537,7 @@ def fetch_stripe_transactions():
         return handle_error(e)
 
 @app.route('/api/stripe/balance', methods=['POST'])
+@limiter.limit("30 per minute")  # Rate limiting for Stripe balance endpoint
 def get_stripe_balance():
     """Get Stripe account balance"""
     try:
