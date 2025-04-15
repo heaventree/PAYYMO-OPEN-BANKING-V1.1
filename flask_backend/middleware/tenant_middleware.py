@@ -63,10 +63,8 @@ def tenant_middleware():
                 return f(*args, **kwargs)
             finally:
                 # Always clear tenant context after request
-                @request.after_this_request
-                def clear_tenant_context(response):
-                    tenant_service.clear_current_tenant()
-                    return response
+                # This will be handled by app.teardown_request
+                pass
         
         return wrapped
     
@@ -101,8 +99,7 @@ def setup_tenant_filters(app):
     # Replace session query method
     db.session.query = tenant_aware_query
     
-    # Add event listener for Query execution
-    @listen(Query, 'before_compile', retval=True)
+    # Define before_compile function
     def before_compile(query):
         # Skip if no _entity_for_tenant
         if not hasattr(query, '_entity_for_tenant'):
@@ -118,5 +115,8 @@ def setup_tenant_filters(app):
         query = tenant_service.apply_tenant_filter(query, model)
         
         return query
+    
+    # Add event listener for Query execution
+    listen(Query, 'before_compile', before_compile, retval=True)
     
     logger.info("Tenant filters set up successfully")

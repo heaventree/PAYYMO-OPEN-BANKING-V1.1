@@ -13,8 +13,7 @@ from flask_backend.services.gocardless_service_updated import GoCardlessService
 from flask_backend.services.license_service import LicenseService
 from flask_backend.services.invoice_matching_service import InvoiceMatchingService
 from flask_backend.services.stripe_service import StripeService
-from flask_backend.utils.error_handler import handle_error, APIError
-from flask_backend.utils.logger import log_api_request
+from flask_backend.utils.error_handler import APIError, handle_error
 from flask_backend.utils.gocardless_errors import (
     GoCardlessError, GoCardlessAuthError, GoCardlessBankConnectionError,
     GoCardlessTransactionError, GoCardlessWebhookError, handle_gocardless_error
@@ -34,11 +33,7 @@ def handle_all_exceptions(error):
     """Global exception handler that returns formatted JSON responses"""
     return handle_error(error)
 
-@app.before_request
-def log_request():
-    """Log all incoming API requests"""
-    if request.path.startswith('/api/'):
-        log_api_request(request)
+# API requests are now logged by middleware in utils/logger.py
 
 # ============= API Endpoints =============
 
