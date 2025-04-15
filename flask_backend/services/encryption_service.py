@@ -37,29 +37,26 @@ class EncryptionService:
         Args:
             app: Flask application instance
         """
-        # Get encryption key from environment
-        encryption_key = os.environ.get('ENCRYPTION_KEY')
+        # Get encryption key from secrets service
+        from flask_backend.services.secrets_service import secrets_service
+        
+        encryption_key = secrets_service.get_secret('ENCRYPTION_KEY')
+        is_production = os.environ.get('ENVIRONMENT') == 'production'
         
         if not encryption_key:
-            # If no encryption key is provided, derive one from the app secret key
-            # This is less secure but better than nothing
-            logger.warning("No encryption key found in environment. Using app secret for key derivation.")
-            # Get app secret key
-            app_secret = app.secret_key
-            if not app_secret:
-                logger.error("No app secret key available for key derivation.")
+            if is_production:
+                logger.critical("No encryption key available in production environment.")
+                logger.error("For security reasons, encryption is disabled in production without a proper key.")
                 return
-            
-            # Derive key from app secret using PBKDF2
-            salt = b'payymo_salt'  # Fixed salt, not ideal but consistent
-            kdf = PBKDF2HMAC(
-                algorithm=hashes.SHA256(),
-                length=32,
-                salt=salt,
-                iterations=100000,
-            )
-            derived_key = base64.urlsafe_b64encode(kdf.derive(app_secret.encode()))
-            self.fernet = Fernet(derived_key)
+            else:
+                # In development, generate a temporary key
+                logger.warning("No encryption key found. Generating temporary development key.")
+                encryption_key = secrets_service.generate_secure_token(32)
+                # Store the temporary key in secrets service for consistency
+                secrets_service.set_secret('ENCRYPTION_KEY', encryption_key)
+                # Convert to valid Fernet key
+                encryption_key = self._to_fernet_key(encryption_key)
+                self.fernet = Fernet(encryption_key.encode())
         else:
             # Use provided encryption key
             # Ensure it's base64 encoded and 32 bytes when decoded

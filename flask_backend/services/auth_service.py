@@ -42,11 +42,22 @@ class AuthService:
         Args:
             app: Flask application instance
         """
-        # Get JWT secret key from environment or app secret
-        self.secret_key = os.environ.get('JWT_SECRET_KEY', app.secret_key)
+        # Get JWT secret key from secrets service
+        from flask_backend.services.secrets_service import secrets_service
+        self.secret_key = secrets_service.get_secret('JWT_SECRET_KEY')
         
-        # Get token expiry from environment or use default
-        self.token_expiry = int(os.environ.get('JWT_TOKEN_EXPIRY', self.token_expiry))
+        # Fallback only if the secrets service doesn't have the key
+        if not self.secret_key:
+            if os.environ.get('ENVIRONMENT') == 'production':
+                logger.critical("JWT_SECRET_KEY not found in production environment")
+            else:
+                logger.warning("Using generated JWT key - not secure for production")
+                self.secret_key = secrets_service.generate_secure_token(32)
+                # Store the generated key in the secrets service
+                secrets_service.set_secret('JWT_SECRET_KEY', self.secret_key)
+        
+        # Get token expiry from app config or use default
+        self.token_expiry = int(app.config.get('JWT_EXPIRATION', self.token_expiry))
         
         self.initialized = True
         logger.info("Authentication service initialized successfully")

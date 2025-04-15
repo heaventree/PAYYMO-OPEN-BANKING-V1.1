@@ -1,170 +1,171 @@
 """
-Secrets Management Service
+Secrets Service
+--------------
+A centralized service for managing and accessing secrets and sensitive configuration
+values throughout the application. This provides a secure, consistent way to handle
+encryption keys, API keys, and other sensitive data.
 
-This service provides secure access to application secrets with proper error handling,
-rotation support, and no default values for sensitive data.
+Key features:
+1. Securely store and retrieve sensitive configuration values
+2. Centralized validation and access control for secrets
+3. Predictable fallbacks and development modes with appropriate warnings
+4. Unified logging for security-related operations
 """
-import os
-import logging
-import time
-from functools import wraps
-from typing import Optional, Dict, Any, Callable
 
-# Initialize logging
+import os
+import secrets
+import logging
+from typing import Optional, Dict, Any, Union
+
 logger = logging.getLogger(__name__)
 
-class SecretNotFoundException(Exception):
-    """Exception raised when a requested secret is not found"""
-    pass
-
-class SecretAccessDeniedException(Exception):
-    """Exception raised when access to a secret is denied"""
-    pass
-
 class SecretsService:
-    """
-    Service for managing application secrets.
-    This implementation uses environment variables but is designed to be
-    easily extended to use vault services like HashiCorp Vault or AWS Secrets Manager.
-    """
+    """Service for managing application secrets and sensitive configuration values"""
     
     def __init__(self):
-        """Initialize the secrets service"""
-        self.cache: Dict[str, Dict[str, Any]] = {}
-        self.app = None
-        self.required_secrets = [
-            "SESSION_SECRET",
-            "JWT_SECRET_KEY",
-            "SUPER_ADMIN_KEY",
-            "ENCRYPTION_KEY"
-        ]
-        self.initialized = False
-    
+        self._app = None
+        self._initialized = False
+        self._secrets_cache = {}
+        
     def init_app(self, app):
-        """
-        Initialize the secrets service with a Flask app instance
+        """Initialize the secrets service with the Flask app"""
+        self._app = app
+        self._load_secrets()
+        self._validate_critical_secrets()
+        self._initialized = True
+        logger.info("Secrets service initialized")
         
-        Args:
-            app: Flask application instance
-        """
-        self.app = app
+    def _load_secrets(self):
+        """Load secrets from environment variables and app config"""
+        if not self._app:
+            logger.error("Cannot load secrets without app context")
+            return
+            
+        # Determine environment
+        self.is_production = os.environ.get('ENVIRONMENT') == 'production'
         
-        # Check for required secrets on startup
-        missing_secrets = []
-        for secret_name in self.required_secrets:
-            if not os.environ.get(secret_name):
-                missing_secrets.append(secret_name)
+        # Load predefined secrets
+        self._secrets_cache = {
+            'JWT_SECRET_KEY': self._app.config.get('JWT_SECRET_KEY'),
+            'ENCRYPTION_KEY': self._app.config.get('ENCRYPTION_KEY'),
+            'SUPER_ADMIN_KEY': self._app.config.get('SUPER_ADMIN_KEY'),
+            'SESSION_SECRET': self._app.secret_key,
+        }
         
-        if missing_secrets:
-            logger.critical(f"Missing required secrets: {', '.join(missing_secrets)}")
-            if app.config.get('ENVIRONMENT') == 'production':
-                raise SecretNotFoundException(f"Missing required secrets: {', '.join(missing_secrets)}")
-            else:
-                logger.warning("Running in development mode without all required secrets!")
+    def _validate_critical_secrets(self):
+        """Validate that all critical secrets are available"""
+        critical_secrets = ['JWT_SECRET_KEY', 'ENCRYPTION_KEY', 'SUPER_ADMIN_KEY', 'SESSION_SECRET']
         
-        # Log success but don't expose any secret values
-        logger.info(f"Secrets service initialized with {len(self.required_secrets)} required secrets")
-        self.initialized = True
+        for secret_name in critical_secrets:
+            if not self._secrets_cache.get(secret_name):
+                if self.is_production:
+                    logger.critical(f"{secret_name} is not set in production environment")
+                else:
+                    logger.warning(f"{secret_name} is not set in development environment")
     
-    def get_secret(self, secret_name: str, raise_if_missing: bool = True) -> Optional[str]:
+    def get_secret(self, name: str, default: Any = None) -> Union[str, bytes, None]:
         """
         Get a secret value by name
         
         Args:
-            secret_name: Name of the secret to retrieve
-            raise_if_missing: Whether to raise an exception if secret is missing
+            name: Name of the secret to retrieve
+            default: Optional default value if secret is not found
             
         Returns:
-            Secret value or None if not found and raise_if_missing is False
-            
-        Raises:
-            SecretNotFoundException: If secret is not found and raise_if_missing is True
+            The secret value or default
         """
-        if not self.initialized:
-            logger.warning("Secrets service not initialized!")
-        
-        # Check if we have access to this secret
-        if not self._can_access_secret(secret_name):
-            logger.error(f"Unauthorized access attempt to secret: {secret_name}")
-            raise SecretAccessDeniedException(f"Access denied to secret: {secret_name}")
-        
-        # Get secret from environment
-        secret_value = os.environ.get(secret_name)
-        
-        # If missing and should raise
-        if not secret_value and raise_if_missing:
-            logger.error(f"Secret not found: {secret_name}")
-            raise SecretNotFoundException(f"Secret not found: {secret_name}")
+        if not self._initialized:
+            logger.error("Secrets service not initialized")
+            return default
             
-        # Log access but not the value
-        logger.debug(f"Secret accessed: {secret_name}")
+        # First check cache
+        secret = self._secrets_cache.get(name)
+        if secret:
+            return secret
+            
+        # Then check app config
+        if self._app and name in self._app.config:
+            self._secrets_cache[name] = self._app.config[name]
+            return self._app.config[name]
+            
+        # Finally check environment
+        env_secret = os.environ.get(name)
+        if env_secret:
+            self._secrets_cache[name] = env_secret
+            return env_secret
+            
+        # Not found
+        logger.warning(f"Secret {name} not found")
+        return default
         
-        return secret_value
-    
-    def rotate_secret(self, secret_name: str, new_value: str) -> bool:
+    def set_secret(self, name: str, value: Any) -> bool:
         """
-        Rotate a secret value (for future implementation with vault services)
+        Set a secret value (only for development/testing)
         
         Args:
-            secret_name: Name of the secret to rotate
-            new_value: New value for the secret
+            name: Name of the secret to set
+            value: Value to set
             
         Returns:
             Success status
+        """
+        if self.is_production:
+            logger.error("Cannot set secrets at runtime in production")
+            return False
             
-        Note:
-            This is a placeholder for future implementation with a proper vault service
-        """
-        # This would be implemented with a proper vault service
-        logger.warning("Secret rotation not implemented for environment variables")
-        return False
-    
-    def require_secret(self, secret_name: str) -> Callable:
-        """
-        Decorator to require a secret for a function
+        if not self._initialized:
+            logger.error("Secrets service not initialized")
+            return False
+            
+        self._secrets_cache[name] = value
         
-        Args:
-            secret_name: Name of the required secret
+        # Also set in app config
+        if self._app:
+            self._app.config[name] = value
             
-        Returns:
-            Decorator function
-        """
-        def decorator(f):
-            @wraps(f)
-            def wrapper(*args, **kwargs):
-                # Check if secret exists
-                self.get_secret(secret_name)
-                # If we get here, secret exists
-                return f(*args, **kwargs)
-            return wrapper
-        return decorator
-    
-    def _can_access_secret(self, secret_name: str) -> bool:
-        """
-        Check if the current context can access the requested secret
-        
-        Args:
-            secret_name: Name of the secret to check
-            
-        Returns:
-            True if access is allowed, False otherwise
-        """
-        # In a real implementation, this would check against permissions
-        # For now, we allow access to all secrets
         return True
-    
-    def validate_all_required(self) -> Dict[str, bool]:
-        """
-        Validate that all required secrets are available
         
+    def generate_secure_token(self, length: int = 32) -> str:
+        """
+        Generate a cryptographically secure token
+        
+        Args:
+            length: Length of the token in bytes
+            
         Returns:
-            Dictionary of secret names and their availability status
+            A secure hex token string
         """
-        status = {}
-        for secret_name in self.required_secrets:
-            status[secret_name] = os.environ.get(secret_name) is not None
+        return secrets.token_hex(length)
         
-        return status
+    def rotate_secret(self, name: str) -> Optional[str]:
+        """
+        Rotate a secret to a new value (development only)
+        
+        Args:
+            name: Name of the secret to rotate
+            
+        Returns:
+            The new secret value or None if failed
+        """
+        if self.is_production:
+            logger.error("Cannot rotate secrets at runtime in production")
+            return None
+            
+        if not self._initialized:
+            logger.error("Secrets service not initialized")
+            return None
+            
+        # Generate a new secret
+        new_secret = self.generate_secure_token()
+        
+        # Store it
+        success = self.set_secret(name, new_secret)
+        if success:
+            logger.info(f"Secret {name} rotated successfully")
+            return new_secret
+        else:
+            logger.error(f"Failed to rotate secret {name}")
+            return None
 
-# Create singleton instance
+# Singleton instance
 secrets_service = SecretsService()
