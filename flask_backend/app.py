@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from functools import wraps
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG,
@@ -35,6 +37,15 @@ app = Flask(__name__)
 
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
+
+# Initialize rate limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+    strategy="fixed-window"
+)
 
 # Set secret key from environment variable or use a default for development
 app.secret_key = os.environ.get("SESSION_SECRET", "payymo_dev_secret_key")
