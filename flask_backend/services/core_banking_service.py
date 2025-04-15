@@ -92,8 +92,12 @@ class CoreBankingService(BaseService):
         self._client_id = vault_service.get_secret('GOCARDLESS_CLIENT_ID')
         self._client_secret = vault_service.get_secret('GOCARDLESS_CLIENT_SECRET')
         
-        # Determine environment
-        self._sandbox_mode = app.config.get('GOCARDLESS_SANDBOX_MODE', 'true').lower() == 'true'
+        # Determine environment - ensure we're handling the value correctly
+        sandbox_mode_config = app.config.get('GOCARDLESS_SANDBOX_MODE', 'true')
+        if isinstance(sandbox_mode_config, bool):
+            self._sandbox_mode = sandbox_mode_config
+        else:
+            self._sandbox_mode = str(sandbox_mode_config).lower() == 'true'
         
         # Configure based on environment
         if self._sandbox_mode:

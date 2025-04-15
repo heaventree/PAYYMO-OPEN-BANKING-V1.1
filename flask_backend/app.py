@@ -113,6 +113,7 @@ service_registry.register('encryption', encryption_service, dependencies=['vault
 service_registry.register('auth', auth_service, dependencies=['vault', 'encryption'])
 service_registry.register('tenant', tenant_service)
 service_registry.register('transaction', transaction_service)
+service_registry.register('core_banking', core_banking_service, dependencies=['vault'])
 
 # Initialize all services in the correct order
 service_registry.initialize(app)
