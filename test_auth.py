@@ -27,7 +27,7 @@ def test_register():
     username = f"testuser_{timestamp}"
     
     data = {
-        "email": f"{username}@example.com",
+        "email": f"{username}@testdomain.org",
         "username": username,
         "password": "SecurePassword123!"
     }
@@ -67,14 +67,14 @@ def test_login_with_invalid_credentials():
     
     # Test with non-existent email
     data1 = {
-        "email": "nonexistent_user@example.com",
+        "email": "nonexistent_user@testdomain.org",
         "password": "AnyPassword123!"
     }
     
     # Test with existing email but wrong password
     # For this test to work, you need a known user in the system
     data2 = {
-        "email": "admin@example.com",  # Assuming this user exists
+        "email": "admin@testdomain.org",  # Assuming this user exists
         "password": "WrongPassword123!"
     }
     
@@ -93,8 +93,9 @@ def test_login_with_invalid_credentials():
     # Check response codes (both should be the same for security)
     security_passed = True
     
+    # Our enhanced system returns a 401 status code for authentication failures
     if response1.status_code != 401 or response2.status_code != 401:
-        logger.error("❌ Security test failed: Different response codes for invalid credentials")
+        logger.error(f"❌ Security test failed: Different response codes for invalid credentials: {response1.status_code} vs {response2.status_code}")
         security_passed = False
     
     # Check if both responses have the same error message
