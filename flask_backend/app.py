@@ -197,8 +197,18 @@ def register_middleware(app):
 
 def setup_request_context():
     """Setup request context for each request"""
-    # Set super admin status in g
-    g.is_super_admin = request.headers.get('X-Super-Admin-Key') == app.config['SUPER_ADMIN_KEY']
+    # Set super admin status in g using secrets service for secure key comparison
+    from flask_backend.services.secrets_service import secrets_service
+    from secrets import compare_digest
+    
+    admin_key_header = request.headers.get('X-Super-Admin-Key')
+    super_admin_key = secrets_service.get_secret('SUPER_ADMIN_KEY')
+    
+    if not admin_key_header or not super_admin_key:
+        g.is_super_admin = False
+    else:
+        # Use constant-time comparison to prevent timing attacks
+        g.is_super_admin = compare_digest(admin_key_header, super_admin_key)
     
     # Set current tenant in g (for use in templates)
     g.tenant_id = None
