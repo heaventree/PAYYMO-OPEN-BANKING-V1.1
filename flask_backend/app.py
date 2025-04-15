@@ -199,6 +199,10 @@ setup_logging(app)
 from flask_backend.utils.error_handler import register_error_handlers
 register_error_handlers(app)
 
+# Register migration utilities with Flask CLI
+from flask_backend.utils.migrations import register_migration_commands
+register_migration_commands(app)
+
 # Import routes
 with app.app_context():
     # Import routes and models here to avoid circular imports
@@ -209,8 +213,20 @@ with app.app_context():
     from flask_backend.routes_auth import register_auth_routes
     import flask_backend.models
     
-    # Create all database tables
-    db.create_all()
+    # Check if tables need to be created
+    from flask_backend.utils.migrations import check_migrations_status
+    
+    if IS_DEVELOPMENT:
+        # In development, create tables automatically for convenience
+        # but log a warning to encourage using proper migrations
+        logger.warning("Using db.create_all() for development. Use migrations in production.")
+        db.create_all()
+    else:
+        # In production environments, use migrations
+        is_up_to_date, message = check_migrations_status()
+        if not is_up_to_date:
+            logger.warning(f"Database migrations needed: {message}")
+            logger.warning("Run 'python manage.py db upgrade' to apply migrations")
     
     # Register middleware
     register_middleware(app)
