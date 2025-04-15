@@ -10,11 +10,12 @@ import hashlib
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from flask_backend.services.base_service import BaseService
 
 # Logger
 logger = logging.getLogger(__name__)
 
-class EncryptionService:
+class EncryptionService(BaseService):
     """Service for encrypting and decrypting sensitive data"""
     
     def __init__(self, app=None):
@@ -25,10 +26,36 @@ class EncryptionService:
             app: Flask application instance
         """
         self.fernet = None
-        self.initialized = False
+        self._initialized = False
+        self._app = None
         
         if app:
             self.init_app(app)
+            
+    @property
+    def initialized(self):
+        """
+        Return whether the service is initialized
+        
+        Returns:
+            bool: True if initialized, False otherwise
+        """
+        return self._initialized
+        
+    def health_check(self):
+        """
+        Return the health status of the service
+        
+        Returns:
+            dict: Health status information with at least 'status' and 'message' keys
+        """
+        status = "ok" if self._initialized else "error"
+        message = f"Encryption service is {'initialized' if self._initialized else 'not initialized'}"
+            
+        return {
+            "status": status,
+            "message": message
+        }
     
     def init_app(self, app):
         """
@@ -68,7 +95,8 @@ class EncryptionService:
             
             self.fernet = Fernet(encryption_key.encode())
         
-        self.initialized = True
+        self._app = app
+        self._initialized = True
         logger.info("Encryption service initialized successfully")
     
     def _is_valid_key(self, key):

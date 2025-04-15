@@ -5,19 +5,78 @@ import logging
 import requests
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
-from flask_backend.app import db
-from flask_backend.models import BankConnection, WhmcsInstance, Transaction, ApiLog
+from flask_backend.services.base_service import BaseService
+from flask_backend.utils.db import get_db
 from flask_backend.utils.gocardless_errors import (
     GoCardlessError, GoCardlessAuthError, GoCardlessBankConnectionError,
     GoCardlessTransactionError, GoCardlessWebhookError, parse_error_response
 )
 
+# Logger
 logger = logging.getLogger(__name__)
 
-class GoCardlessService:
+class GoCardlessService(BaseService):
     """Service for interacting with the GoCardless Open Banking API"""
     
-    def __init__(self):
+    def __init__(self, app=None):
+        """
+        Initialize the GoCardless service
+        
+        Args:
+            app: Flask application instance
+        """
+        # Service state
+        self._initialized = False
+        self._app = None
+        
+        # API credentials and configuration
+        self.client_id = None
+        self.client_secret = None
+        self.sandbox_mode = True
+        self.api_base_url = None
+        self.api_version = None
+        self.use_test_data = True
+        self.banks_endpoint = None
+        self.auth_url = None
+        self.token_url = None
+        
+        if app:
+            self.init_app(app)
+            
+    @property
+    def initialized(self):
+        """
+        Return whether the service is initialized
+        
+        Returns:
+            bool: True if initialized, False otherwise
+        """
+        return self._initialized
+        
+    def health_check(self):
+        """
+        Return the health status of the service
+        
+        Returns:
+            dict: Health status information with at least 'status' and 'message' keys
+        """
+        status = "ok" if self._initialized else "error"
+        mode = "SANDBOX" if self.sandbox_mode else "PRODUCTION"
+        
+        return {
+            "status": status,
+            "message": f"GoCardless service is {'initialized' if self._initialized else 'not initialized'}",
+            "mode": mode,
+            "api_base_url": self.api_base_url
+        }
+    
+    def init_app(self, app):
+        """
+        Initialize the GoCardless service with a Flask app
+        
+        Args:
+            app: Flask application instance
+        """
         # Get API credentials from environment
         self.client_id = os.environ.get('GOCARDLESS_CLIENT_ID')
         self.client_secret = os.environ.get('GOCARDLESS_CLIENT_SECRET')
@@ -48,6 +107,10 @@ class GoCardlessService:
             self.banks_endpoint = f"{self.api_base_url}/institutions"
             self.auth_url = 'https://auth.gocardless.com/oauth/authorize'
             self.token_url = 'https://auth.gocardless.com/oauth/token'
+            
+        self._app = app
+        self._initialized = True
+        logger.info("GoCardless service initialized successfully")
         
         # Get Flask app for configuration (if available)
         try:

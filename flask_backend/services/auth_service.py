@@ -19,11 +19,13 @@ from flask_backend.models import ApiLog, WhmcsInstance
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
+from flask_backend.services.base_service import BaseService
+from flask_backend.utils.db import get_db
 
 # Logger
 logger = logging.getLogger(__name__)
 
-class AuthService:
+class AuthService(BaseService):
     """Service for secure authentication and authorization"""
     
     def __init__(self, app=None):
@@ -38,10 +40,37 @@ class AuthService:
         self.token_expiry = 3600  # 1 hour
         self.token_audience = None
         self.token_issuer = None
-        self.initialized = False
+        self._initialized = False
+        self._app = None
         
         if app:
             self.init_app(app)
+            
+    @property
+    def initialized(self):
+        """
+        Return whether the service is initialized
+        
+        Returns:
+            bool: True if initialized, False otherwise
+        """
+        return self._initialized
+        
+    def health_check(self):
+        """
+        Return the health status of the service
+        
+        Returns:
+            dict: Health status information with at least 'status' and 'message' keys
+        """
+        status = "ok" if self._initialized else "error"
+        
+        return {
+            "status": status,
+            "message": f"Authentication service is {'initialized' if self._initialized else 'not initialized'}",
+            "jwt_algorithm": "RS256",
+            "token_expiry": self.token_expiry
+        }
     
     def init_app(self, app):
         """
@@ -112,7 +141,8 @@ class AuthService:
         
         # Store a successful initialization state
         if self.private_key and self.public_key:
-            self.initialized = True
+            self._app = app
+            self._initialized = True
             logger.info("Authentication service initialized successfully with RS256 keys")
         else:
             logger.critical("Failed to initialize authentication service properly")
