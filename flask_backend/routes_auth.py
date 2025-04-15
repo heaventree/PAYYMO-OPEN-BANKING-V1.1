@@ -12,6 +12,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_backend.services.auth_service import auth_service
 from flask_backend.models import User, db
 from flask_backend.app import limiter
+from flask_backend.utils.validators import (
+    is_valid_email, is_valid_password, is_valid_username, 
+    is_valid_string, sanitize_string
+)
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -20,6 +24,7 @@ logger = logging.getLogger(__name__)
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("10 per minute")  # Stricter rate limit for login attempts to prevent brute force
 def login():
     """Log in a user and return access and refresh tokens"""
     # Get login credentials from request
@@ -30,26 +35,38 @@ def login():
             'message': 'Invalid request data'
         }), 400
         
-    # Check required fields
+    # Check required fields and validate email format
     email = data.get('email')
     password = data.get('password')
-    if not email or not password:
+    
+    # Validate email
+    is_email_valid, email_error = is_valid_email(email)
+    if not is_email_valid:
         return jsonify({
             'success': False,
-            'message': 'Email and password are required'
+            'message': email_error or 'Invalid email format'
         }), 400
-        
-    # Find user
-    user = User.query.filter_by(email=email).first()
+    
+    # Validate password (basic validation for login)
+    if not password:
+        return jsonify({
+            'success': False,
+            'message': 'Password is required'
+        }), 400
+    
+    # Find user - use sanitized email for lookup
+    sanitized_email = sanitize_string(email)
+    user = User.query.filter_by(email=sanitized_email).first()
     if not user:
+        # Use generic error message to prevent user enumeration
         return jsonify({
             'success': False,
             'message': 'Invalid email or password'
         }), 401
         
-    # Check password
+    # Check password with constant-time comparison (via auth_service)
     if not auth_service.verify_password(user.password_hash, password):
-        logger.warning(f"Failed login attempt for user {email}")
+        logger.warning(f"Failed login attempt for user {sanitized_email}")
         return jsonify({
             'success': False,
             'message': 'Invalid email or password'
@@ -104,6 +121,7 @@ def login():
     })
 
 @auth_bp.route('/refresh', methods=['POST'])
+@limiter.limit("20 per minute")  # Less strict limit for token refresh
 def refresh_token():
     """Generate a new access token using a refresh token"""
     # Get refresh token from request
@@ -114,13 +132,23 @@ def refresh_token():
             'message': 'Invalid request data'
         }), 400
         
-    # Check required fields
+    # Validate refresh token input
     refresh_token = data.get('refresh_token')
-    if not refresh_token:
+    is_token_valid, token_error = is_valid_string(
+        refresh_token, 
+        field_name="Refresh token", 
+        required=True, 
+        max_length=4096  # JWT tokens can be quite long
+    )
+    
+    if not is_token_valid:
         return jsonify({
             'success': False,
-            'message': 'Refresh token is required'
+            'message': token_error
         }), 400
+    
+    # Sanitize token (minimal sanitization since tokens are sensitive)
+    refresh_token = refresh_token.strip()
         
     # Generate new access token
     new_access_token = auth_service.refresh_access_token(refresh_token)
@@ -142,6 +170,7 @@ def refresh_token():
     })
 
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit("5 per hour, 20 per day")  # Strict limits for registration to prevent abuse
 def register():
     """Register a new user"""
     # Get registration data from request
@@ -152,24 +181,49 @@ def register():
             'message': 'Invalid request data'
         }), 400
         
-    # Check required fields
+    # Extract and validate required fields
     email = data.get('email')
     username = data.get('username')
     password = data.get('password')
-    if not email or not username or not password:
+    
+    # Comprehensive validation
+    validation_errors = {}
+    
+    # Validate email
+    is_email_valid, email_error = is_valid_email(email)
+    if not is_email_valid:
+        validation_errors['email'] = email_error
+    
+    # Validate username
+    is_username_valid, username_error = is_valid_username(username)
+    if not is_username_valid:
+        validation_errors['username'] = username_error
+    
+    # Validate password strength
+    is_password_valid, password_error = is_valid_password(password)
+    if not is_password_valid:
+        validation_errors['password'] = password_error
+    
+    # If any validation failed, return all errors
+    if validation_errors:
         return jsonify({
             'success': False,
-            'message': 'Email, username, and password are required'
+            'message': 'Validation failed',
+            'errors': validation_errors
         }), 400
-        
+    
+    # Sanitize inputs before database operations
+    sanitized_email = sanitize_string(email)
+    sanitized_username = sanitize_string(username)
+    
     # Check if user already exists
-    if User.query.filter_by(email=email).first():
+    if User.query.filter_by(email=sanitized_email).first():
         return jsonify({
             'success': False,
             'message': 'Email already registered'
         }), 400
         
-    if User.query.filter_by(name=username).first():
+    if User.query.filter_by(name=sanitized_username).first():
         return jsonify({
             'success': False,
             'message': 'Username already taken'
@@ -178,12 +232,12 @@ def register():
     # Hash password
     password_hash = auth_service.hash_password(password)
     
-    # Create new user
+    # Create new user with sanitized inputs
     # For test/development users, default to tenant_id=1 
     # In production, this would be set based on tenant context or registration flow
     user = User(
-        name=username,  # Use name field instead of username
-        email=email,
+        name=sanitized_username,  # Use sanitized name field instead of username
+        email=sanitized_email,    # Use sanitized email
         password_hash=password_hash,
         tenant_id=1,  # Default tenant_id for testing
         role='user',  # Default role
@@ -311,6 +365,7 @@ def get_current_user():
     })
 
 @auth_bp.route('/token/verify', methods=['POST'])
+@limiter.limit("30 per minute")  # Medium rate limit for token verification
 def verify_token():
     """Verify if a token is valid"""
     # Get token from request
@@ -323,11 +378,23 @@ def verify_token():
         
     # Check required fields
     token = data.get('token')
-    if not token:
+    
+    # Validate token input
+    is_token_valid, token_error = is_valid_string(
+        token, 
+        field_name="Token", 
+        required=True, 
+        max_length=4096  # JWT tokens can be quite long
+    )
+    
+    if not is_token_valid:
         return jsonify({
             'success': False,
-            'message': 'Token is required'
+            'message': token_error
         }), 400
+        
+    # Sanitize token (minimal sanitization since tokens are sensitive)
+    token = token.strip()
         
     # Verify token
     payload = auth_service.verify_token(token)
