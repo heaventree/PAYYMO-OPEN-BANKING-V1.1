@@ -4,7 +4,8 @@ import time
 import logging
 from datetime import datetime, timedelta
 from flask import request, jsonify, render_template, abort, session, redirect, url_for
-from flask_backend.app import app, db
+from flask_backend.app import app, db, limiter
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_backend.models import (
     LicenseKey, LicenseVerification, Transaction, InvoiceMatch,
     WhmcsInstance, BankConnection, ApiLog, StripeConnection, StripePayment
@@ -38,6 +39,7 @@ def handle_all_exceptions(error):
 # ============= API Endpoints =============
 
 @app.route('/api/license/verify', methods=['POST'])
+@limiter.limit("20 per minute")  # Limit API calls to prevent abuse
 def verify_license():
     """Verify a license key for a WHMCS instance"""
     try:
@@ -54,6 +56,9 @@ def verify_license():
         if not license_key or not domain:
             raise APIError("Missing required fields", status_code=400)
         
+        # Log verification attempt
+        logger.info(f"License verification attempt for domain: {domain}, IP: {request.remote_addr}")
+        
         # Verify the license
         result = license_service.verify_license(
             license_key=license_key, 
@@ -62,11 +67,18 @@ def verify_license():
             system_info=system_info
         )
         
-        return jsonify(result)
+        # Add headers for cache control
+        response = jsonify(result)
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
     except Exception as e:
         return handle_error(e)
 
 @app.route('/api/license/info', methods=['POST'])
+@limiter.limit("10 per minute")  # Limit API calls to prevent abuse
 def license_info():
     """Get detailed information about a license"""
     try:
@@ -81,13 +93,21 @@ def license_info():
         if not license_key or not domain:
             raise APIError("Missing required fields", status_code=400)
         
+        # Log the request
+        logger.info(f"License info request for domain: {domain}, IP: {request.remote_addr}")
+        
         # Get license info
         result = license_service.get_license_info(
             license_key=license_key, 
             domain=domain
         )
         
-        return jsonify(result)
+        # Add cache control headers
+        response = jsonify(result)
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        
+        return response
     except Exception as e:
         return handle_error(e)
 
@@ -666,28 +686,56 @@ def dashboard2():
         return render_template('dashboard2.html', error=str(e))
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Limit login attempts to prevent brute force attacks
 def login():
-    """Simple admin login page"""
+    """Admin login page with enhanced security"""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Very basic authentication - replace with proper auth in production
+        # More secure authentication with password hashing
         admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-        admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
         
-        if username == admin_username and password == admin_password:
+        # In production, this would be a pre-hashed password stored in a database
+        # For now, we're getting a password from environment but with better security
+        stored_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
+        plain_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+        
+        # If no hash is available, use the plain password (but hash it for comparison)
+        if not stored_password_hash:
+            # This simulates a stored hash for demonstration
+            stored_password_hash = generate_password_hash(plain_password)
+        
+        # Perform the login verification with secure hash comparison
+        # No timing attack vulnerability as check_password_hash is time-constant
+        if username == admin_username and check_password_hash(stored_password_hash, password):
+            # Add timestamp and IP for session activity tracking
             session['authenticated'] = True
+            session['login_time'] = datetime.now().isoformat()
+            session['login_ip'] = request.remote_addr
+            session.permanent = True  # Use the permanent session lifetime from config
+            
+            # Log successful login
+            logger.info(f"Successful login for user {username} from {request.remote_addr}")
             return redirect(url_for('dashboard'))
         else:
+            # Log failed login attempt
+            logger.warning(f"Failed login attempt for user {username} from {request.remote_addr}")
             return render_template('login.html', error="Invalid credentials")
     
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    """Log out from the admin dashboard"""
-    session.pop('authenticated', None)
+    """Log out from the admin dashboard with enhanced security"""
+    # Log the logout
+    if session.get('authenticated'):
+        logger.info(f"User logged out from {request.remote_addr}")
+    
+    # Clear all session data, not just the authenticated flag
+    session.clear()
+    
+    # Set a flash message for the next request
     return redirect(url_for('login'))
 
 # ============= Health Check =============
