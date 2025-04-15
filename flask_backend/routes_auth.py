@@ -54,20 +54,28 @@ def login():
             'message': 'Invalid email or password'
         }), 401
         
-    # Get tenant ID for user if applicable (to be implemented based on your user model)
-    tenant_id = getattr(user, 'tenant_id', None)
+    # Check if user is active
+    if not user.is_active:
+        logger.warning(f"Login attempt for inactive user {email}")
+        return jsonify({
+            'success': False,
+            'message': 'Account is inactive or suspended'
+        }), 401
     
-    # Get permissions for user (to be implemented based on your permission model)
-    # Placeholder for actual permission implementation
+    # Get permissions for user (based on role)
     permissions = ['read:basic', 'write:basic']
-    if user.is_admin:
+    if user.is_admin:  # Using the property we defined in the User model
         permissions.extend(['read:admin', 'write:admin'])
+    
+    # Update last login time
+    user.last_login_at = datetime.utcnow()
+    db.session.commit()
     
     # Generate access token
     access_token = auth_service.generate_token(
         user_id=user.id,
-        tenant_id=tenant_id,
-        is_admin=getattr(user, 'is_admin', False),
+        tenant_id=user.tenant_id,
+        is_admin=user.is_admin,
         permissions=permissions
     )
     
@@ -86,8 +94,10 @@ def login():
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'username': user.username,
-                'is_admin': getattr(user, 'is_admin', False)
+                'username': user.name,  # Use name as username
+                'is_admin': user.is_admin,
+                'tenant_id': user.tenant_id,
+                'role': user.role
             }
         }
     })
@@ -158,7 +168,7 @@ def register():
             'message': 'Email already registered'
         }), 400
         
-    if User.query.filter_by(username=username).first():
+    if User.query.filter_by(name=username).first():
         return jsonify({
             'success': False,
             'message': 'Username already taken'
@@ -168,10 +178,18 @@ def register():
     password_hash = auth_service.hash_password(password)
     
     # Create new user
+    # For test/development users, default to tenant_id=1 
+    # In production, this would be set based on tenant context or registration flow
     user = User(
-        username=username,
+        name=username,  # Use name field instead of username
         email=email,
-        password_hash=password_hash
+        password_hash=password_hash,
+        tenant_id=1,  # Default tenant_id for testing
+        role='user',  # Default role
+        status='active',  # Default status
+        email_verified=False,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
     
     # Save to database
@@ -187,7 +205,11 @@ def register():
         }), 500
         
     # Generate access token
-    access_token = auth_service.generate_token(user_id=user.id)
+    access_token = auth_service.generate_token(
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        is_admin=user.is_admin
+    )
     
     # Generate refresh token
     refresh_token = auth_service.generate_refresh_token(user_id=user.id)
@@ -204,7 +226,9 @@ def register():
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'username': user.username
+                'username': user.name,  # Use name field as username
+                'tenant_id': user.tenant_id,
+                'role': user.role
             }
         }
     }), 201
@@ -265,8 +289,14 @@ def get_current_user():
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'username': user.username,
-                'is_admin': getattr(user, 'is_admin', False),
+                'username': user.name,  # Use name as username
+                'is_admin': user.is_admin,
+                'is_active': user.is_active,
+                'tenant_id': user.tenant_id,
+                'role': user.role,
+                'email_verified': user.email_verified,
+                'last_login': user.last_login_at.isoformat() if user.last_login_at else None,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
                 'permissions': g.current_user.get('permissions', [])
             }
         }
@@ -316,5 +346,15 @@ def verify_token():
 # Register blueprint with app
 def register_auth_routes(app):
     """Register authentication routes with the app"""
+    # Exempt authentication routes from CSRF protection
+    from flask_wtf.csrf import CSRFProtect
+    csrf = app.extensions.get('csrf')
+    
+    if csrf:
+        csrf.exempt(auth_bp)
+        logger.info("Authentication routes exempted from CSRF protection")
+    else:
+        logger.warning("CSRF protection not initialized, cannot exempt auth routes")
+    
     app.register_blueprint(auth_bp)
     logger.info("Authentication routes registered")

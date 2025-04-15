@@ -10,16 +10,42 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
-    username = Column(String(64), unique=True, nullable=False)
-    email = Column(String(120), unique=True, nullable=False)
-    password_hash = Column(String(256), nullable=False)
-    is_admin = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)
+    tenant_id = Column(Integer, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    name = Column(String(255), nullable=False)  # Use as username
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default='user')  # Use for admin role
+    status = Column(String(20), default='active')  # Use for active status
     created_at = Column(DateTime, default=datetime.utcnow)
-    last_login = Column(DateTime)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login_at = Column(DateTime)  # Renamed from last_login
+    email_verified = Column(Boolean, default=False)
+    verification_token = Column(String(64))
+    avatar_url = Column(String(255))
+    preferences = Column(Text)
+    
+    @property
+    def username(self):
+        """Alias for name field"""
+        return self.name
+    
+    @property
+    def is_admin(self):
+        """Check if user has admin role"""
+        return self.role == 'admin'
+    
+    @property
+    def is_active(self):
+        """Check if user status is active"""
+        return self.status == 'active'
+    
+    @property
+    def last_login(self):
+        """Alias for last_login_at"""
+        return self.last_login_at
     
     def __repr__(self):
-        return f"<User {self.username}>"
+        return f"<User {self.name}>"
 
 class LicenseKey(db.Model):
     """License key model to validate WHMCS instances"""
