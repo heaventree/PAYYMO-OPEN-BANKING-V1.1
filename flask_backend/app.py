@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 DEFAULT_CERT_PATH = os.path.join(os.path.dirname(__file__), 'certs', 'webhook_cert.pem')
 DEFAULT_KEY_PATH = os.path.join(os.path.dirname(__file__), 'certs', 'webhook_key.pem')
 
+# Security constants
+CSRF_EXPIRATION = 3600  # 1 hour in seconds
+SESSION_EXPIRATION = 86400  # 24 hours in seconds
+PASSWORD_MIN_LENGTH = 12
+
 # Create base class for models
 class Base(DeclarativeBase):
     pass
@@ -44,6 +49,20 @@ logger.info(f"GoCardless webhook key path: {app.config['GOCARDLESS_WEBHOOK_KEY_P
 
 # Initialize the database with the app
 db.init_app(app)
+
+# Configure additional security settings
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('ENVIRONMENT') == 'production'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_EXPIRATION
+
+# Initialize encryption service
+from flask_backend.services.encryption_service import encryption_service
+encryption_service.init_app(app)
+
+# Setup request logging
+from flask_backend.utils.logger import setup_logging
+setup_logging(app)
 
 # Import routes
 with app.app_context():
