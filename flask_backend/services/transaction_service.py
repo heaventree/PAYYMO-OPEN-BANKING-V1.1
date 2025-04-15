@@ -202,6 +202,11 @@ class TransactionService(BaseService):
         """
         if not transaction_id or not invoice_id:
             raise APIError("Missing transaction_id or invoice_id", status_code=400)
+            
+        # Get database connection
+        db = get_db()
+        if not db:
+            raise APIError("Database connection error", status_code=500)
         
         # Find the transaction
         transaction = Transaction.query.filter_by(transaction_id=transaction_id).first()
@@ -260,7 +265,10 @@ class TransactionService(BaseService):
             return match
             
         except Exception as e:
-            db.session.rollback()
+            # Get database connection
+            db = get_db()
+            if db:
+                db.session.rollback()
             logger.error(f"Error creating invoice match: {str(e)}")
             raise APIError(f"Could not create invoice match: {str(e)}", status_code=500)
     
