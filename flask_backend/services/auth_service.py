@@ -50,16 +50,16 @@ class AuthService:
         Args:
             app: Flask application instance
         """
-        # Get JWT keys from secrets service
-        from flask_backend.services.secrets_service import secrets_service
+        # Get JWT keys from vault service
+        from flask_backend.services.vault_service import vault_service
         
         # Set token metadata for better security
         self.token_audience = app.config.get('JWT_AUDIENCE', 'payymo-api')
         self.token_issuer = app.config.get('JWT_ISSUER', 'payymo-auth')
         
-        # Try to get RSA keys from secrets service
-        self.private_key_pem = secrets_service.get_secret('JWT_PRIVATE_KEY')
-        self.public_key_pem = secrets_service.get_secret('JWT_PUBLIC_KEY')
+        # Try to get RSA keys from vault service
+        self.private_key_pem = vault_service.get_secret('JWT_PRIVATE_KEY')
+        self.public_key_pem = vault_service.get_secret('JWT_PUBLIC_KEY')
         
         # Generate new RSA keys if not found
         if not self.private_key_pem or not self.public_key_pem:
@@ -68,7 +68,7 @@ class AuthService:
             else:
                 logger.warning("Generating new RSA key pair - not secure for production")
                 # Generate new key pair
-                self._generate_rsa_keys(secrets_service)
+                self._generate_rsa_keys(vault_service)
         
         # Load the keys into proper cryptography objects
         if self.private_key_pem:
@@ -83,7 +83,7 @@ class AuthService:
                 if os.environ.get('ENVIRONMENT') != 'production':
                     # Regenerate keys in development only
                     logger.warning("Regenerating RSA keys due to error")
-                    self._generate_rsa_keys(secrets_service)
+                    self._generate_rsa_keys(vault_service)
                     
         if self.public_key_pem:
             try:
@@ -96,7 +96,7 @@ class AuthService:
                 if os.environ.get('ENVIRONMENT') != 'production':
                     # Regenerate keys in development only
                     logger.warning("Regenerating RSA keys due to error")
-                    self._generate_rsa_keys(secrets_service)
+                    self._generate_rsa_keys(vault_service)
         
         # Get token expiry from app config or use default
         self.token_expiry = int(app.config.get('JWT_EXPIRATION', self.token_expiry))

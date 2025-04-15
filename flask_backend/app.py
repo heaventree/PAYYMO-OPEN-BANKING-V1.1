@@ -7,15 +7,12 @@ from functools import wraps
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import secrets as python_secrets  # renamed to avoid conflict
 
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# Set default paths for GoCardless webhook certificates
-DEFAULT_CERT_PATH = os.path.join(os.path.dirname(__file__), 'certs', 'webhook_cert.pem')
-DEFAULT_KEY_PATH = os.path.join(os.path.dirname(__file__), 'certs', 'webhook_key.pem')
 
 # Security constants
 CSRF_EXPIRATION = 3600  # 1 hour in seconds
@@ -23,20 +20,9 @@ SESSION_EXPIRATION = 43200  # 12 hours in seconds (reduced from 24 hours)
 PASSWORD_MIN_LENGTH = 12
 JWT_EXPIRATION = 3600  # 1 hour in seconds
 API_RATE_LIMIT = 100  # Requests per minute
+
 # Check if we're in development or production mode
 IS_PRODUCTION = os.environ.get('ENVIRONMENT') == 'production'
-
-# In production, no default values for security keys
-# In development, we can use generated keys with warnings
-SUPER_ADMIN_KEY = os.environ.get("SUPER_ADMIN_KEY")
-if not SUPER_ADMIN_KEY:
-    if IS_PRODUCTION:
-        logger.critical("SUPER_ADMIN_KEY not set in production environment!")
-    else:
-        import secrets
-        logger.warning("SUPER_ADMIN_KEY not set - using temporary key for development only!")
-        logger.warning("This is insecure for production! Set proper keys before launch as per PRE_LAUNCH_SECURITY_KEYS.md")
-        SUPER_ADMIN_KEY = secrets.token_hex(16)  # Generate a temporary key for development
 
 # Create base class for models
 class Base(DeclarativeBase):
@@ -47,6 +33,30 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the Flask app
 app = Flask(__name__)
+
+# Configure security settings
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_EXPIRATION
+app.config['JWT_EXPIRATION'] = JWT_EXPIRATION
+app.config['PASSWORD_MIN_LENGTH'] = PASSWORD_MIN_LENGTH
+app.config['CSRF_EXPIRATION'] = CSRF_EXPIRATION
+app.config['API_RATE_LIMIT'] = API_RATE_LIMIT
+app.config['STRICT_SLASHES'] = False
+
+# Configure Vault Service
+app.config['SECRETS_PROVIDERS'] = os.environ.get('SECRETS_PROVIDERS', 'env,file')
+app.config['SECRETS_FILE'] = os.environ.get('SECRETS_FILE', '.secrets.json')
+app.config['PRELOAD_SECRETS'] = True
+
+# Configure database - PostgreSQL in production, SQLite for development
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///payymo.db")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
@@ -66,58 +76,6 @@ limiter = Limiter(
     },
     swallow_errors=True           # Ensure app works even if rate limiter fails
 )
-
-# Set secret key from environment variable - no default for security
-app.secret_key = os.environ.get("SESSION_SECRET")
-if not app.secret_key and os.environ.get('ENVIRONMENT') != 'production':
-    logger.warning("SESSION_SECRET not set - using temporary random key for development only!")
-    app.secret_key = os.urandom(32)  # Generate random key for development
-
-# Configure database - PostgreSQL in production, SQLite for development
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///payymo.db")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-# Configure GoCardless webhook certificate paths
-app.config["GOCARDLESS_WEBHOOK_CERT_PATH"] = os.environ.get("GOCARDLESS_WEBHOOK_CERT_PATH", DEFAULT_CERT_PATH)
-app.config["GOCARDLESS_WEBHOOK_KEY_PATH"] = os.environ.get("GOCARDLESS_WEBHOOK_KEY_PATH", DEFAULT_KEY_PATH)
-
-# Log certificate path configuration
-logger.info(f"GoCardless webhook certificate path: {app.config['GOCARDLESS_WEBHOOK_CERT_PATH']}")
-logger.info(f"GoCardless webhook key path: {app.config['GOCARDLESS_WEBHOOK_KEY_PATH']}")
-
-# Configure security settings
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('ENVIRONMENT') == 'production'
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_EXPIRATION
-# Use environment variable for JWT_SECRET_KEY, or generate one if in development
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
-if not app.config['JWT_SECRET_KEY']:
-    if os.environ.get('ENVIRONMENT') == 'production':
-        logger.critical("JWT_SECRET_KEY not set in production environment!")
-    else:
-        logger.warning("JWT_SECRET_KEY not set - using a generated key for development only!")
-        # Generate a random key for development
-        import secrets
-        app.config['JWT_SECRET_KEY'] = secrets.token_hex(32)
-app.config['JWT_EXPIRATION'] = JWT_EXPIRATION
-
-# Handle encryption key
-app.config['ENCRYPTION_KEY'] = os.environ.get('ENCRYPTION_KEY')
-if not app.config['ENCRYPTION_KEY']:
-    if os.environ.get('ENVIRONMENT') == 'production':
-        logger.critical("ENCRYPTION_KEY not set in production environment!")
-    else:
-        logger.warning("ENCRYPTION_KEY not set - using a generated key for development only!")
-        import secrets
-        app.config['ENCRYPTION_KEY'] = secrets.token_hex(32)
-
-app.config['SUPER_ADMIN_KEY'] = SUPER_ADMIN_KEY
-app.config['STRICT_SLASHES'] = False
 
 # Setup secure headers
 @app.after_request
@@ -148,9 +106,39 @@ def add_security_headers(response):
 # Initialize the database with the app
 db.init_app(app)
 
-# Initialize the secrets service first (as other services may depend on it)
-from flask_backend.services.secrets_service import secrets_service
-secrets_service.init_app(app)
+# Initialize the vault service first (as other services may depend on it)
+from flask_backend.services.vault_service import vault_service
+vault_service.init_app(app)
+
+# Set secret key from vault service
+app.secret_key = vault_service.get_secret("SESSION_SECRET")
+if not app.secret_key and not IS_PRODUCTION:
+    logger.warning("SESSION_SECRET not available - generating temporary key for development")
+    app.secret_key = vault_service.generate_secure_token()
+
+# Configure security keys required by other services
+app.config['JWT_SECRET_KEY'] = vault_service.get_secret('JWT_SECRET_KEY')
+app.config['ENCRYPTION_KEY'] = vault_service.get_secret('ENCRYPTION_KEY')
+app.config['SUPER_ADMIN_KEY'] = vault_service.get_secret('SUPER_ADMIN_KEY')
+
+# Configure GoCardless webhook certificate paths - no default values
+app.config["GOCARDLESS_WEBHOOK_CERT_PATH"] = os.environ.get("GOCARDLESS_WEBHOOK_CERT_PATH")
+app.config["GOCARDLESS_WEBHOOK_KEY_PATH"] = os.environ.get("GOCARDLESS_WEBHOOK_KEY_PATH")
+
+# Log certificate path configuration if available
+if app.config["GOCARDLESS_WEBHOOK_CERT_PATH"]:
+    logger.info(f"GoCardless webhook certificate path: {app.config['GOCARDLESS_WEBHOOK_CERT_PATH']}")
+else:
+    logger.warning("GOCARDLESS_WEBHOOK_CERT_PATH not configured")
+    
+if app.config["GOCARDLESS_WEBHOOK_KEY_PATH"]:
+    logger.info(f"GoCardless webhook key path: {app.config['GOCARDLESS_WEBHOOK_KEY_PATH']}")
+else:
+    logger.warning("GOCARDLESS_WEBHOOK_KEY_PATH not configured")
+
+# In production, having webhook paths is mandatory
+if IS_PRODUCTION and (not app.config["GOCARDLESS_WEBHOOK_CERT_PATH"] or not app.config["GOCARDLESS_WEBHOOK_KEY_PATH"]):
+    raise RuntimeError("GoCardless webhook certificate paths not configured in production")
 
 # Initialize encryption service
 from flask_backend.services.encryption_service import encryption_service
@@ -204,18 +192,15 @@ def register_middleware(app):
 
 def setup_request_context():
     """Setup request context for each request"""
-    # Set super admin status in g using secrets service for secure key comparison
-    from flask_backend.services.secrets_service import secrets_service
-    from secrets import compare_digest
-    
+    # Set super admin status in g using vault service for secure key comparison
     admin_key_header = request.headers.get('X-Super-Admin-Key')
-    super_admin_key = secrets_service.get_secret('SUPER_ADMIN_KEY')
+    super_admin_key = vault_service.get_secret('SUPER_ADMIN_KEY')
     
     if not admin_key_header or not super_admin_key:
         g.is_super_admin = False
     else:
-        # Use constant-time comparison to prevent timing attacks
-        g.is_super_admin = compare_digest(admin_key_header, super_admin_key)
+        # Use constant-time comparison from vault service to prevent timing attacks
+        g.is_super_admin = vault_service.secure_compare(admin_key_header, super_admin_key)
     
     # Set current tenant in g (for use in templates)
     g.tenant_id = None

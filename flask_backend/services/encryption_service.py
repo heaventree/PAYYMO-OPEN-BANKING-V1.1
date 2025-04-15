@@ -37,10 +37,10 @@ class EncryptionService:
         Args:
             app: Flask application instance
         """
-        # Get encryption key from secrets service
-        from flask_backend.services.secrets_service import secrets_service
+        # Get encryption key from vault service
+        from flask_backend.services.vault_service import vault_service
         
-        encryption_key = secrets_service.get_secret('ENCRYPTION_KEY')
+        encryption_key = vault_service.get_secret('ENCRYPTION_KEY')
         is_production = os.environ.get('ENVIRONMENT') == 'production'
         
         if not encryption_key:
@@ -51,9 +51,9 @@ class EncryptionService:
             else:
                 # In development, generate a temporary key
                 logger.warning("No encryption key found. Generating temporary development key.")
-                encryption_key = secrets_service.generate_secure_token(32)
-                # Store the temporary key in secrets service for consistency
-                secrets_service.set_secret('ENCRYPTION_KEY', encryption_key)
+                encryption_key = vault_service.generate_secure_token(32)
+                # Store the temporary key in vault service for consistency
+                vault_service.set_secret('ENCRYPTION_KEY', encryption_key)
                 # Convert to valid Fernet key
                 encryption_key = self._to_fernet_key(encryption_key)
                 self.fernet = Fernet(encryption_key.encode())
