@@ -354,6 +354,12 @@ class GoCardlessService(BaseService):
         # Get bank account information
         account_info = self._get_bank_account_info(tokens['access_token'])
         
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import BankConnection
+        
         # Store the bank connection
         bank_connection = BankConnection(
             whmcs_instance_id=whmcs_instance.id,
@@ -566,6 +572,12 @@ class GoCardlessService(BaseService):
         Returns:
             Number of new transactions stored
         """
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import Transaction
+        
         new_count = 0
         
         for transaction in transactions:
@@ -618,6 +630,12 @@ class GoCardlessService(BaseService):
         """
         from random import randint, uniform, choice
         from datetime import timedelta
+        
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import Transaction
         
         descriptions = [
             "Coffee Shop", "Grocery Store", "Online Purchase", 
@@ -891,6 +909,9 @@ class GoCardlessService(BaseService):
             raise error
         
         tokens = response.json()
+        
+        # Get db instance
+        db = get_db()
         
         # Update bank connection with new tokens
         bank_connection.access_token = tokens['access_token']
