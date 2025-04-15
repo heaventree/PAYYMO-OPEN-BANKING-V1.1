@@ -174,6 +174,23 @@ class AuthService:
             True if password is correct, False otherwise
         """
         return check_password_hash(password_hash, password)
+        
+    def dummy_password_check(self):
+        """
+        Perform a dummy password check to prevent timing attacks
+        
+        This method simulates the time it would take to verify a password
+        to prevent timing attacks that could reveal if a user exists.
+        It performs the same operations as a real password check but with
+        dummy values that always return False.
+        
+        Returns:
+            Always False
+        """
+        # Create a dummy password and hash of similar complexity to real ones
+        dummy_hash = generate_password_hash("dummy_password")
+        # Perform the check, which will always return False but take similar time
+        return check_password_hash(dummy_hash, "wrong_password")
     
     def generate_api_key(self):
         """

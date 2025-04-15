@@ -145,50 +145,55 @@ def login():
 @limiter.limit("20 per minute")  # Less strict limit for token refresh
 def refresh_token():
     """Generate a new access token using a refresh token"""
-    # Get refresh token from request
-    data = request.get_json()
-    if not data:
-        return jsonify({
-            'success': False,
-            'message': 'Invalid request data'
-        }), 400
+    try:
+        # Get refresh token from request
+        data = request.get_json()
+        if not data:
+            raise ValidationError("Invalid request data")
+            
+        # Extract refresh token
+        refresh_token = data.get('refresh_token')
         
-    # Validate refresh token input
-    refresh_token = data.get('refresh_token')
-    is_token_valid, token_error = is_valid_string(
-        refresh_token, 
-        field_name="Refresh token", 
-        required=True, 
-        max_length=4096  # JWT tokens can be quite long
-    )
-    
-    if not is_token_valid:
-        return jsonify({
-            'success': False,
-            'message': token_error
-        }), 400
-    
-    # Sanitize token (minimal sanitization since tokens are sensitive)
-    refresh_token = refresh_token.strip()
+        # Validate refresh token input
+        is_token_valid, token_error = is_valid_string(
+            refresh_token, 
+            field_name="Refresh token", 
+            required=True, 
+            max_length=4096  # JWT tokens can be quite long
+        )
         
-    # Generate new access token
-    new_access_token = auth_service.refresh_access_token(refresh_token)
-    if not new_access_token:
-        return jsonify({
-            'success': False,
-            'message': 'Invalid or expired refresh token'
-        }), 401
+        if not is_token_valid:
+            raise ValidationError("Invalid refresh token", {"refresh_token": token_error})
         
-    # Return new access token
-    return jsonify({
-        'success': True,
-        'message': 'Token refreshed successfully',
-        'data': {
-            'access_token': new_access_token,
-            'token_type': 'Bearer',
-            'expires_in': auth_service.token_expiry
-        }
-    })
+        # Sanitize token (minimal sanitization since tokens are sensitive)
+        refresh_token = refresh_token.strip()
+            
+        # Generate new access token
+        new_access_token = auth_service.refresh_access_token(refresh_token)
+        if not new_access_token:
+            raise TokenError(
+                "Invalid or expired refresh token",
+                log_message="Failed to refresh token - invalid or expired"
+            )
+            
+        # Return new access token
+        return jsonify({
+            'success': True,
+            'message': 'Token refreshed successfully',
+            'data': {
+                'access_token': new_access_token,
+                'token_type': 'Bearer',
+                'expires_in': auth_service.token_expiry
+            }
+        })
+        
+    except (ValidationError, TokenError) as e:
+        # These exceptions will be handled by the error handler
+        raise
+    except Exception as e:
+        # Catch any other exceptions and log them
+        logger.error(f"Unexpected error in token refresh: {str(e)}")
+        raise
 
 @auth_bp.route('/register', methods=['POST'])
 @limiter.limit("5 per hour, 20 per day")  # Strict limits for registration to prevent abuse
@@ -313,131 +318,154 @@ def register():
 @auth_service.require_auth()
 def logout():
     """Log out a user by revoking their tokens"""
-    # Get token ID from request payload
-    if not hasattr(g, 'jwt_payload') or not g.jwt_payload:
-        return jsonify({
-            'success': False,
-            'message': 'No valid token found'
-        }), 400
+    try:
+        # Get token ID from request payload
+        if not hasattr(g, 'jwt_payload') or not g.jwt_payload:
+            raise TokenError("No valid token found", log_message="Logout attempted without valid token")
+            
+        token_id = g.jwt_payload.get('jti')
+        if not token_id:
+            raise TokenError("Invalid token format", log_message="Token missing JTI claim during logout")
         
-    token_id = g.jwt_payload.get('jti')
-    if not token_id:
-        return jsonify({
-            'success': False,
-            'message': 'Invalid token format'
-        }), 400
-    
-    # Get user ID from token
-    user_id = g.jwt_payload.get('sub')
+        # Get user ID from token
+        user_id = g.jwt_payload.get('sub')
+            
+        # Revoke token
+        revocation_success = auth_service.revoke_token(
+            token_id=token_id, 
+            reason='User logout', 
+            user_id=user_id
+        )
         
-    # Revoke token
-    auth_service.revoke_token(
-        token_id=token_id, 
-        reason='User logout', 
-        user_id=user_id
-    )
-    
-    # TODO: In a production system, we would also revoke all refresh tokens for this user
-    # This would require tracking which refresh tokens are associated with a user
-    
-    return jsonify({
-        'success': True,
-        'message': 'Logout successful'
-    })
+        if not revocation_success:
+            logger.warning(f"Token revocation failed for token ID {token_id}")
+            raise TokenError(
+                "Failed to revoke token",
+                log_message=f"Token revocation failed for user ID {user_id}"
+            )
+        
+        # TODO: In a production system, we would also revoke all refresh tokens for this user
+        # This would require tracking which refresh tokens are associated with a user
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logout successful'
+        })
+        
+    except TokenError as e:
+        # These exceptions will be handled by the error handler
+        raise
+    except Exception as e:
+        # Catch any other exceptions and log them
+        logger.error(f"Unexpected error in logout: {str(e)}")
+        raise
 
 @auth_bp.route('/me', methods=['GET'])
 @auth_service.require_auth()
 def get_current_user():
     """Get information about the currently authenticated user"""
-    # Get user ID from token
-    user_id = g.current_user.get('sub')
-    if not user_id:
+    try:
+        # Get user ID from token
+        user_id = g.current_user.get('sub')
+        if not user_id:
+            raise TokenError(
+                "Invalid token", 
+                log_message="Token missing subject claim during user profile request"
+            )
+            
+        # Find user
+        user = User.query.get(user_id)
+        if not user:
+            logger.warning(f"User not found for ID {user_id} from token")
+            raise AuthenticationError(
+                "User not found",
+                log_message=f"User ID from token not found in database: {user_id}"
+            )
+            
+        # Return user information
         return jsonify({
-            'success': False,
-            'message': 'Invalid token'
-        }), 400
-        
-    # Find user
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({
-            'success': False,
-            'message': 'User not found'
-        }), 404
-        
-    # Return user information
-    return jsonify({
-        'success': True,
-        'data': {
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'username': user.name,  # Use name as username
-                'is_admin': user.is_admin,
-                'is_active': user.is_active,
-                'tenant_id': user.tenant_id,
-                'role': user.role,
-                'email_verified': user.email_verified,
-                'last_login': user.last_login_at.isoformat() if user.last_login_at else None,
-                'created_at': user.created_at.isoformat() if user.created_at else None,
-                'permissions': g.current_user.get('permissions', [])
+            'success': True,
+            'data': {
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.name,  # Use name as username
+                    'is_admin': user.is_admin,
+                    'is_active': user.is_active,
+                    'tenant_id': user.tenant_id,
+                    'role': user.role,
+                    'email_verified': user.email_verified,
+                    'last_login': user.last_login_at.isoformat() if user.last_login_at else None,
+                    'created_at': user.created_at.isoformat() if user.created_at else None,
+                    'permissions': g.current_user.get('permissions', [])
+                }
             }
-        }
-    })
+        })
+        
+    except (TokenError, AuthenticationError) as e:
+        # These exceptions will be handled by the error handler
+        raise
+    except Exception as e:
+        # Catch any other exceptions and log them
+        logger.error(f"Unexpected error in user profile retrieval: {str(e)}")
+        raise
 
 @auth_bp.route('/token/verify', methods=['POST'])
 @limiter.limit("30 per minute")  # Medium rate limit for token verification
 def verify_token():
     """Verify if a token is valid"""
-    # Get token from request
-    data = request.get_json()
-    if not data:
+    try:
+        # Get token from request
+        data = request.get_json()
+        if not data:
+            raise ValidationError("Invalid request data")
+            
+        # Extract token
+        token = data.get('token')
+        
+        # Validate token input
+        is_token_valid, token_error = is_valid_string(
+            token, 
+            field_name="Token", 
+            required=True, 
+            max_length=4096  # JWT tokens can be quite long
+        )
+        
+        if not is_token_valid:
+            raise ValidationError("Invalid token format", {"token": token_error})
+            
+        # Sanitize token (minimal sanitization since tokens are sensitive)
+        token = token.strip()
+            
+        # Verify token
+        payload = auth_service.verify_token(token)
+        if not payload:
+            raise TokenError(
+                "Invalid or expired token",
+                log_message="Token verification failed - invalid or expired"
+            )
+            
+        # Return token information
         return jsonify({
-            'success': False,
-            'message': 'Invalid request data'
-        }), 400
-        
-    # Check required fields
-    token = data.get('token')
-    
-    # Validate token input
-    is_token_valid, token_error = is_valid_string(
-        token, 
-        field_name="Token", 
-        required=True, 
-        max_length=4096  # JWT tokens can be quite long
-    )
-    
-    if not is_token_valid:
-        return jsonify({
-            'success': False,
-            'message': token_error
-        }), 400
-        
-    # Sanitize token (minimal sanitization since tokens are sensitive)
-    token = token.strip()
-        
-    # Verify token
-    payload = auth_service.verify_token(token)
-    if not payload:
-        return jsonify({
-            'success': False,
-            'message': 'Invalid or expired token'
-        }), 401
-        
-    # Return token information
-    return jsonify({
-        'success': True,
-        'message': 'Token is valid',
-        'data': {
-            'token_info': {
-                'expires_at': datetime.fromtimestamp(payload.get('exp')).isoformat(),
-                'user_id': payload.get('sub'),
-                'is_admin': payload.get('is_admin', False),
-                'tenant_id': payload.get('tenant_id')
+            'success': True,
+            'message': 'Token is valid',
+            'data': {
+                'token_info': {
+                    'expires_at': datetime.fromtimestamp(payload.get('exp')).isoformat(),
+                    'user_id': payload.get('sub'),
+                    'is_admin': payload.get('is_admin', False),
+                    'tenant_id': payload.get('tenant_id')
+                }
             }
-        }
-    })
+        })
+        
+    except (ValidationError, TokenError) as e:
+        # These exceptions will be handled by the error handler
+        raise
+    except Exception as e:
+        # Catch any other exceptions and log them
+        logger.error(f"Unexpected error in token verification: {str(e)}")
+        raise
 
 # Register blueprint with app
 def register_auth_routes(app):
