@@ -24,10 +24,10 @@ def tenant_middleware():
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
+            # Always clear tenant context first
+            tenant_service.clear_current_tenant()
+            
             try:
-                # Clear tenant context
-                tenant_service.clear_current_tenant()
-                
                 # Check for domain in request
                 domain = None
                 if request.is_json:
@@ -43,7 +43,9 @@ def tenant_middleware():
                     tenant = tenant_service.get_tenant_by_domain(domain)
                     if tenant:
                         tenant_service.set_current_tenant(tenant.id)
-                        logger.debug(f"Set tenant context from domain: {domain} -> {tenant.id}")
+                        # Use info level for important operations, debug level creates too much noise
+                        if logger.isEnabledFor(logging.INFO):
+                            logger.info(f"Set tenant context from domain: {domain} -> {tenant.id}")
                 
                 # If API key is provided and no tenant context yet, set tenant context
                 elif api_identifier and not tenant_service.get_current_tenant():
@@ -51,20 +53,33 @@ def tenant_middleware():
                     tenant = WhmcsInstance.query.filter_by(api_identifier=api_identifier).first()
                     if tenant:
                         tenant_service.set_current_tenant(tenant.id)
-                        logger.debug(f"Set tenant context from API key: {api_identifier} -> {tenant.id}")
+                        if logger.isEnabledFor(logging.INFO):
+                            logger.info(f"Set tenant context from API key: {api_identifier} -> {tenant.id}")
                 
-                # Store super admin status in g
-                g.is_super_admin = request.headers.get('X-Super-Admin-Key') == 'your-super-admin-key'
+                # Store super admin status in g - use value from app config
+                from flask import current_app
+                g.is_super_admin = request.headers.get('X-Super-Admin-Key') == current_app.config['SUPER_ADMIN_KEY']
                 
+                # Continue to the route after successful middleware execution
                 return f(*args, **kwargs)
             except Exception as e:
+                # Log the error but don't continue - proper error handling is important
                 logger.error(f"Error in tenant middleware: {str(e)}")
-                # Continue to the route even if middleware fails
-                return f(*args, **kwargs)
-            finally:
-                # Always clear tenant context after request
-                # This will be handled by app.teardown_request
-                pass
+                
+                # Return a proper error response instead of continuing with invalid state
+                from flask import jsonify
+                from flask_backend.utils.error_handler import APIError, handle_error
+                
+                # Create an API error that will be handled by the error handler
+                api_error = APIError(
+                    message="Authentication or tenant context error",
+                    status_code=500,
+                    error_type="middleware_error",
+                    details=str(e)
+                )
+                
+                # Use the central error handler
+                return handle_error(api_error)
         
         return wrapped
     

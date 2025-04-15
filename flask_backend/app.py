@@ -23,7 +23,20 @@ SESSION_EXPIRATION = 43200  # 12 hours in seconds (reduced from 24 hours)
 PASSWORD_MIN_LENGTH = 12
 JWT_EXPIRATION = 3600  # 1 hour in seconds
 API_RATE_LIMIT = 100  # Requests per minute
-SUPER_ADMIN_KEY = os.environ.get("SUPER_ADMIN_KEY", "payymo_admin_secret_key")
+# Check if we're in development or production mode
+IS_PRODUCTION = os.environ.get('ENVIRONMENT') == 'production'
+
+# In production, no default values for security keys
+# In development, we can use generated keys with warnings
+SUPER_ADMIN_KEY = os.environ.get("SUPER_ADMIN_KEY")
+if not SUPER_ADMIN_KEY:
+    if IS_PRODUCTION:
+        logger.critical("SUPER_ADMIN_KEY not set in production environment!")
+    else:
+        import secrets
+        logger.warning("SUPER_ADMIN_KEY not set - using temporary key for development only!")
+        logger.warning("This is insecure for production! Set proper keys before launch as per PRE_LAUNCH_SECURITY_KEYS.md")
+        SUPER_ADMIN_KEY = secrets.token_hex(16)  # Generate a temporary key for development
 
 # Create base class for models
 class Base(DeclarativeBase):
@@ -47,8 +60,11 @@ limiter = Limiter(
     strategy="fixed-window"
 )
 
-# Set secret key from environment variable or use a default for development
-app.secret_key = os.environ.get("SESSION_SECRET", "payymo_dev_secret_key")
+# Set secret key from environment variable - no default for security
+app.secret_key = os.environ.get("SESSION_SECRET")
+if not app.secret_key and os.environ.get('ENVIRONMENT') != 'production':
+    logger.warning("SESSION_SECRET not set - using temporary random key for development only!")
+    app.secret_key = os.urandom(32)  # Generate random key for development
 
 # Configure database - PostgreSQL in production, SQLite for development
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///payymo.db")
@@ -71,9 +87,28 @@ app.config['SESSION_COOKIE_SECURE'] = os.environ.get('ENVIRONMENT') == 'producti
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_EXPIRATION
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', app.secret_key)
+# Use environment variable for JWT_SECRET_KEY, or generate one if in development
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
+if not app.config['JWT_SECRET_KEY']:
+    if os.environ.get('ENVIRONMENT') == 'production':
+        logger.critical("JWT_SECRET_KEY not set in production environment!")
+    else:
+        logger.warning("JWT_SECRET_KEY not set - using a generated key for development only!")
+        # Generate a random key for development
+        import secrets
+        app.config['JWT_SECRET_KEY'] = secrets.token_hex(32)
 app.config['JWT_EXPIRATION'] = JWT_EXPIRATION
+
+# Handle encryption key
 app.config['ENCRYPTION_KEY'] = os.environ.get('ENCRYPTION_KEY')
+if not app.config['ENCRYPTION_KEY']:
+    if os.environ.get('ENVIRONMENT') == 'production':
+        logger.critical("ENCRYPTION_KEY not set in production environment!")
+    else:
+        logger.warning("ENCRYPTION_KEY not set - using a generated key for development only!")
+        import secrets
+        app.config['ENCRYPTION_KEY'] = secrets.token_hex(32)
+
 app.config['SUPER_ADMIN_KEY'] = SUPER_ADMIN_KEY
 app.config['STRICT_SLASHES'] = False
 
@@ -105,6 +140,10 @@ def add_security_headers(response):
 
 # Initialize the database with the app
 db.init_app(app)
+
+# Initialize the secrets service first (as other services may depend on it)
+from flask_backend.services.secrets_service import secrets_service
+secrets_service.init_app(app)
 
 # Initialize encryption service
 from flask_backend.services.encryption_service import encryption_service
