@@ -650,13 +650,65 @@ class GoCardlessService:
             if not self.webhook_cert_path or not self.webhook_key_path:
                 logger.error("Webhook certificate or key path not configured")
                 return False
-                
-            # In a real implementation, this would verify the client certificate
-            # against the webhook certificate using cryptographic functions
             
-            # For now, just log the certificate information
-            logger.info(f"Webhook certificate verification complete")
+            if not os.path.exists(self.webhook_cert_path) or not os.path.exists(self.webhook_key_path):
+                logger.error("Webhook certificate or key file not found")
+                return False
+            
+            # Perform proper certificate validation using cryptography
+            from cryptography import x509
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.x509.oid import NameOID
+            
+            # Load GoCardless root certificate (CA)
+            with open(self.webhook_cert_path, 'rb') as f:
+                gocardless_ca_cert = x509.load_pem_x509_certificate(f.read(), default_backend())
+            
+            # Load client certificate from request
+            if isinstance(client_cert, str):
+                client_cert_bytes = client_cert.encode('utf-8')
+            else:
+                client_cert_bytes = client_cert
+                
+            try:
+                cert = x509.load_pem_x509_certificate(client_cert_bytes, default_backend())
+            except Exception as cert_err:
+                logger.error(f"Invalid client certificate format: {str(cert_err)}")
+                return False
+            
+            # Verify certificate issuer matches expected GoCardless issuer
+            gocardless_issuer = gocardless_ca_cert.subject
+            cert_issuer = cert.issuer
+            
+            if gocardless_issuer != cert_issuer:
+                logger.warning(f"Certificate issuer mismatch. Expected {gocardless_issuer}, got {cert_issuer}")
+                return False
+            
+            # Verify certificate is not expired
+            import datetime
+            now = datetime.datetime.now()
+            if now < cert.not_valid_before or now > cert.not_valid_after:
+                logger.warning(f"Certificate is not valid at current time. Valid from {cert.not_valid_before} to {cert.not_valid_after}")
+                return False
+            
+            # Verify certificate signature using GoCardless public key
+            # Note: In production, we would verify the entire chain of trust
+            try:
+                gocardless_public_key = gocardless_ca_cert.public_key()
+                # This will raise an exception if verification fails
+                gocardless_public_key.verify(
+                    cert.signature,
+                    cert.tbs_certificate_bytes,
+                    cert.signature_hash_algorithm
+                )
+            except Exception as sig_err:
+                logger.error(f"Certificate signature verification failed: {str(sig_err)}")
+                return False
+            
+            logger.info("Webhook certificate verification completed successfully")
             return True
+            
         except Exception as e:
             logger.error(f"Error verifying webhook certificate: {str(e)}")
             return False
