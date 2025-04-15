@@ -16,6 +16,10 @@ from flask_backend.utils.validators import (
     is_valid_email, is_valid_password, is_valid_username, 
     is_valid_string, sanitize_string
 )
+from flask_backend.utils.security_errors import (
+    ValidationError, AuthenticationError, AuthorizationError,
+    RateLimitError, TokenError
+)
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -27,98 +31,115 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 @limiter.limit("10 per minute")  # Stricter rate limit for login attempts to prevent brute force
 def login():
     """Log in a user and return access and refresh tokens"""
-    # Get login credentials from request
-    data = request.get_json()
-    if not data:
-        return jsonify({
-            'success': False,
-            'message': 'Invalid request data'
-        }), 400
+    try:
+        # Get login credentials from request
+        data = request.get_json()
+        if not data:
+            raise ValidationError("Invalid request data")
+            
+        # Extract fields
+        email = data.get('email')
+        password = data.get('password')
         
-    # Check required fields and validate email format
-    email = data.get('email')
-    password = data.get('password')
-    
-    # Validate email
-    is_email_valid, email_error = is_valid_email(email)
-    if not is_email_valid:
-        return jsonify({
-            'success': False,
-            'message': email_error or 'Invalid email format'
-        }), 400
-    
-    # Validate password (basic validation for login)
-    if not password:
-        return jsonify({
-            'success': False,
-            'message': 'Password is required'
-        }), 400
-    
-    # Find user - use sanitized email for lookup
-    sanitized_email = sanitize_string(email)
-    user = User.query.filter_by(email=sanitized_email).first()
-    if not user:
-        # Use generic error message to prevent user enumeration
-        return jsonify({
-            'success': False,
-            'message': 'Invalid email or password'
-        }), 401
+        # Comprehensive validation
+        validation_errors = {}
         
-    # Check password with constant-time comparison (via auth_service)
-    if not auth_service.verify_password(user.password_hash, password):
-        logger.warning(f"Failed login attempt for user {sanitized_email}")
-        return jsonify({
-            'success': False,
-            'message': 'Invalid email or password'
-        }), 401
+        # Validate email format
+        is_email_valid, email_error = is_valid_email(email)
+        if not is_email_valid:
+            validation_errors['email'] = email_error
         
-    # Check if user is active
-    if not user.is_active:
-        logger.warning(f"Login attempt for inactive user {email}")
+        # Validate password presence (basic validation for login)
+        if not password:
+            validation_errors['password'] = "Password is required"
+            
+        # If any validation failed, raise error with all errors
+        if validation_errors:
+            raise ValidationError("Validation failed", errors=validation_errors)
+        
+        # Sanitize email for database lookup
+        sanitized_email = sanitize_string(email)
+        
+        # Find user with enhanced security measures
+        user = User.query.filter_by(email=sanitized_email).first()
+        
+        # Handle non-existent user (with same timing as valid user for security)
+        if not user:
+            # This prevents timing attacks that could reveal if an email exists
+            # We should create a method to simulate password comparison time
+            auth_service.dummy_password_check()
+            # Log attempt with minimal information (first 3 chars only)
+            logger.warning(f"Login failed: Email not found ({sanitized_email[:3]}...)")
+            raise AuthenticationError(
+                "Invalid email or password",
+                log_message=f"Login attempt with non-existent email: {sanitized_email}"
+            )
+            
+        # Check password with constant-time comparison
+        if not auth_service.verify_password(user.password_hash, password):
+            # Log with user ID for auditing but use generic message in response
+            logger.warning(f"Login failed: Invalid password for user ID {user.id}")
+            raise AuthenticationError(
+                "Invalid email or password",
+                log_message=f"Failed password attempt for user ID: {user.id}"
+            )
+            
+        # Check if user account is active
+        if not user.is_active:
+            logger.warning(f"Login attempt for inactive user ID {user.id}")
+            raise AuthenticationError(
+                "Account is inactive or suspended",
+                log_message=f"Login attempt for inactive user: {user.id}"
+            )
+            
+        # Get permissions for user (based on role)
+        permissions = ['read:basic', 'write:basic']
+        if user.is_admin:  # Using the property we defined in the User model
+            permissions.extend(['read:admin', 'write:admin'])
+        
+        # Update last login time
+        user.last_login_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Generate access token
+        access_token = auth_service.generate_token(
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            is_admin=user.is_admin,
+            permissions=permissions
+        )
+        
+        # Generate refresh token
+        refresh_token = auth_service.generate_refresh_token(user_id=user.id)
+        
+        # Return tokens
         return jsonify({
-            'success': False,
-            'message': 'Account is inactive or suspended'
-        }), 401
-    
-    # Get permissions for user (based on role)
-    permissions = ['read:basic', 'write:basic']
-    if user.is_admin:  # Using the property we defined in the User model
-        permissions.extend(['read:admin', 'write:admin'])
-    
-    # Update last login time
-    user.last_login_at = datetime.utcnow()
-    db.session.commit()
-    
-    # Generate access token
-    access_token = auth_service.generate_token(
-        user_id=user.id,
-        tenant_id=user.tenant_id,
-        is_admin=user.is_admin,
-        permissions=permissions
-    )
-    
-    # Generate refresh token
-    refresh_token = auth_service.generate_refresh_token(user_id=user.id)
-    
-    # Return tokens
-    return jsonify({
-        'success': True,
-        'message': 'Login successful',
-        'data': {
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-            'token_type': 'Bearer',
-            'expires_in': auth_service.token_expiry,
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'username': user.name,  # Use name as username
-                'is_admin': user.is_admin,
-                'tenant_id': user.tenant_id,
-                'role': user.role
+            'success': True,
+            'message': 'Login successful',
+            'data': {
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'token_type': 'Bearer',
+                'expires_in': auth_service.token_expiry,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.name,  # Use name as username
+                    'is_admin': user.is_admin,
+                    'tenant_id': user.tenant_id,
+                    'role': user.role
+                }
             }
-        }
-    })
+        })
+    
+    except (ValidationError, AuthenticationError) as e:
+        # These exceptions will be handled by the error handler
+        raise
+    except Exception as e:
+        # Catch any other exceptions and log them
+        logger.error(f"Unexpected error in login: {str(e)}")
+        raise
+
 
 @auth_bp.route('/refresh', methods=['POST'])
 @limiter.limit("20 per minute")  # Less strict limit for token refresh
