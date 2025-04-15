@@ -53,11 +53,18 @@ csrf = CSRFProtect(app)
 
 # Initialize rate limiter
 limiter = Limiter(
-    get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    key_func=get_remote_address,  # Use IP address as default limiter key
+    default_limits=[f"{API_RATE_LIMIT} per minute", "1000 per hour"],
     storage_uri="memory://",
-    strategy="fixed-window"
+    strategy="fixed-window",
+    headers_enabled=True,         # Expose rate limit headers
+    header_name_mapping={         # Custom headers for rate limit info
+        "X-RateLimit-Limit": "X-RateLimit-Limit",
+        "X-RateLimit-Remaining": "X-RateLimit-Remaining",
+        "X-RateLimit-Reset": "X-RateLimit-Reset"
+    },
+    swallow_errors=True           # Ensure app works even if rate limiter fails
 )
 
 # Set secret key from environment variable - no default for security

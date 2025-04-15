@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, request, current_app, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_backend.services.auth_service import auth_service
 from flask_backend.models import User, db
+from flask_backend.app import limiter
 
 # Logger
 logger = logging.getLogger(__name__)
