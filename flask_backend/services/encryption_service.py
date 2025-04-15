@@ -1,23 +1,29 @@
 """
 Encryption Service
 
-This module provides encryption and decryption functions for sensitive data.
-It implements field-level encryption for secure credential storage and management.
+This module provides field-level encryption for sensitive data in the database.
 """
 import os
 import base64
 import logging
+import hashlib
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+# Logger
 logger = logging.getLogger(__name__)
 
 class EncryptionService:
     """Service for encrypting and decrypting sensitive data"""
     
     def __init__(self, app=None):
-        """Initialize the encryption service"""
+        """
+        Initialize the encryption service
+        
+        Args:
+            app: Flask application instance
+        """
         self.fernet = None
         self.initialized = False
         
@@ -25,98 +31,244 @@ class EncryptionService:
             self.init_app(app)
     
     def init_app(self, app):
-        """Initialize with Flask app context"""
-        # Get encryption key from environment variable or generate one
+        """
+        Initialize the encryption service with a Flask app
+        
+        Args:
+            app: Flask application instance
+        """
+        # Get encryption key from environment
         encryption_key = os.environ.get('ENCRYPTION_KEY')
         
         if not encryption_key:
+            # If no encryption key is provided, derive one from the app secret key
+            # This is less secure but better than nothing
             logger.warning("No encryption key found in environment. Using app secret for key derivation.")
-            # Derive a key from the app secret key
-            encryption_key = self._derive_key_from_secret(app.secret_key)
+            # Get app secret key
+            app_secret = app.secret_key
+            if not app_secret:
+                logger.error("No app secret key available for key derivation.")
+                return
+            
+            # Derive key from app secret using PBKDF2
+            salt = b'payymo_salt'  # Fixed salt, not ideal but consistent
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=salt,
+                iterations=100000,
+            )
+            derived_key = base64.urlsafe_b64encode(kdf.derive(app_secret.encode()))
+            self.fernet = Fernet(derived_key)
+        else:
+            # Use provided encryption key
+            # Ensure it's base64 encoded and 32 bytes when decoded
+            if not self._is_valid_key(encryption_key):
+                # Convert to valid Fernet key if needed
+                encryption_key = self._to_fernet_key(encryption_key)
+            
+            self.fernet = Fernet(encryption_key.encode())
         
-        # Generate Fernet cipher for symmetric encryption
-        try:
-            self.fernet = Fernet(encryption_key.encode() if isinstance(encryption_key, str) else encryption_key)
-            self.initialized = True
-            logger.info("Encryption service initialized successfully")
-        except Exception as e:
-            logger.error(f"Failed to initialize encryption service: {str(e)}")
-            self.initialized = False
+        self.initialized = True
+        logger.info("Encryption service initialized successfully")
     
-    def _derive_key_from_secret(self, secret_key):
-        """Derive a Fernet key from the application secret key"""
-        # Use PBKDF2 to derive a key from the secret
-        salt = b'payymo-encryption-salt'  # Fixed salt for reproducibility
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(secret_key.encode() if isinstance(secret_key, str) else secret_key))
-        return key
+    def _is_valid_key(self, key):
+        """
+        Check if key is a valid Fernet key
+        
+        Args:
+            key: Key to check
+            
+        Returns:
+            True if key is valid, False otherwise
+        """
+        try:
+            # Try to create a Fernet instance with the key
+            Fernet(key.encode())
+            return True
+        except Exception:
+            return False
+    
+    def _to_fernet_key(self, key):
+        """
+        Convert arbitrary string to valid Fernet key
+        
+        Args:
+            key: String to convert
+            
+        Returns:
+            Valid Fernet key
+        """
+        # Hash the key to get consistent length
+        key_bytes = hashlib.sha256(key.encode()).digest()
+        # Base64 encode to get valid Fernet key
+        return base64.urlsafe_b64encode(key_bytes).decode()
     
     def encrypt(self, data):
         """
-        Encrypt sensitive data
+        Encrypt data
         
         Args:
             data: String data to encrypt
             
         Returns:
-            Encrypted data as a string
+            Encrypted data as string
         """
         if not self.initialized:
             logger.error("Encryption service not initialized")
-            return None
+            return data
         
         if data is None:
             return None
         
         try:
-            # Convert to bytes if string
+            # Convert data to bytes
             if isinstance(data, str):
-                data = data.encode()
+                data_bytes = data.encode()
+            else:
+                data_bytes = str(data).encode()
             
-            # Encrypt the data
-            encrypted_data = self.fernet.encrypt(data)
-            
-            # Return as string
-            return encrypted_data.decode()
+            # Encrypt data
+            encrypted_bytes = self.fernet.encrypt(data_bytes)
+            # Return as base64 string
+            return base64.b64encode(encrypted_bytes).decode()
         except Exception as e:
-            logger.error(f"Encryption error: {str(e)}")
-            return None
+            logger.error(f"Error encrypting data: {str(e)}")
+            return data
     
     def decrypt(self, encrypted_data):
         """
-        Decrypt encrypted data
+        Decrypt data
         
         Args:
-            encrypted_data: Encrypted data as a string
+            encrypted_data: Encrypted data as string
             
         Returns:
-            Decrypted data as a string
+            Decrypted data as string
         """
         if not self.initialized:
             logger.error("Encryption service not initialized")
-            return None
+            return encrypted_data
         
         if encrypted_data is None:
             return None
         
         try:
-            # Convert to bytes if string
-            if isinstance(encrypted_data, str):
-                encrypted_data = encrypted_data.encode()
-            
-            # Decrypt the data
-            decrypted_data = self.fernet.decrypt(encrypted_data)
-            
+            # Convert from base64 string to bytes
+            encrypted_bytes = base64.b64decode(encrypted_data)
+            # Decrypt data
+            decrypted_bytes = self.fernet.decrypt(encrypted_bytes)
             # Return as string
-            return decrypted_data.decode()
+            return decrypted_bytes.decode()
         except Exception as e:
-            logger.error(f"Decryption error: {str(e)}")
-            return None
-
+            logger.error(f"Error decrypting data: {str(e)}")
+            return encrypted_data
+    
+    def encrypt_dict_fields(self, data_dict, field_names):
+        """
+        Encrypt specified fields in a dictionary
+        
+        Args:
+            data_dict: Dictionary containing data to encrypt
+            field_names: List of field names to encrypt
+            
+        Returns:
+            Dictionary with encrypted fields
+        """
+        if not self.initialized:
+            logger.error("Encryption service not initialized")
+            return data_dict
+        
+        if not data_dict or not field_names:
+            return data_dict
+        
+        # Create copy of dict to avoid modifying original
+        result = data_dict.copy()
+        
+        # Encrypt each field
+        for field in field_names:
+            if field in result and result[field] is not None:
+                result[field] = self.encrypt(result[field])
+        
+        return result
+    
+    def decrypt_dict_fields(self, data_dict, field_names):
+        """
+        Decrypt specified fields in a dictionary
+        
+        Args:
+            data_dict: Dictionary containing data to decrypt
+            field_names: List of field names to decrypt
+            
+        Returns:
+            Dictionary with decrypted fields
+        """
+        if not self.initialized:
+            logger.error("Encryption service not initialized")
+            return data_dict
+        
+        if not data_dict or not field_names:
+            return data_dict
+        
+        # Create copy of dict to avoid modifying original
+        result = data_dict.copy()
+        
+        # Decrypt each field
+        for field in field_names:
+            if field in result and result[field] is not None:
+                result[field] = self.decrypt(result[field])
+        
+        return result
+    
+    def encrypt_model_fields(self, model, field_names):
+        """
+        Encrypt specified fields in a model instance
+        
+        Args:
+            model: SQLAlchemy model instance
+            field_names: List of field names to encrypt
+            
+        Returns:
+            Model instance with encrypted fields
+        """
+        if not self.initialized:
+            logger.error("Encryption service not initialized")
+            return model
+        
+        if not model or not field_names:
+            return model
+        
+        # Encrypt each field
+        for field in field_names:
+            if hasattr(model, field) and getattr(model, field) is not None:
+                setattr(model, field, self.encrypt(getattr(model, field)))
+        
+        return model
+    
+    def decrypt_model_fields(self, model, field_names):
+        """
+        Decrypt specified fields in a model instance
+        
+        Args:
+            model: SQLAlchemy model instance
+            field_names: List of field names to decrypt
+            
+        Returns:
+            Model instance with decrypted fields
+        """
+        if not self.initialized:
+            logger.error("Encryption service not initialized")
+            return model
+        
+        if not model or not field_names:
+            return model
+        
+        # Decrypt each field
+        for field in field_names:
+            if hasattr(model, field) and getattr(model, field) is not None:
+                setattr(model, field, self.decrypt(getattr(model, field)))
+        
+        return model
+    
 # Create singleton instance
 encryption_service = EncryptionService()

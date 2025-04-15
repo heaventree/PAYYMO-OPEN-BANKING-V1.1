@@ -1,249 +1,330 @@
 """
 Authentication Service
 
-This module provides authentication and authorization functions for the application.
+This module provides secure authentication and authorization functionality.
 """
 import os
-import uuid
-import json
+import time
 import logging
 import secrets
+import hashlib
+import hmac
 from datetime import datetime, timedelta
-from flask import current_app, session
+import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_backend.app import db
-from flask_backend.models import LicenseKey, WhmcsInstance
-from flask_backend.services.encryption_service import encryption_service
+from flask import request, abort, current_app
+from flask_backend.models import ApiLog, WhmcsInstance
 
+# Logger
 logger = logging.getLogger(__name__)
 
 class AuthService:
-    """Service for handling authentication and authorization"""
+    """Service for secure authentication and authorization"""
     
-    def __init__(self):
-        """Initialize the authentication service"""
-        self.token_expiry = 3600  # 1 hour in seconds
-    
-    def verify_license(self, license_key, domain):
+    def __init__(self, app=None):
         """
-        Verify if a license key is valid for a domain
+        Initialize the authentication service
         
         Args:
-            license_key: The license key to verify
-            domain: The domain requesting verification
-            
-        Returns:
-            Dictionary with verification result
+            app: Flask application instance
         """
-        if not license_key or not domain:
-            return {
-                'valid': False,
-                'error': 'Missing license key or domain'
-            }
+        self.secret_key = None
+        self.token_expiry = 3600  # 1 hour
+        self.initialized = False
         
-        # Find the license key in the database
-        license_record = LicenseKey.query.filter_by(key=license_key).first()
-        
-        if not license_record:
-            logger.warning(f"Invalid license key attempt: {license_key}")
-            return {
-                'valid': False,
-                'error': 'Invalid license key'
-            }
-        
-        # Check if license is active
-        if license_record.status != 'active':
-            logger.warning(f"Non-active license key used: {license_key}, status: {license_record.status}")
-            return {
-                'valid': False,
-                'error': f'License key is {license_record.status}',
-                'status': license_record.status
-            }
-        
-        # Check if license has expired
-        if license_record.expires_at and license_record.expires_at < datetime.utcnow():
-            logger.warning(f"Expired license key used: {license_key}")
-            
-            # Update license status to expired
-            license_record.status = 'expired'
-            db.session.commit()
-            
-            return {
-                'valid': False,
-                'error': 'License key has expired',
-                'status': 'expired'
-            }
-        
-        # Check if domain is allowed
-        allowed_domains = []
-        if license_record.allowed_domains:
-            try:
-                allowed_domains = json.loads(license_record.allowed_domains)
-            except Exception as e:
-                logger.error(f"Error parsing allowed domains: {str(e)}")
-        
-        if allowed_domains and domain not in allowed_domains:
-            logger.warning(f"Unauthorized domain for license: {domain}")
-            return {
-                'valid': False,
-                'error': 'Domain not authorized for this license key'
-            }
-        
-        # Update last verification timestamp
-        license_record.last_verified = datetime.utcnow()
-        db.session.commit()
-        
-        return {
-            'valid': True,
-            'status': license_record.status,
-            'expires_at': license_record.expires_at.isoformat() if license_record.expires_at else None,
-            'max_banks': license_record.max_banks,
-            'max_transactions': license_record.max_transactions,
-            'features': json.loads(license_record.features) if license_record.features else {}
-        }
+        if app:
+            self.init_app(app)
     
-    def verify_webhook_signature(self, signature, domain):
+    def init_app(self, app):
         """
-        Verify webhook signature for a domain
+        Initialize the authentication service with a Flask app
         
         Args:
-            signature: The webhook signature from the request header
-            domain: The domain associated with the webhook
+            app: Flask application instance
+        """
+        # Get JWT secret key from environment or app secret
+        self.secret_key = os.environ.get('JWT_SECRET_KEY', app.secret_key)
+        
+        # Get token expiry from environment or use default
+        self.token_expiry = int(os.environ.get('JWT_TOKEN_EXPIRY', self.token_expiry))
+        
+        self.initialized = True
+        logger.info("Authentication service initialized successfully")
+    
+    def hash_password(self, password):
+        """
+        Hash a password for storage
+        
+        Args:
+            password: Plain text password
             
         Returns:
-            Boolean indicating if signature is valid
+            Hashed password
         """
-        if not signature or not domain:
-            return False
+        return generate_password_hash(password)
+    
+    def verify_password(self, password_hash, password):
+        """
+        Verify a password against a hash
         
-        # Find the WHMCS instance
-        instance = WhmcsInstance.query.filter_by(domain=domain).first()
-        
-        if not instance or not instance.webhook_secret:
-            return False
-        
-        # Simple signature matching
-        # In a production environment, consider using HMAC for signature verification
-        return secrets.compare_digest(signature, instance.webhook_secret)
+        Args:
+            password_hash: Hashed password
+            password: Plain text password to verify
+            
+        Returns:
+            True if password is correct, False otherwise
+        """
+        return check_password_hash(password_hash, password)
     
     def generate_api_key(self):
         """
-        Generate a new API key
+        Generate a secure API key
         
         Returns:
-            String API key
+            Secure random API key
         """
-        # Generate a random UUID-based API key
-        return str(uuid.uuid4())
+        # Generate 32 bytes of random data
+        return secrets.token_hex(32)
     
-    def rotate_api_keys(self, instance_id):
+    def generate_token(self, user_id, tenant_id=None, is_admin=False, expiry=None):
         """
-        Rotate API keys for an instance
+        Generate a JWT token
         
         Args:
-            instance_id: ID of the WHMCS instance
+            user_id: User ID to include in token
+            tenant_id: Tenant ID to include in token
+            is_admin: Whether the user is an admin
+            expiry: Token expiry in seconds
             
         Returns:
-            Dictionary with new API credentials
+            JWT token
         """
-        instance = WhmcsInstance.query.get(instance_id)
+        if not self.initialized:
+            logger.error("Authentication service not initialized")
+            return None
         
-        if not instance:
-            return {
-                'success': False,
-                'error': 'Instance not found'
-            }
+        if expiry is None:
+            expiry = self.token_expiry
         
-        # Store old credentials in case rollback is needed
-        old_identifier = instance.api_identifier
-        old_secret = instance.api_secret
+        # Current time
+        now = datetime.utcnow()
+        
+        # Create payload
+        payload = {
+            'sub': str(user_id),
+            'iat': now,
+            'exp': now + timedelta(seconds=expiry)
+        }
+        
+        # Add tenant ID if provided
+        if tenant_id:
+            payload['tenant_id'] = str(tenant_id)
+        
+        # Add admin flag if true
+        if is_admin:
+            payload['is_admin'] = True
+        
+        # Generate token
+        token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+        
+        return token
+    
+    def verify_token(self, token):
+        """
+        Verify a JWT token
+        
+        Args:
+            token: JWT token to verify
+            
+        Returns:
+            Decoded token payload or None if invalid
+        """
+        if not self.initialized:
+            logger.error("Authentication service not initialized")
+            return None
         
         try:
-            # Generate new API credentials
-            new_secret = self.generate_api_key()
+            # Decode token
+            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            return payload
+        except jwt.ExpiredSignatureError:
+            logger.warning("Token expired")
+            return None
+        except jwt.InvalidTokenError as e:
+            logger.warning(f"Invalid token: {str(e)}")
+            return None
+    
+    def require_auth(self, admin_required=False):
+        """
+        Decorator to require authentication
+        
+        Args:
+            admin_required: Whether admin privileges are required
             
-            # Update instance with new credentials
-            instance.api_secret = new_secret
+        Returns:
+            Decorator function
+        """
+        def decorator(f):
+            def wrapped(*args, **kwargs):
+                # Get token from Authorization header
+                auth_header = request.headers.get('Authorization')
+                if not auth_header or not auth_header.startswith('Bearer '):
+                    logger.warning("Missing or invalid Authorization header")
+                    abort(401, description="Authentication required")
+                
+                # Extract token
+                token = auth_header.split(' ')[1]
+                
+                # Verify token
+                payload = self.verify_token(token)
+                if not payload:
+                    logger.warning("Invalid token")
+                    abort(401, description="Invalid or expired token")
+                
+                # Check admin privileges if required
+                if admin_required and not payload.get('is_admin', False):
+                    logger.warning("Admin privileges required")
+                    abort(403, description="Admin privileges required")
+                
+                # Add user_id to kwargs
+                kwargs['user_id'] = payload.get('sub')
+                
+                # Add tenant_id to kwargs if present
+                if 'tenant_id' in payload:
+                    kwargs['tenant_id'] = payload.get('tenant_id')
+                
+                # Log API access
+                self._log_api_access()
+                
+                return f(*args, **kwargs)
+            
+            # Set wrapper attributes
+            wrapped.__name__ = f.__name__
+            wrapped.__doc__ = f.__doc__
+            
+            return wrapped
+        
+        return decorator
+    
+    def verify_webhook_signature(self, signature, payload, secret):
+        """
+        Verify a webhook signature
+        
+        Args:
+            signature: Signature to verify
+            payload: Raw payload bytes
+            secret: Secret key for verification
+            
+        Returns:
+            True if signature is valid, False otherwise
+        """
+        if not signature or not payload or not secret:
+            return False
+        
+        # Convert secret to bytes if needed
+        if isinstance(secret, str):
+            secret = secret.encode()
+        
+        # Convert payload to bytes if needed
+        if isinstance(payload, str):
+            payload = payload.encode()
+        
+        # Calculate signature
+        expected_signature = hmac.new(
+            secret,
+            payload,
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Compare signatures using constant-time comparison
+        return hmac.compare_digest(expected_signature, signature)
+    
+    def _log_api_access(self):
+        """Log API access for audit purposes"""
+        try:
+            # Create log entry
+            log = ApiLog(
+                endpoint=request.path,
+                method=request.method,
+                request_data=request.get_data(as_text=True) if request.content_length else None,
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string,
+                status_code=200,  # Presumed success
+                duration_ms=0,  # Will be updated later
+                created_at=datetime.utcnow()
+            )
+            
+            # Add to database
+            from flask_backend.app import db
+            db.session.add(log)
             db.session.commit()
-            
-            return {
-                'success': True,
-                'new_api_identifier': instance.api_identifier,
-                'new_api_secret': new_secret
-            }
         except Exception as e:
-            # Rollback on error
-            logger.error(f"Error rotating API keys: {str(e)}")
-            instance.api_identifier = old_identifier
-            instance.api_secret = old_secret
-            db.session.rollback()
-            
-            return {
-                'success': False,
-                'error': 'Failed to rotate API keys'
-            }
+            logger.error(f"Error logging API access: {str(e)}")
     
-    def create_csrf_token(self):
+    def verify_api_credentials(self, tenant_domain, api_identifier, api_secret):
         """
-        Create a CSRF token for form protection
-        
-        Returns:
-            String CSRF token
-        """
-        if 'csrf_token' not in session:
-            session['csrf_token'] = secrets.token_hex(32)
-            session['csrf_token_expiry'] = (datetime.utcnow() + 
-                                           timedelta(seconds=current_app.config.get('CSRF_EXPIRATION', 3600))
-                                          ).timestamp()
-        
-        # Check if token has expired
-        elif session.get('csrf_token_expiry', 0) < datetime.utcnow().timestamp():
-            # Generate a new token
-            session['csrf_token'] = secrets.token_hex(32)
-            session['csrf_token_expiry'] = (datetime.utcnow() + 
-                                           timedelta(seconds=current_app.config.get('CSRF_EXPIRATION', 3600))
-                                          ).timestamp()
-        
-        return session['csrf_token']
-    
-    def verify_csrf_token(self, token):
-        """
-        Verify a CSRF token against the session
+        Verify API credentials for a tenant
         
         Args:
-            token: The CSRF token to verify
+            tenant_domain: Domain of the tenant
+            api_identifier: API identifier
+            api_secret: API secret
             
         Returns:
-            Boolean indicating if token is valid
+            WhmcsInstance if credentials are valid, None otherwise
         """
-        if not token or not session.get('csrf_token'):
-            return False
+        # Find tenant
+        tenant = WhmcsInstance.query.filter_by(domain=tenant_domain).first()
         
-        # Check if token has expired
-        if session.get('csrf_token_expiry', 0) < datetime.utcnow().timestamp():
-            return False
+        if not tenant:
+            logger.warning(f"Tenant not found: {tenant_domain}")
+            return None
         
-        # Verify token
-        return secrets.compare_digest(token, session['csrf_token'])
+        # Verify API identifier
+        if tenant.api_identifier != api_identifier:
+            logger.warning(f"Invalid API identifier for tenant: {tenant_domain}")
+            return None
+        
+        # Verify API secret using constant-time comparison
+        if not self._constant_time_compare(tenant.api_secret, api_secret):
+            logger.warning(f"Invalid API secret for tenant: {tenant_domain}")
+            return None
+        
+        # Update last seen timestamp
+        tenant.last_seen = datetime.utcnow()
+        
+        try:
+            # Save changes
+            from flask_backend.app import db
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Error updating tenant last seen: {str(e)}")
+        
+        return tenant
     
-    def generate_secure_password(self, length=16):
+    def _constant_time_compare(self, val1, val2):
         """
-        Generate a cryptographically secure random password
+        Compare two values using constant-time comparison
         
         Args:
-            length: Length of the password to generate (default: 16)
+            val1: First value
+            val2: Second value
             
         Returns:
-            Secure random password
+            True if values are equal, False otherwise
         """
-        # Ensure minimum length
-        if length < current_app.config.get('PASSWORD_MIN_LENGTH', 12):
-            length = current_app.config.get('PASSWORD_MIN_LENGTH', 12)
-            
-        # Generate password
-        import string
-        chars = string.ascii_letters + string.digits + string.punctuation
-        return ''.join(secrets.choice(chars) for _ in range(length))
+        if val1 is None or val2 is None:
+            return False
+        
+        # Convert to strings if needed
+        if not isinstance(val1, str):
+            val1 = str(val1)
+        
+        if not isinstance(val2, str):
+            val2 = str(val2)
+        
+        # Use hmac.compare_digest for constant-time comparison
+        return hmac.compare_digest(val1, val2)
 
 # Create singleton instance
 auth_service = AuthService()

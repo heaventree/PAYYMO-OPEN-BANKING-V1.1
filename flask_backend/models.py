@@ -221,16 +221,23 @@ class ApiLog(db.Model):
     __tablename__ = 'api_logs'
     
     id = Column(Integer, primary_key=True)
-    endpoint = Column(String(255))
-    method = Column(String(10))
+    endpoint = Column(String(512))  # Increased length for long endpoint paths
+    method = Column(String(20))     # Increased to allow for custom methods
     request_data = Column(Text)
     response_data = Column(Text)
     status_code = Column(Integer)
-    ip_address = Column(String(45))
-    user_agent = Column(String(255))
+    ip_address = Column(String(45))  # IPv6 support
+    user_agent = Column(Text)        # Changed to Text for longer user agent strings
     duration_ms = Column(Integer)
     error = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Add indices for better performance
+    __table_args__ = (
+        Index('idx_api_logs_endpoint', endpoint),
+        Index('idx_api_logs_created_at', created_at),
+        Index('idx_api_logs_status_code', status_code),
+    )
     
     def __repr__(self):
         return f"<ApiLog {self.endpoint} {self.method} {self.status_code}>"
