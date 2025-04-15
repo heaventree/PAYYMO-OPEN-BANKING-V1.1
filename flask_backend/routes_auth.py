@@ -20,6 +20,7 @@ from flask_backend.utils.security_errors import (
     ValidationError, AuthenticationError, AuthorizationError,
     RateLimitError, TokenError
 )
+from flask_backend.utils.error_handler import APIError
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -199,120 +200,131 @@ def refresh_token():
 @limiter.limit("5 per hour, 20 per day")  # Strict limits for registration to prevent abuse
 def register():
     """Register a new user"""
-    # Get registration data from request
-    data = request.get_json()
-    if not data:
-        return jsonify({
-            'success': False,
-            'message': 'Invalid request data'
-        }), 400
-        
-    # Extract and validate required fields
-    email = data.get('email')
-    username = data.get('username')
-    password = data.get('password')
-    
-    # Comprehensive validation
-    validation_errors = {}
-    
-    # Validate email
-    is_email_valid, email_error = is_valid_email(email)
-    if not is_email_valid:
-        validation_errors['email'] = email_error
-    
-    # Validate username
-    is_username_valid, username_error = is_valid_username(username)
-    if not is_username_valid:
-        validation_errors['username'] = username_error
-    
-    # Validate password strength
-    is_password_valid, password_error = is_valid_password(password)
-    if not is_password_valid:
-        validation_errors['password'] = password_error
-    
-    # If any validation failed, return all errors
-    if validation_errors:
-        return jsonify({
-            'success': False,
-            'message': 'Validation failed',
-            'errors': validation_errors
-        }), 400
-    
-    # Sanitize inputs before database operations
-    sanitized_email = sanitize_string(email)
-    sanitized_username = sanitize_string(username)
-    
-    # Check if user already exists
-    if User.query.filter_by(email=sanitized_email).first():
-        return jsonify({
-            'success': False,
-            'message': 'Email already registered'
-        }), 400
-        
-    if User.query.filter_by(name=sanitized_username).first():
-        return jsonify({
-            'success': False,
-            'message': 'Username already taken'
-        }), 400
-        
-    # Hash password
-    password_hash = auth_service.hash_password(password)
-    
-    # Create new user with sanitized inputs
-    # For test/development users, default to tenant_id=1 
-    # In production, this would be set based on tenant context or registration flow
-    user = User(
-        name=sanitized_username,  # Use sanitized name field instead of username
-        email=sanitized_email,    # Use sanitized email
-        password_hash=password_hash,
-        tenant_id=1,  # Default tenant_id for testing
-        role='user',  # Default role
-        status='active',  # Default status
-        email_verified=False,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
-    )
-    
-    # Save to database
     try:
-        db.session.add(user)
-        db.session.commit()
-    except Exception as e:
-        logger.error(f"Error creating user: {str(e)}")
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': 'Error creating user'
-        }), 500
+        # Get registration data from request
+        data = request.get_json()
+        if not data:
+            raise ValidationError("Invalid request data")
+            
+        # Extract and validate required fields
+        email = data.get('email')
+        username = data.get('username')
+        password = data.get('password')
         
-    # Generate access token
-    access_token = auth_service.generate_token(
-        user_id=user.id,
-        tenant_id=user.tenant_id,
-        is_admin=user.is_admin
-    )
-    
-    # Generate refresh token
-    refresh_token = auth_service.generate_refresh_token(user_id=user.id)
-    
-    # Return tokens
-    return jsonify({
-        'success': True,
-        'message': 'User registered successfully',
-        'data': {
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-            'token_type': 'Bearer',
-            'expires_in': auth_service.token_expiry,
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'username': user.name,  # Use name field as username
-                'tenant_id': user.tenant_id,
-                'role': user.role
+        # Comprehensive validation
+        validation_errors = {}
+        
+        # Validate email
+        is_email_valid, email_error = is_valid_email(email)
+        if not is_email_valid:
+            validation_errors['email'] = email_error
+        
+        # Validate username
+        is_username_valid, username_error = is_valid_username(username)
+        if not is_username_valid:
+            validation_errors['username'] = username_error
+        
+        # Validate password strength
+        is_password_valid, password_error = is_valid_password(password)
+        if not is_password_valid:
+            validation_errors['password'] = password_error
+        
+        # If any validation failed, raise error with all errors
+        if validation_errors:
+            raise ValidationError("Validation failed", errors=validation_errors)
+        
+        # Sanitize inputs before database operations
+        sanitized_email = sanitize_string(email)
+        sanitized_username = sanitize_string(username)
+        
+        # Check if user already exists - use a more security-conscious approach
+        if User.query.filter_by(email=sanitized_email).first():
+            # Don't reveal that the email exists, but log it for admins
+            logger.info(f"Registration attempt with existing email: {sanitized_email}")
+            raise ValidationError("Registration failed", {
+                "email": "Invalid email or it cannot be used for registration"
+            })
+            
+        if User.query.filter_by(name=sanitized_username).first():
+            # Don't reveal that the username exists, but log it for admins
+            logger.info(f"Registration attempt with existing username: {sanitized_username}")
+            raise ValidationError("Registration failed", {
+                "username": "Invalid username or it cannot be used for registration"
+            })
+            
+        # Hash password
+        password_hash = auth_service.hash_password(password)
+        
+        # Create new user with sanitized inputs
+        # For test/development users, default to tenant_id=1 
+        # In production, this would be set based on tenant context or registration flow
+        user = User(
+            name=sanitized_username,  # Use sanitized name field instead of username
+            email=sanitized_email,    # Use sanitized email
+            password_hash=password_hash,
+            tenant_id=1,  # Default tenant_id for testing
+            role='user',  # Default role
+            status='active',  # Default status
+            email_verified=False,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        
+        # Save to database
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Error creating user: {str(e)}")
+            db.session.rollback()
+            # Use a generic error message to avoid information disclosure
+            raise APIError(
+                "Could not complete registration. Please try again later.",
+                status_code=500,
+                log_message=f"Database error during user creation: {str(e)}"
+            )
+            
+        # Generate access token
+        access_token = auth_service.generate_token(
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            is_admin=user.is_admin
+        )
+        
+        # Generate refresh token
+        refresh_token = auth_service.generate_refresh_token(user_id=user.id)
+        
+        # Return tokens
+        return jsonify({
+            'success': True,
+            'message': 'User registered successfully',
+            'data': {
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'token_type': 'Bearer',
+                'expires_in': auth_service.token_expiry,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.name,  # Use name field as username
+                    'tenant_id': user.tenant_id,
+                    'role': user.role
+                }
             }
-        }
-    }), 201
+        }), 201
+        
+    except (ValidationError, APIError) as e:
+        # These exceptions will be handled by the error handler
+        raise
+    except Exception as e:
+        # Catch any other exceptions and log them
+        logger.error(f"Unexpected error in registration: {str(e)}")
+        # Use a generic error message for unexpected errors
+        raise APIError(
+            "Registration failed due to an unexpected error. Please try again later.",
+            status_code=500,
+            log_message=f"Unhandled exception in registration: {str(e)}"
+        )
 
 @auth_bp.route('/logout', methods=['POST'])
 @auth_service.require_auth()
