@@ -1,0 +1,693 @@
+{% extends "layout.html" %}
+
+{% block title %}Testing Instance: {{ instance.domain }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a href="{{ url_for('testing_dashboard') }}" class="btn btn-sm btn-outline-secondary mb-2">
+                    <i data-lucide="arrow-left" class="me-1" style="width: 16px; height: 16px;"></i>
+                    Back to Testing Dashboard
+                </a>
+                <h1 class="h3">WHMCS Instance: {{ instance.domain }}</h1>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" id="runDiagnosticBtn" data-domain="{{ instance.domain }}">
+                    <i data-lucide="stethoscope" class="me-1" style="width: 18px; height: 18px;"></i>
+                    Run Diagnostic
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="refreshInstanceBtn">
+                    <i data-lucide="refresh-cw" class="me-1" style="width: 18px; height: 18px;"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instance Details -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Instance Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th scope="row" class="ps-0" style="width: 30%">Domain:</th>
+                            <td>
+                                <a href="https://{{ instance.domain }}" target="_blank" class="text-decoration-none">
+                                    {{ instance.domain }}
+                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="ps-0">API Credentials:</th>
+                            <td>
+                                {% if instance.api_identifier and instance.api_secret %}
+                                    <span class="badge bg-success">Configured</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Not Configured</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="ps-0">License Key:</th>
+                            <td>
+                                {% if instance.license_key %}
+                                    <span class="text-success">{{ instance.license_key[:4] }}...{{ instance.license_key[-4:] }}</span>
+                                {% else %}
+                                    <span class="text-warning">Not Set</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="ps-0">Webhook Secret:</th>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <code class="bg-light p-1 rounded small text-truncate" style="max-width: 150px;" title="{{ instance.webhook_secret }}">
+                                        {{ instance.webhook_secret }}
+                                    </code>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2 copy-webhook-btn" data-webhook="{{ instance.webhook_secret }}">
+                                        <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="ps-0">Created:</th>
+                            <td>{{ instance.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="ps-0">Last Seen:</th>
+                            <td>
+                                {% if instance.last_seen %}
+                                    {{ instance.last_seen.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    <span class="text-muted ms-2 small">
+                                        ({{ (now - instance.last_seen).total_seconds() // 3600 }} hours ago)
+                                    </span>
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Integration Status</h5>
+            </div>
+            <div class="card-body">
+                <div id="diagnosticResults">
+                    <!-- Diagnostic results will be rendered here -->
+                    <div class="d-flex justify-content-center align-items-center h-100 py-4">
+                        <div class="text-center">
+                            <div class="mb-3">
+                                <i data-lucide="stethoscope" style="width: 48px; height: 48px;" class="text-muted"></i>
+                            </div>
+                            <h5>Run Diagnostic Check</h5>
+                            <p class="text-muted">Run a diagnostic check to verify the integration status</p>
+                            <button type="button" class="btn btn-outline-primary btn-sm run-diagnostic-btn" data-domain="{{ instance.domain }}">
+                                <i data-lucide="stethoscope" class="me-1" style="width: 16px; height: 16px;"></i>
+                                Run Diagnostic
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bank & Stripe Connections -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Bank Connections</h5>
+                <span class="badge bg-primary">{{ instance.bank_connections|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if instance.bank_connections %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Bank</th>
+                                    <th>Account</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for conn in instance.bank_connections %}
+                                <tr>
+                                    <td>{{ conn.bank_name }}</td>
+                                    <td>{{ conn.account_name }}</td>
+                                    <td>
+                                        {% if conn.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif conn.status == 'expired' %}
+                                            <span class="badge bg-warning">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ conn.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary fetch-transactions-btn" 
+                                                    data-domain="{{ instance.domain }}" 
+                                                    data-account-id="{{ conn.account_id }}">
+                                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i data-lucide="landmark" style="width: 48px; height: 48px;" class="text-muted"></i>
+                        </div>
+                        <h5>No Bank Connections</h5>
+                        <p class="text-muted">No bank connections have been set up yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Stripe Connections</h5>
+                <span class="badge bg-primary">{{ instance.stripe_connections|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if instance.stripe_connections %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for conn in instance.stripe_connections %}
+                                <tr>
+                                    <td>{{ conn.account_name }}</td>
+                                    <td>{{ conn.account_email }}</td>
+                                    <td>
+                                        {% if conn.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif conn.status == 'expired' %}
+                                            <span class="badge bg-warning">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ conn.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary fetch-payments-btn" 
+                                                    data-domain="{{ instance.domain }}" 
+                                                    data-account-id="{{ conn.account_id }}">
+                                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i data-lucide="credit-card" style="width: 48px; height: 48px;" class="text-muted"></i>
+                        </div>
+                        <h5>No Stripe Connections</h5>
+                        <p class="text-muted">No Stripe connections have been set up yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Errors -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Instance Errors</h5>
+                <span class="badge bg-danger">{{ instance_errors|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if instance_errors %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Error Type</th>
+                                    <th>Message</th>
+                                    <th>Status Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for error in instance_errors %}
+                                <tr>
+                                    <td>{{ error.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if '/' in error.endpoint %}
+                                            <span class="badge bg-warning">{{ error.endpoint.split('/')[-1] }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">unknown</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 400px;" title="{{ error.error }}">
+                                        {{ error.error }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ error.status_code }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i data-lucide="check-circle" style="width: 48px; height: 48px;" class="text-success"></i>
+                        </div>
+                        <h5>No Errors Found</h5>
+                        <p class="text-muted">This instance has no recorded errors</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Logs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">API Logs</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary" id="expandAllLogsBtn">
+                        <i data-lucide="expand" class="me-1" style="width: 16px; height: 16px;"></i>
+                        Expand All
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="collapseAllLogsBtn">
+                        <i data-lucide="minimize" class="me-1" style="width: 16px; height: 16px;"></i>
+                        Collapse All
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if api_logs %}
+                    <div class="accordion" id="apiLogsAccordion">
+                        {% for log in api_logs %}
+                        <div class="accordion-item border-0 mb-2">
+                            <h2 class="accordion-header" id="heading{{ log.id }}">
+                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ log.id }}" aria-expanded="false" aria-controls="collapse{{ log.id }}">
+                                    <div class="d-flex align-items-center w-100">
+                                        <span class="badge {% if log.status_code >= 400 %}bg-danger{% elif log.status_code >= 300 %}bg-warning{% else %}bg-success{% endif %} me-2">
+                                            {{ log.status_code }}
+                                        </span>
+                                        <span class="badge bg-secondary me-2">{{ log.method }}</span>
+                                        <span class="text-truncate me-auto">{{ log.endpoint }}</span>
+                                        <span class="ms-3 text-muted small">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                        <span class="ms-3 badge bg-light text-dark">{{ log.duration_ms }}ms</span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ log.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ log.id }}" data-bs-parent="#apiLogsAccordion">
+                                <div class="accordion-body bg-light">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Request</h6>
+                                            <pre class="bg-dark text-light p-3 rounded"><code>{{ log.request_data }}</code></pre>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Response</h6>
+                                            <pre class="bg-dark text-light p-3 rounded"><code>{{ log.response_data }}</code></pre>
+                                        </div>
+                                    </div>
+                                    {% if log.error %}
+                                    <div class="mt-3">
+                                        <h6>Error</h6>
+                                        <div class="alert alert-danger">{{ log.error }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i data-lucide="database" style="width: 48px; height: 48px;" class="text-muted"></i>
+                        </div>
+                        <h5>No API Logs</h5>
+                        <p class="text-muted">No API logs have been recorded for this instance</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Run diagnostic button
+    const runDiagnosticBtn = document.getElementById('runDiagnosticBtn');
+    const runDiagnosticBtns = document.querySelectorAll('.run-diagnostic-btn');
+    
+    function runDiagnostic(button, domain) {
+        // Show loading state
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Running Diagnostic...';
+        
+        // Make API request
+        fetch('/api/testing/diagnostic', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                domain: domain
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Reset button
+            button.disabled = false;
+            button.innerHTML = '<i data-lucide="stethoscope" class="me-1" style="width: 18px; height: 18px;"></i>Run Diagnostic';
+            
+            // Create icons
+            lucide.createIcons();
+            
+            // Display results
+            const diagnosticResults = document.getElementById('diagnosticResults');
+            
+            if (data.success) {
+                let testsHtml = '';
+                let overallHealth = true;
+                
+                // Generate tests HTML
+                data.tests.forEach(test => {
+                    if (!test.success) overallHealth = false;
+                    
+                    testsHtml += `
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <div class="rounded-circle p-2 ${test.success ? 'bg-success' : 'bg-danger'} bg-opacity-10">
+                                    <i data-lucide="${test.success ? 'check-circle' : 'x-circle'}" 
+                                       style="width: 24px; height: 24px;" 
+                                       class="${test.success ? 'text-success' : 'text-danger'}"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">${test.name}</h6>
+                                <p class="mb-0 text-muted small">${test.message}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // Generate overall status
+                diagnosticResults.innerHTML = `
+                    <div class="mb-4 d-flex align-items-center">
+                        <div class="me-3">
+                            <div class="rounded-circle p-3 ${overallHealth ? 'bg-success' : 'bg-warning'} bg-opacity-10">
+                                <i data-lucide="${overallHealth ? 'check-circle' : 'alert-triangle'}" 
+                                   style="width: 32px; height: 32px;" 
+                                   class="${overallHealth ? 'text-success' : 'text-warning'}"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Overall Status: ${overallHealth ? 'Healthy' : 'Issues Detected'}</h5>
+                            <p class="text-muted mb-0">Last checked: ${new Date().toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="border-top pt-3">
+                        ${testsHtml}
+                    </div>
+                `;
+                
+                // Create icons
+                lucide.createIcons();
+            } else {
+                diagnosticResults.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5><i data-lucide="alert-circle" class="me-2" style="width: 18px; height: 18px;"></i> Error</h5>
+                        <p>${data.message}</p>
+                    </div>
+                `;
+                
+                // Create icons
+                lucide.createIcons();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+            // Reset button
+            button.disabled = false;
+            button.innerHTML = '<i data-lucide="stethoscope" class="me-1" style="width: 18px; height: 18px;"></i>Run Diagnostic';
+            
+            // Create icons
+            lucide.createIcons();
+            
+            // Show error
+            const diagnosticResults = document.getElementById('diagnosticResults');
+            diagnosticResults.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i data-lucide="alert-circle" class="me-2" style="width: 18px; height: 18px;"></i> Error</h5>
+                    <p>An unexpected error occurred. Please try again.</p>
+                </div>
+            `;
+            
+            // Create icons
+            lucide.createIcons();
+        });
+    }
+    
+    if (runDiagnosticBtn) {
+        runDiagnosticBtn.addEventListener('click', function() {
+            const domain = this.getAttribute('data-domain');
+            runDiagnostic(this, domain);
+        });
+    }
+    
+    if (runDiagnosticBtns.length) {
+        runDiagnosticBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const domain = this.getAttribute('data-domain');
+                runDiagnostic(this, domain);
+            });
+        });
+    }
+    
+    // Copy webhook secret button
+    const copyWebhookBtns = document.querySelectorAll('.copy-webhook-btn');
+    if (copyWebhookBtns.length) {
+        copyWebhookBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const webhookSecret = this.getAttribute('data-webhook');
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(webhookSecret).then(() => {
+                    // Show success indicator
+                    this.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i>';
+                    
+                    // Create icons
+                    lucide.createIcons();
+                    
+                    // Reset after delay
+                    setTimeout(() => {
+                        this.innerHTML = '<i data-lucide="copy" style="width: 14px; height: 14px;"></i>';
+                        lucide.createIcons();
+                    }, 2000);
+                    
+                    // Show toast
+                    showToast('Webhook secret copied to clipboard', 'success');
+                }).catch(err => {
+                    console.error('Could not copy webhook secret:', err);
+                    showToast('Failed to copy webhook secret', 'danger');
+                });
+            });
+        });
+    }
+    
+    // Refresh instance button
+    const refreshInstanceBtn = document.getElementById('refreshInstanceBtn');
+    if (refreshInstanceBtn) {
+        refreshInstanceBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
+    
+    // Fetch transactions buttons
+    const fetchTransactionsBtns = document.querySelectorAll('.fetch-transactions-btn');
+    if (fetchTransactionsBtns.length) {
+        fetchTransactionsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const domain = this.getAttribute('data-domain');
+                const accountId = this.getAttribute('data-account-id');
+                
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                
+                // Make API request
+                fetch('/api/fetch-transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domain: domain,
+                        account_id: accountId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Reset button
+                    this.disabled = false;
+                    this.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>';
+                    
+                    // Create icons
+                    lucide.createIcons();
+                    
+                    // Show toast notification
+                    if (data.success) {
+                        showToast(`Fetched ${data.transactions?.length || 0} transactions successfully`, 'success');
+                    } else {
+                        showToast(`Failed to fetch transactions: ${data.message}`, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Reset button
+                    this.disabled = false;
+                    this.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>';
+                    
+                    // Create icons
+                    lucide.createIcons();
+                    
+                    // Show toast notification
+                    showToast('An unexpected error occurred. Please try again.', 'danger');
+                });
+            });
+        });
+    }
+    
+    // Fetch payments buttons
+    const fetchPaymentsBtns = document.querySelectorAll('.fetch-payments-btn');
+    if (fetchPaymentsBtns.length) {
+        fetchPaymentsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const domain = this.getAttribute('data-domain');
+                const accountId = this.getAttribute('data-account-id');
+                
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                
+                // Make API request
+                fetch('/api/fetch-stripe-transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domain: domain,
+                        account_id: accountId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Reset button
+                    this.disabled = false;
+                    this.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>';
+                    
+                    // Create icons
+                    lucide.createIcons();
+                    
+                    // Show toast notification
+                    if (data.success) {
+                        showToast(`Fetched ${data.payments?.length || 0} payments successfully`, 'success');
+                    } else {
+                        showToast(`Failed to fetch payments: ${data.message}`, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Reset button
+                    this.disabled = false;
+                    this.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>';
+                    
+                    // Create icons
+                    lucide.createIcons();
+                    
+                    // Show toast notification
+                    showToast('An unexpected error occurred. Please try again.', 'danger');
+                });
+            });
+        });
+    }
+    
+    // Expand/collapse all logs buttons
+    const expandAllLogsBtn = document.getElementById('expandAllLogsBtn');
+    const collapseAllLogsBtn = document.getElementById('collapseAllLogsBtn');
+    
+    if (expandAllLogsBtn) {
+        expandAllLogsBtn.addEventListener('click', function() {
+            document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+                const bsCollapse = new bootstrap.Collapse(collapse, {
+                    toggle: false
+                });
+                bsCollapse.show();
+            });
+        });
+    }
+    
+    if (collapseAllLogsBtn) {
+        collapseAllLogsBtn.addEventListener('click', function() {
+            document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+                const bsCollapse = new bootstrap.Collapse(collapse, {
+                    toggle: false
+                });
+                bsCollapse.hide();
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

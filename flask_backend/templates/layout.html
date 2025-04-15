@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payymo - Open Banking for WHMCS - {% block title %}Dashboard{% endblock %}</title>
+    
+    <!-- Bootstrap CSS (Light Theme) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- jQuery (required for plugins) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Lucide Icons (specific version to avoid breaking changes) -->
+    <script src="https://unpkg.com/lucide@0.276.0/dist/umd/lucide.js"></script>
+    
+    <!-- Font Awesome Free 6.4.0 for additional icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Section Identifiers CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/section-identifiers.css') }}">
+    
+    {% block styles %}{% endblock %}
+</head>
+<body data-bs-theme="light">
+    {% if session.authenticated %}
+    <div class="container-fluid">
+        <!-- Top Navigation Bar (WHMCS-style) -->
+        <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                    <i data-lucide="landmark" style="width: 24px; height: 24px;" class="me-2"></i>
+                    <span class="fs-5 fw-semibold">Payymo</span>
+                    <span class="ms-2 text-muted small">Open Banking for WHMCS</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == url_for('dashboard') %}active{% endif %}">
+                                <i data-lucide="layout-dashboard" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#settings" class="nav-link">
+                                <i data-lucide="settings" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#transactions" class="nav-link">
+                                <i data-lucide="credit-card" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Transactions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#matches" class="nav-link">
+                                <i data-lucide="link" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Matches
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#banks" class="nav-link">
+                                <i data-lucide="landmark" class="me-1" style="width: 18px; height: 18px;"></i>
+                                Banks
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <!-- Section Identifiers Toggle -->
+                        <div class="form-check form-switch me-3">
+                            <input class="form-check-input" type="checkbox" id="sectionIdentifiersToggle">
+                            <label class="form-check-label small" for="sectionIdentifiersToggle">
+                                <i data-lucide="layout-grid" class="me-1" style="width: 16px; height: 16px;"></i>
+                                Section IDs
+                            </label>
+                        </div>
+                        
+                        <!-- Card Style Toggle -->
+                        <div class="form-check form-switch me-3">
+                            <input class="form-check-input" type="checkbox" id="card-style-switcher" checked>
+                            <label class="form-check-label small" for="card-style-switcher">
+                                <i data-lucide="palette" class="me-1" style="width: 16px; height: 16px;"></i>
+                                Colored Cards
+                            </label>
+                        </div>
+
+                        <!-- Help Dropdown -->
+                        <div class="dropdown me-2">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i data-lucide="help-circle" class="me-1" style="width: 16px; height: 16px;"></i>
+                                Help
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end help-menu" aria-labelledby="helpDropdown">
+                                <li><button class="dropdown-item" type="button"><i class="fas fa-book me-2"></i> Documentation</button></li>
+                                <li><button class="dropdown-item" type="button"><i class="fas fa-question-circle me-2"></i> Support</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <!-- Walkthrough button will be added by JS -->
+                            </ul>
+                        </div>
+                        
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                            <i data-lucide="log-out" class="me-1" style="width: 16px; height: 16px;"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="container-fluid px-md-4">
+            <!-- Page content -->
+            {% block content %}{% endblock %}
+            
+            <!-- Footer -->
+            <footer class="pt-3 mt-4 text-muted border-top">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0">© 2025 <a href="https://payymo.com" target="_blank" class="text-decoration-none text-muted">Payymo</a> - Open Banking for WHMCS</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="mb-0">Version 1.0.0</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    {% else %}
+    <div class="container">
+        <main class="py-4">
+            {% block login_content %}{% endblock %}
+        </main>
+        
+        <footer class="mt-auto py-3 text-center text-muted">
+            <p class="mb-0">© 2025 <a href="https://payymo.com" target="_blank" class="text-decoration-none text-muted">Payymo</a> - Open Banking for WHMCS</p>
+        </footer>
+    </div>
+    {% endif %}
+    
+    <script>
+        // Initialize Lucide icons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create standard icons
+            lucide.createIcons();
+            
+            // Fix missing icons with appropriate alternatives
+            const iconReplacements = {
+                'building-bank': 'building',
+                'landmark': 'home',
+                'layout-dashboard': 'layout',
+                'link-off': 'unlink'
+            };
+            
+            // Apply icon replacements
+            Object.entries(iconReplacements).forEach(([original, replacement]) => {
+                document.querySelectorAll(`[data-lucide="${original}"]`).forEach(icon => {
+                    icon.setAttribute('data-lucide', replacement);
+                });
+            });
+            
+            // Replace trending-up icons in the financial goals component
+            document.querySelectorAll('.goal-card [data-lucide="trending-up"]').forEach(icon => {
+                icon.setAttribute('data-lucide', 'arrow-up-right');
+            });
+            
+            // Create icons again to apply changes
+            lucide.createIcons();
+            
+            // Initialize progress bars if they exist
+            const initProgressBars = () => {
+                const progressBars = document.querySelectorAll('.animated-progress .progress-bar');
+                if (progressBars.length === 0) return;
+                
+                progressBars.forEach((bar, index) => {
+                    setTimeout(() => {
+                        const value = bar.getAttribute('aria-valuenow');
+                        bar.style.width = value + '%';
+                    }, 300 * index);
+                });
+                
+                const glowElements = document.querySelectorAll('.progress-glow');
+                glowElements.forEach((glow, index) => {
+                    glow.style.animationDelay = (0.5 * index) + 's';
+                });
+            };
+            
+            // Run on initial load and whenever content changes
+            initProgressBars();
+            
+            // Add an observer to detect when the dashboard content is loaded
+            const contentObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.addedNodes.length) {
+                        initProgressBars();
+                    }
+                });
+            });
+            
+            const contentContainer = document.querySelector('.container-fluid.px-md-4');
+            if (contentContainer) {
+                contentObserver.observe(contentContainer, { childList: true, subtree: true });
+            }
+        });
+    </script>
+    
+    <!-- Quick Insights Widget Script -->
+    <script src="{{ url_for('static', filename='js/quick_insights.js') }}"></script>
+    
+    <!-- Bank Connection Wizard Script -->
+    <script src="{{ url_for('static', filename='js/bank_wizard.js') }}"></script>
+    
+    <!-- Stripe Connection Wizard Script -->
+    <script src="{{ url_for('static', filename='js/stripe_wizard.js') }}"></script>
+    
+    <!-- Onboarding Walkthrough Script -->
+    <script src="{{ url_for('static', filename='js/onboarding_walkthrough.js') }}"></script>
+    
+    <!-- Section Identifiers Script -->
+    <script src="{{ url_for('static', filename='js/section-identifiers.js') }}"></script>
+    
+    <!-- Card Style Switcher Script -->
+    <script src="{{ url_for('static', filename='js/card-style-switcher.js') }}"></script>
+    
+    <!-- Global Toast Notification Function -->
+    <script>
+        function showToast(message, type = 'info') {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Generate unique ID
+            const toastId = 'toast-' + new Date().getTime();
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.setAttribute('id', toastId);
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Initialize and show
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remove after hidden
+            toast.addEventListener('hidden.bs.toast', function () {
+                toast.remove();
+            });
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
