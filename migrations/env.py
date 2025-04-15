@@ -1,13 +1,24 @@
 from logging.config import fileConfig
+import os
+import sys
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
 
+# Add the parent directory to sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import Flask app and database
+from flask_backend.app import app, db
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Override sqlalchemy.url with the URL from Flask app config
+config.set_main_option('sqlalchemy.url', app.config['SQLALCHEMY_DATABASE_URI'])
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -16,9 +27,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = db.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -38,16 +47,24 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-    )
+    # Use the URL from Flask app configuration
+    with app.app_context():
+        url = config.get_main_option("sqlalchemy.url")
+        context.configure(
+            url=url,
+            target_metadata=target_metadata,
+            literal_binds=True,
+            dialect_opts={"paramstyle": "named"},
+            # Include schemas for multi-tenant setup if needed
+            include_schemas=True,
+            # Provide compare_type to detect column type changes
+            compare_type=True,
+            # Detect constraint changes
+            compare_server_default=True
+        )
 
-    with context.begin_transaction():
-        context.run_migrations()
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 def run_migrations_online() -> None:
@@ -57,19 +74,28 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
+    # Use Flask app's database connection
+    with app.app_context():
+        connectable = engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
         )
 
-        with context.begin_transaction():
-            context.run_migrations()
+        with connectable.connect() as connection:
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                # Include schemas for multi-tenant setup if needed
+                include_schemas=True,
+                # Provide compare_type to detect column type changes
+                compare_type=True,
+                # Detect constraint changes
+                compare_server_default=True
+            )
+
+            with context.begin_transaction():
+                context.run_migrations()
 
 
 if context.is_offline_mode():
