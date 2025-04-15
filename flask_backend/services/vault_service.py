@@ -95,7 +95,10 @@ class FileSecretsProvider(SecretsProvider):
     def __init__(self, secrets_file: str = ".secrets.json"):
         self.secrets_file = secrets_file
         self.secrets_data = {}
-        self.is_production = os.environ.get('ENVIRONMENT') == 'production'
+        
+        # Import environment here to avoid circular imports
+        from flask_backend.config import IS_PRODUCTION
+        self.is_production = IS_PRODUCTION
         
         # Load secrets from file if it exists
         self._load_secrets()
@@ -171,7 +174,12 @@ class VaultService:
         self._initialized = False
         self._providers = []
         self._secrets_cache = {}
-        self._is_production = os.environ.get('ENVIRONMENT') == 'production'
+        
+        # Import centralized environment configuration
+        # Use local import to avoid circular imports
+        from flask_backend.config import IS_PRODUCTION, IS_PRODUCTION_LIKE
+        self._is_production = IS_PRODUCTION
+        self._is_production_like = IS_PRODUCTION_LIKE
         
     def init_app(self, app):
         """Initialize the vault service with the Flask app"""

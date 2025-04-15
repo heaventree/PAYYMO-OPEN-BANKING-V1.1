@@ -14,15 +14,14 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Security constants
-CSRF_EXPIRATION = 3600  # 1 hour in seconds
-SESSION_EXPIRATION = 43200  # 12 hours in seconds (reduced from 24 hours)
-PASSWORD_MIN_LENGTH = 12
-JWT_EXPIRATION = 3600  # 1 hour in seconds
-API_RATE_LIMIT = 100  # Requests per minute
-
-# Check if we're in development or production mode
-IS_PRODUCTION = os.environ.get('ENVIRONMENT') == 'production'
+# Import centralized environment configuration
+from flask_backend.config import (
+    CURRENT_ENV, 
+    IS_DEVELOPMENT,
+    IS_PRODUCTION,
+    IS_PRODUCTION_LIKE,
+    get_app_config
+)
 
 # Create base class for models
 class Base(DeclarativeBase):
@@ -34,38 +33,20 @@ db = SQLAlchemy(model_class=Base)
 # Create the Flask app
 app = Flask(__name__)
 
-# Configure security settings
-app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_EXPIRATION
-app.config['JWT_EXPIRATION'] = JWT_EXPIRATION
-app.config['PASSWORD_MIN_LENGTH'] = PASSWORD_MIN_LENGTH
-app.config['CSRF_EXPIRATION'] = CSRF_EXPIRATION
-app.config['API_RATE_LIMIT'] = API_RATE_LIMIT
-app.config['STRICT_SLASHES'] = False
-
-# Configure Vault Service
-app.config['SECRETS_PROVIDERS'] = os.environ.get('SECRETS_PROVIDERS', 'env,file')
-app.config['SECRETS_FILE'] = os.environ.get('SECRETS_FILE', '.secrets.json')
-app.config['PRELOAD_SECRETS'] = True
-
-# Configure database - PostgreSQL in production, SQLite for development
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///payymo.db")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# Apply environment-specific configuration
+app.config.update(get_app_config())
 
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
+
+# Get API rate limit from config (default to 100 if not set)
+api_rate_limit = app.config.get('API_RATE_LIMIT', 100)
 
 # Initialize rate limiter
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,  # Use IP address as default limiter key
-    default_limits=[f"{API_RATE_LIMIT} per minute", "1000 per hour"],
+    default_limits=[f"{api_rate_limit} per minute", "1000 per hour"],
     storage_uri="memory://",
     strategy="fixed-window",
     headers_enabled=True,         # Expose rate limit headers
@@ -97,7 +78,7 @@ def add_security_headers(response):
     # Prevent clickjacking
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     # Strict Transport Security (only in production)
-    if os.environ.get('ENVIRONMENT') == 'production':
+    if IS_PRODUCTION:
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     # Referrer Policy
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
