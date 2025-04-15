@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive task management system
 - Structured issues tracking with detailed templates
 - Technical documentation organization system
+- Comprehensive rate limiting across all critical API endpoints
+- Enhanced security documentation with implementation examples
 
 ### Changed
 - Switched dashboard theme from Steex to NobleUI
@@ -21,11 +23,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced error handling in API services
 - Consolidated project documentation into centralized system
 - Reorganized technical documentation for easier access
+- Improved session management with secure HTTP-only cookies
 
 ### Fixed
 - Database connection pool exhaustion issue
 - Static asset loading performance
 - Documentation fragmentation and inconsistency
+- Tenant middleware isolation issues
+
+### Security
+- Implemented rate limiting for all critical API endpoints (login, transactions, OAuth)
+- Enhanced password security with improved hashing mechanisms
+- Added field-level encryption for sensitive data
+- Implemented CSRF protection using Flask-WTF
+- Improved session security with secure cookie handling
+- Enhanced tenant isolation for multi-tenant architecture
+- Improved API authentication and authorization checks
 
 ## [0.2.0] - 2025-03-23
 

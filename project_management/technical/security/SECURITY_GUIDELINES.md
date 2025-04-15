@@ -69,6 +69,16 @@ This document outlines the security standards for the Payymo financial platform,
 - Implement proper token validation with signature verification
 - Enforce HTTPS for all API communication
 
+### Rate Limiting
+
+- Implement rate limiting on all API endpoints to prevent abuse and DoS attacks
+- Login endpoints: 5 requests per minute to prevent brute force attacks
+- Transaction endpoints: 30 requests per minute for regular operational use
+- OAuth endpoints: 10 requests per minute to prevent OAuth abuse
+- Match/apply endpoints: 15 requests per minute to prevent abuse
+- Adjust limits based on endpoint sensitivity and expected usage patterns
+- Log and alert on repeated rate limit violations
+
 ### Secure Defaults
 
 - All resources are private by default

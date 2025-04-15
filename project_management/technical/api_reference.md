@@ -532,7 +532,32 @@ Common error codes:
 
 ## Rate Limiting
 
-API requests are limited to 60 requests per minute per license key. If you exceed this limit, you'll receive a `429 Too Many Requests` response with a `Retry-After` header indicating when you can retry.
+API endpoints have specific rate limits to ensure platform stability and prevent abuse. Different endpoints have different rate limits based on their sensitivity and expected usage patterns:
+
+| Endpoint Category | Rate Limit | Rationale |
+|-------------------|------------|-----------|
+| Authentication (login) | 5 per minute | Prevent brute force attacks |
+| License verification | 20 per minute | Normal operational use |
+| Transaction operations | 30 per minute | Higher volume for regular operations |
+| OAuth authorization | 10 per minute | Prevent OAuth abuse |
+| Match/apply operations | 15 per minute | Moderate usage for financial operations |
+| Balance/reporting | 20 per minute | Normal operational use |
+
+If you exceed a rate limit, you'll receive a `429 Too Many Requests` response with a `Retry-After` header indicating when you can retry.
+
+### Rate Limit Headers
+
+All responses include rate limit headers:
+
+```
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 29
+X-RateLimit-Reset: 1714517870
+```
+
+- `X-RateLimit-Limit`: The maximum number of requests allowed in the current period
+- `X-RateLimit-Remaining`: The number of requests remaining in the current period
+- `X-RateLimit-Reset`: The time at which the current rate limit window resets (Unix timestamp)
 
 ## Webhooks
 

@@ -451,7 +451,7 @@ def refresh_token():
 
 ### API Rate Limiting
 
-Implement rate limiting to protect against abuse:
+Implement comprehensive rate limiting to protect against abuse and DoS attacks:
 
 ```python
 # Rate limiting configuration
@@ -464,20 +464,48 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# Apply different limits to different endpoints
+# Authentication endpoints - stricter limits to prevent brute force
 @app.route('/api/auth/login', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit("5 per minute")  # Prevent brute force attacks
 def login():
     # Login implementation
     pass
 
-@app.route('/api/bank-connections', methods=['POST'])
-@limiter.limit("5 per minute")
-@requires_permission('bank_connections:create')
-def create_bank_connection():
+# OAuth authorization endpoints
+@app.route('/api/gocardless/auth', methods=['POST'])
+@limiter.limit("10 per minute")  # Rate limiting for OAuth auth
+def gocardless_auth():
+    # Implementation
+    pass
+
+@app.route('/api/gocardless/callback', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")  # Rate limiting for OAuth callback
+def gocardless_callback():
+    # Implementation
+    pass
+
+# Matching and high-value transaction endpoints
+@app.route('/api/match/apply', methods=['POST'])
+@limiter.limit("15 per minute")  # Rate limiting for matching operations
+def apply_match():
+    # Implementation
+    pass
+
+# Data retrieval endpoints - higher limits for regular operational use
+@app.route('/api/transactions/fetch', methods=['POST'])
+@limiter.limit("30 per minute")  # Higher limit for transaction fetching
+def fetch_transactions():
     # Implementation
     pass
 ```
+
+The rate limiting strategy focuses on these key areas:
+
+1. **Authentication**: Strict limits (5/min) to prevent credential stuffing and brute force attacks
+2. **OAuth**: Moderate limits (10/min) to prevent OAuth abuse while allowing normal integration
+3. **Critical Operations**: Controlled limits (15/min) for financial operations like matching
+4. **Data Retrieval**: Higher limits (30/min) for regular operational endpoints
+5. **License Validation**: Appropriate limits on license verification to prevent abuse
 
 ## 4. Data Protection
 
