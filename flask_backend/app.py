@@ -4,6 +4,7 @@ from flask import Flask, g, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from functools import wraps
+from flask_wtf.csrf import CSRFProtect
 
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG,
@@ -31,6 +32,9 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the Flask app
 app = Flask(__name__)
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 # Set secret key from environment variable or use a default for development
 app.secret_key = os.environ.get("SESSION_SECRET", "payymo_dev_secret_key")
