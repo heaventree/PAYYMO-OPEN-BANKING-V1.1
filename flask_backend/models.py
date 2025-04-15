@@ -260,6 +260,29 @@ class StripeInvoiceMatch(db.Model):
     def __repr__(self):
         return f"<StripeInvoiceMatch Payment {self.stripe_payment_id} -> Invoice {self.whmcs_invoice_id}>"
 
+class TokenRevocation(db.Model):
+    """Token revocation record for JWT tokens"""
+    __tablename__ = 'token_revocations'
+    
+    id = Column(Integer, primary_key=True)
+    jti = Column(String(64), unique=True, nullable=False)  # JWT ID (jti claim)
+    user_id = Column(Integer)  # User associated with the token (optional)
+    revoked_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)  # When the token would expire
+    reason = Column(String(255))  # Why the token was revoked
+    token_type = Column(String(20), default='access')  # access, refresh, etc.
+    
+    # Add indices for faster lookups
+    __table_args__ = (
+        Index('idx_token_jti', jti),
+        Index('idx_user_tokens', user_id),
+        Index('idx_token_expiry', expires_at),
+    )
+    
+    def __repr__(self):
+        return f"<TokenRevocation {self.jti} {self.reason}>"
+
+
 class ApiLog(db.Model):
     """Log of API requests and responses"""
     __tablename__ = 'api_logs'

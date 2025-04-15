@@ -345,19 +345,21 @@ class AuthService:
                         logger.warning(f"Missing required permissions: {required_permissions}")
                         abort(403, description="Insufficient permissions")
                 
-                # Add user_id to kwargs
-                kwargs['user_id'] = payload.get('sub')
-                
-                # Add tenant_id to kwargs if present
-                if 'tenant_id' in payload:
-                    kwargs['tenant_id'] = payload.get('tenant_id')
-                
-                # Store full payload in request context
+                # Store payload in request context for use in the route function
+                g.jwt_payload = payload
                 g.current_user = payload
+                
+                # Set user ID in context
+                g.user_id = payload.get('sub')
+                
+                # Set tenant ID in context if present
+                if 'tenant_id' in payload:
+                    g.tenant_id = payload.get('tenant_id')
                 
                 # Log API access
                 self._log_api_access()
                 
+                # Call the route function without passing extra parameters
                 return f(*args, **kwargs)
             
             # Set wrapper attributes
@@ -378,27 +380,66 @@ class AuthService:
         Returns:
             True if the token has been revoked, False otherwise
         """
-        # Placeholder for token revocation check
-        # In a full implementation, this would check against a database of revoked tokens
-        # or use Redis for faster checking
-        return False
+        if not token_id:
+            return False
+            
+        # Import here to avoid circular imports
+        from flask_backend.models import TokenRevocation
         
-    def revoke_token(self, token_id, reason=None):
+        # Check if token exists in revocation list
+        revocation = TokenRevocation.query.filter_by(jti=token_id).first()
+        
+        # Return True if token is found in revocation list
+        return revocation is not None
+        
+    def revoke_token(self, token_id, reason=None, user_id=None):
         """
         Revoke a token by its ID
         
         Args:
             token_id: Unique JWT ID (jti) to revoke
             reason: Optional reason for revocation
+            user_id: Optional user ID associated with token
             
         Returns:
             True if revocation was successful, False otherwise
         """
-        # Placeholder for token revocation
-        # In a full implementation, this would add the token to a database of revoked tokens
-        # with an optional expiry matching the token's expiry
-        logger.info(f"Token {token_id} revoked. Reason: {reason}")
-        return True
+        if not token_id:
+            return False
+            
+        from flask_backend.models import TokenRevocation
+        from flask_backend.app import db
+        
+        try:
+            # Check if token is already revoked
+            existing = TokenRevocation.query.filter_by(jti=token_id).first()
+            if existing:
+                logger.warning(f"Token {token_id} already revoked")
+                return True
+            
+            # Create a new token revocation record
+            token_revocation = TokenRevocation(
+                jti=token_id,
+                user_id=user_id,
+                reason=reason or 'User logout',
+                token_type='access',  # Default to access token
+                revoked_at=datetime.utcnow(),
+                # We would normally calculate expires_at from the token, but for simplicity
+                # we'll set it to 24 hours from now
+                expires_at=datetime.utcnow() + timedelta(hours=24)
+            )
+            
+            # Save to database
+            db.session.add(token_revocation)
+            db.session.commit()
+            
+            logger.info(f"Token {token_id} revoked. Reason: {reason}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error revoking token: {str(e)}")
+            db.session.rollback()
+            return False
         
     def generate_refresh_token(self, user_id, token_id=None):
         """

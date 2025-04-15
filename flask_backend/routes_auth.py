@@ -250,11 +250,18 @@ def logout():
             'success': False,
             'message': 'Invalid token format'
         }), 400
+    
+    # Get user ID from token
+    user_id = g.jwt_payload.get('sub')
         
     # Revoke token
-    auth_service.revoke_token(token_id, reason='User logout')
+    auth_service.revoke_token(
+        token_id=token_id, 
+        reason='User logout', 
+        user_id=user_id
+    )
     
-    # Revoke refresh tokens for user (optional, would require a more complex implementation)
+    # TODO: In a production system, we would also revoke all refresh tokens for this user
     # This would require tracking which refresh tokens are associated with a user
     
     return jsonify({
