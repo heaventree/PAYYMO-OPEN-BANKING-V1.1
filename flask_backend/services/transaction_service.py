@@ -8,18 +8,62 @@ import logging
 import hashlib
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
-from flask_backend.app import db
+from flask import current_app
+from flask_backend.services.base_service import BaseService
 from flask_backend.models import Transaction, InvoiceMatch, ApiLog
 from flask_backend.utils.error_handler import APIError
 
 logger = logging.getLogger(__name__)
 
-class TransactionService:
+def get_db():
+    """Get SQLAlchemy db instance from current app"""
+    if current_app:
+        return current_app.extensions['sqlalchemy'].db
+    return None
+
+class TransactionService(BaseService):
     """Service for secure transaction handling"""
     
     def __init__(self):
         """Initialize the transaction service"""
-        pass
+        self._app = None
+        self._initialized = False
+        
+    def init_app(self, app):
+        """
+        Initialize the service with the Flask app
+        
+        Args:
+            app: Flask application instance
+        """
+        self._app = app
+        self._initialized = True
+        logger.info("Transaction service initialized successfully")
+        
+    @property
+    def initialized(self):
+        """
+        Return whether the service is initialized
+        
+        Returns:
+            bool: True if initialized, False otherwise
+        """
+        return self._initialized
+        
+    def health_check(self):
+        """
+        Return the health status of the service
+        
+        Returns:
+            dict: Health status information with at least 'status' and 'message' keys
+        """
+        status = "ok" if self._initialized else "error"
+        message = f"Transaction service is {'initialized' if self._initialized else 'not initialized'}"
+            
+        return {
+            "status": status,
+            "message": message
+        }
     
     def create_transaction(self, transaction_data):
         """
@@ -40,6 +84,11 @@ class TransactionService:
             if field not in transaction_data:
                 raise APIError(f"Missing required field: {field}", status_code=400)
         
+        # Get database connection
+        db = get_db()
+        if not db:
+            raise APIError("Database connection error", status_code=500)
+            
         # Check if transaction already exists
         existing = Transaction.query.filter_by(transaction_id=transaction_data['transaction_id']).first()
         if existing:
@@ -65,6 +114,11 @@ class TransactionService:
             # Generate integrity hash for auditing
             transaction_integrity_hash = self._generate_integrity_hash(transaction)
             
+            # Get database connection
+            db = get_db()
+            if not db:
+                raise APIError("Database connection error", status_code=500)
+                
             # Add to database
             db.session.add(transaction)
             
@@ -89,12 +143,18 @@ class TransactionService:
             return transaction
             
         except IntegrityError as e:
-            db.session.rollback()
+            # Get database connection
+            db = get_db()
+            if db:
+                db.session.rollback()
             logger.error(f"IntegrityError creating transaction: {str(e)}")
             raise APIError("Could not create transaction: integrity error", status_code=500)
             
         except Exception as e:
-            db.session.rollback()
+            # Get database connection
+            db = get_db()
+            if db:
+                db.session.rollback()
             logger.error(f"Error creating transaction: {str(e)}")
             raise APIError(f"Could not create transaction: {str(e)}", status_code=500)
     
@@ -108,6 +168,11 @@ class TransactionService:
         Returns:
             Transaction object
         """
+        # Get database connection
+        db = get_db()
+        if not db:
+            raise APIError("Database connection error", status_code=500)
+            
         transaction = Transaction.query.filter_by(transaction_id=transaction_id).first()
         
         if not transaction:
