@@ -63,7 +63,10 @@ class AuthService:
         
         # Generate new RSA keys if not found
         if not self.private_key_pem or not self.public_key_pem:
-            if os.environ.get('ENVIRONMENT') == 'production':
+            # Import centralized environment configuration
+            from flask_backend.config import IS_PRODUCTION
+            
+            if IS_PRODUCTION:
                 logger.critical("JWT_PRIVATE_KEY or JWT_PUBLIC_KEY not found in production environment")
             else:
                 logger.warning("Generating new RSA key pair - not secure for production")
@@ -80,7 +83,10 @@ class AuthService:
                 )
             except Exception as e:
                 logger.error(f"Error loading private key: {str(e)}")
-                if os.environ.get('ENVIRONMENT') != 'production':
+                # Import centralized environment configuration
+                from flask_backend.config import IS_PRODUCTION
+                
+                if not IS_PRODUCTION:
                     # Regenerate keys in development only
                     logger.warning("Regenerating RSA keys due to error")
                     self._generate_rsa_keys(vault_service)
@@ -93,7 +99,10 @@ class AuthService:
                 )
             except Exception as e:
                 logger.error(f"Error loading public key: {str(e)}")
-                if os.environ.get('ENVIRONMENT') != 'production':
+                # Import centralized environment configuration
+                from flask_backend.config import IS_PRODUCTION
+                
+                if not IS_PRODUCTION:
                     # Regenerate keys in development only
                     logger.warning("Regenerating RSA keys due to error")
                     self._generate_rsa_keys(vault_service)

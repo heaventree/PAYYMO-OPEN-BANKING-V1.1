@@ -48,7 +48,10 @@ class EnvSecretsProvider(SecretsProvider):
     
     def __init__(self, allow_fallbacks: bool = False):
         self.allow_fallbacks = allow_fallbacks
-        self.is_production = os.environ.get('ENVIRONMENT') == 'production'
+        
+        # Import environment here to avoid circular imports
+        from flask_backend.config import IS_PRODUCTION
+        self.is_production = IS_PRODUCTION
         
     def get_secret(self, name: str) -> Optional[str]:
         """Get a secret from environment variables"""

@@ -41,10 +41,12 @@ class EncryptionService:
         from flask_backend.services.vault_service import vault_service
         
         encryption_key = vault_service.get_secret('ENCRYPTION_KEY')
-        is_production = os.environ.get('ENVIRONMENT') == 'production'
+        
+        # Import centralized environment configuration
+        from flask_backend.config import IS_PRODUCTION
         
         if not encryption_key:
-            if is_production:
+            if IS_PRODUCTION:
                 logger.critical("No encryption key available in production environment.")
                 logger.error("For security reasons, encryption is disabled in production without a proper key.")
                 return
