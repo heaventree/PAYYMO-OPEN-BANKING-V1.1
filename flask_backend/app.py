@@ -201,7 +201,7 @@ register_error_handlers(app)
 
 # Register migration utilities with Flask CLI
 from flask_backend.utils.migrations import register_migration_commands
-register_migration_commands(app)
+register_migration_commands(app, db)
 
 # Import routes
 with app.app_context():

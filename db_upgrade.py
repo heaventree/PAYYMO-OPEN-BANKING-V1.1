@@ -5,11 +5,15 @@ Safe Database Upgrade Script
 This script safely applies database migrations and performs necessary checks
 to ensure the database is in a consistent state before and after migrations.
 
+It uses the migration utilities from flask_backend.utils.migrations to perform
+database checks, create backups, and verify integrity before and after migrations.
+
 Usage:
   python db_upgrade.py                   # Apply all pending migrations
   python db_upgrade.py --check-only      # Only check if migrations are needed
   python db_upgrade.py --backup          # Create a backup before migrating
   python db_upgrade.py --force           # Skip confirmation prompt
+  python db_upgrade.py --verify          # Perform database integrity verification
 """
 
 import os
@@ -18,14 +22,15 @@ import argparse
 import subprocess
 import datetime
 import logging
-from flask_backend.app import app, db
+
+# Import our custom migration utilities
+from flask_backend.utils.migrations import (
+    check_database_connection, create_table_backup, verify_database_integrity,
+    get_logger, get_database_url, get_database_engine
+)
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger('db_upgrade')
+logger = get_logger('db_upgrade')
 
 
 def run_command(command):
@@ -43,68 +48,44 @@ def run_command(command):
         return False, f"Command failed with error: {e.stderr}"
 
 
-def check_database_connection():
-    """Check if database is accessible"""
-    try:
-        with app.app_context():
-            # Try executing a simple query
-            db.session.execute("SELECT 1")
-            db.session.commit()
-            return True
-    except Exception as e:
-        logger.error(f"Database connection failed: {e}")
-        return False
-
-
 def create_database_backup():
-    """Create a backup of the database"""
-    # This is a placeholder - implement actual database backup logic
-    # based on your database type (PostgreSQL, MySQL, etc.)
-    backup_filename = f"db_backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
-    
-    logger.info(f"Creating database backup: {backup_filename}")
-    
-    # Example for PostgreSQL (adjust according to your DB)
-    db_url = app.config['SQLALCHEMY_DATABASE_URI']
-    if db_url.startswith('postgresql'):
-        # Parse connection details
-        from urllib.parse import urlparse
-        parsed = urlparse(db_url)
-        dbname = parsed.path[1:]  # Remove leading slash
-        user = parsed.username
-        password = parsed.password
-        host = parsed.hostname
-        port = parsed.port or 5432
+    """Create a backup of the database by backing up all tables"""
+    try:
+        # Get current timestamp for backup naming
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
-        # Set environment variables for pg_dump
-        env = os.environ.copy()
-        if password:
-            env['PGPASSWORD'] = password
+        # Get database tables
+        from flask_backend.utils.migrations import list_tables, create_table_backup
         
-        # Build pg_dump command
-        cmd = [
-            'pg_dump',
-            '-h', host,
-            '-p', str(port),
-            '-U', user,
-            '-F', 'c',  # Custom format (compressed)
-            '-f', f"backups/{backup_filename}",
-            dbname
-        ]
-        
-        # Ensure backups directory exists
-        os.makedirs('backups', exist_ok=True)
-        
-        # Execute backup command
-        success, output = run_command(cmd)
-        if success:
-            logger.info("Database backup completed successfully")
-            return True, backup_filename
-        else:
-            logger.error(f"Database backup failed: {output}")
+        tables = list_tables()
+        if not tables:
+            logger.error("No tables found in database")
             return False, None
-    else:
-        logger.warning("Database backup is only supported for PostgreSQL currently")
+        
+        # Create backup directory
+        backup_dir = f"backups/db_backup_{timestamp}"
+        os.makedirs(backup_dir, exist_ok=True)
+        
+        # Create backup of each table
+        backup_tables = []
+        for table in tables:
+            # Skip alembic version table
+            if table == 'alembic_version':
+                continue
+                
+            backup_table = create_table_backup(table, timestamp)
+            if backup_table:
+                backup_tables.append(backup_table)
+        
+        if not backup_tables:
+            logger.error("Failed to create any table backups")
+            return False, None
+            
+        logger.info(f"Created backup of {len(backup_tables)} tables")
+        return True, backup_dir
+        
+    except Exception as e:
+        logger.error(f"Database backup failed: {str(e)}")
         return False, None
 
 
@@ -131,28 +112,65 @@ def apply_migrations():
 
 def verify_database_integrity():
     """Verify database integrity after migration"""
-    # This function would contain checks specific to your application
-    # to ensure the database is in a valid state after migrations
+    from flask_backend.utils.migrations import verify_database_integrity as check_integrity
     
     try:
-        with app.app_context():
-            # Example check: Verify that all expected tables exist
-            table_names = db.engine.table_names()
-            expected_tables = [
-                'license_keys', 'whmcs_instances', 'bank_connections',
-                'stripe_connections', 'transactions', 'stripe_payments',
-                'invoice_matches', 'stripe_invoice_matches'
+        # Use the utility function to perform standard integrity checks
+        results = check_integrity()
+        
+        if not results['success']:
+            for issue in results['issues']:
+                logger.error(f"Database integrity check failed: {issue}")
+            return False
+            
+        # Additional application-specific checks
+        # Perform deeper validation beyond table existence
+        tables = results['tables']
+        
+        # Check for specific columns in critical tables
+        if 'license_keys' in tables:
+            from flask_backend.utils.migrations import column_exists
+            required_columns = [
+                ('license_keys', 'key'),
+                ('license_keys', 'status'),
+                ('license_keys', 'owner_email'),
+                ('license_keys', 'expires_at'),
+                ('whmcs_instances', 'domain'),
+                ('whmcs_instances', 'license_key'),
+                ('transactions', 'transaction_id'),
+                ('transactions', 'amount'),
+                ('transactions', 'transaction_date')
             ]
             
-            missing_tables = [t for t in expected_tables if t not in table_names]
-            if missing_tables:
-                logger.error(f"Database integrity check failed: Missing tables: {missing_tables}")
-                return False
+            for table, column in required_columns:
+                if table in tables and not column_exists(table, column):
+                    logger.error(f"Database integrity check failed: Missing column {column} in table {table}")
+                    return False
+        
+        # Check for tracking columns added by migrations
+        tracking_columns = [
+            ('license_keys', 'last_modified_at'),
+            ('license_keys', 'last_modified_by'),
+            ('license_keys', 'is_deleted'),
+            ('whmcs_instances', 'last_modified_at'),
+            ('whmcs_instances', 'last_modified_by'),
+            ('whmcs_instances', 'is_deleted')
+        ]
+        
+        for table, column in tracking_columns:
+            if table in tables and not column_exists(table, column):
+                logger.warning(f"Missing tracking column {column} in table {table}")
+                # Don't fail for missing tracking columns, just warn
+        
+        # Check for audit trail table
+        if 'database_audit_trail' not in tables:
+            logger.error("Database integrity check failed: Missing audit trail table")
+            return False
                 
-            logger.info("Database integrity check passed")
-            return True
+        logger.info("Database integrity check passed")
+        return True
     except Exception as e:
-        logger.error(f"Database integrity check failed with error: {e}")
+        logger.error(f"Database integrity check failed with error: {str(e)}")
         return False
 
 
