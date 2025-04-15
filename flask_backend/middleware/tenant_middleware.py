@@ -24,9 +24,7 @@ def tenant_middleware():
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            # Always clear tenant context first
-            tenant_service.clear_current_tenant()
-            
+            tenant_id = None
             try:
                 # Check for domain in request
                 domain = None
@@ -38,23 +36,23 @@ def tenant_middleware():
                 # Check for API key authentication
                 api_identifier = request.headers.get('X-API-Identifier')
                 
-                # If domain is provided, set tenant context
+                # If domain is provided, get tenant ID
                 if domain:
                     tenant = tenant_service.get_tenant_by_domain(domain)
                     if tenant:
-                        tenant_service.set_current_tenant(tenant.id)
+                        tenant_id = tenant.id
                         # Use info level for important operations, debug level creates too much noise
                         if logger.isEnabledFor(logging.INFO):
-                            logger.info(f"Set tenant context from domain: {domain} -> {tenant.id}")
+                            logger.info(f"Using tenant context from domain: {domain} -> {tenant_id}")
                 
-                # If API key is provided and no tenant context yet, set tenant context
-                elif api_identifier and not tenant_service.get_current_tenant():
+                # If API key is provided and no tenant ID yet, get tenant ID
+                elif api_identifier and not tenant_id:
                     from flask_backend.models import WhmcsInstance
                     tenant = WhmcsInstance.query.filter_by(api_identifier=api_identifier).first()
                     if tenant:
-                        tenant_service.set_current_tenant(tenant.id)
+                        tenant_id = tenant.id
                         if logger.isEnabledFor(logging.INFO):
-                            logger.info(f"Set tenant context from API key: {api_identifier} -> {tenant.id}")
+                            logger.info(f"Using tenant context from API key: {api_identifier} -> {tenant_id}")
                 
                 # Store super admin status in g - use vault service for secure key comparison
                 from flask import current_app
@@ -69,8 +67,10 @@ def tenant_middleware():
                     # Use secure comparison from vault service
                     g.is_super_admin = vault_service.secure_compare(admin_key_header, super_admin_key)
                 
-                # Continue to the route after successful middleware execution
-                return f(*args, **kwargs)
+                # Use tenant context manager to ensure proper cleanup
+                with tenant_service.get_tenant_context(tenant_id):
+                    # Continue to the route after successful middleware execution
+                    return f(*args, **kwargs)
             except Exception as e:
                 # Log the error but don't continue - proper error handling is important
                 logger.error(f"Error in tenant middleware: {str(e)}")

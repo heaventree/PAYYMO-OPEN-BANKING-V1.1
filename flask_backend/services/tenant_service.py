@@ -2,11 +2,12 @@
 Tenant Isolation Service
 
 This module provides tenant isolation and management functions for the multi-tenant architecture.
+Includes a context manager for efficient tenant context handling.
 """
 import logging
 import threading
 from functools import wraps
-from flask import request, g, abort
+from flask import request, g, abort, current_app
 from sqlalchemy.orm import Query
 from sqlalchemy import or_
 from flask_backend.app import db
@@ -17,6 +18,64 @@ _tenant_context = threading.local()
 
 # Logger
 logger = logging.getLogger(__name__)
+
+class TenantContextManager:
+    """
+    Context manager for tenant context to ensure proper cleanup
+    and prevent excessive context clearing
+    """
+    
+    def __init__(self, tenant_id=None, tenant_service=None):
+        """
+        Initialize the tenant context manager
+        
+        Args:
+            tenant_id: Optional tenant ID to set
+            tenant_service: Reference to the tenant service
+        """
+        self.tenant_id = tenant_id
+        self.tenant_service = tenant_service
+        self.previous_tenant_id = None
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        
+    def __enter__(self):
+        """Enter the context manager - store previous tenant and set new one"""
+        # Store previous tenant ID
+        self.previous_tenant_id = self.tenant_service.get_current_tenant()
+        
+        # Only set if different to minimize unnecessary operations
+        if self.tenant_id != self.previous_tenant_id:
+            if self.tenant_id is None:
+                self.tenant_service.clear_current_tenant(log_operation=False)
+                if self.debug_enabled and self.previous_tenant_id is not None:
+                    logger.debug(f"Cleared tenant from previous ID: {self.previous_tenant_id}")
+            else:
+                self.tenant_service.set_current_tenant(self.tenant_id, log_operation=False)
+                if self.debug_enabled:
+                    logger.debug(f"Set tenant context from {self.previous_tenant_id} to {self.tenant_id}")
+                    
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the context manager - restore previous tenant if needed"""
+        if exc_type is not None:
+            # On exception, ensure tenant context is cleared
+            if self.debug_enabled:
+                logger.debug(f"Exception in tenant context, clearing: {exc_type}")
+            self.tenant_service.clear_current_tenant(log_operation=False)
+        elif self.previous_tenant_id != self.tenant_service.get_current_tenant():
+            # Only restore if different
+            if self.previous_tenant_id is None:
+                self.tenant_service.clear_current_tenant(log_operation=False)
+                if self.debug_enabled:
+                    logger.debug("Restored to no tenant context")
+            else:
+                self.tenant_service.set_current_tenant(self.previous_tenant_id, log_operation=False)
+                if self.debug_enabled:
+                    logger.debug(f"Restored tenant context to {self.previous_tenant_id}")
+                    
+        # Return False to allow exception propagation
+        return False
 
 class TenantService:
     """Service for managing tenant isolation and security"""
@@ -34,21 +93,41 @@ class TenantService:
         """
         return getattr(_tenant_context, 'tenant_id', None)
     
-    def set_current_tenant(self, tenant_id):
+    def set_current_tenant(self, tenant_id, log_operation=True):
         """
         Set the current tenant in context
         
         Args:
             tenant_id: ID of the tenant to set
+            log_operation: Whether to log this operation
         """
         _tenant_context.tenant_id = tenant_id
-        logger.debug(f"Set current tenant: {tenant_id}")
+        if log_operation and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"Set current tenant: {tenant_id}")
     
-    def clear_current_tenant(self):
-        """Clear the current tenant from context"""
+    def clear_current_tenant(self, log_operation=True):
+        """
+        Clear the current tenant from context
+        
+        Args:
+            log_operation: Whether to log this operation
+        """
         if hasattr(_tenant_context, 'tenant_id'):
             delattr(_tenant_context, 'tenant_id')
-        logger.debug("Cleared current tenant")
+            if log_operation and logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Cleared current tenant")
+                
+    def get_tenant_context(self, tenant_id=None):
+        """
+        Get a tenant context manager
+        
+        Args:
+            tenant_id: Optional tenant ID to set (or None to clear)
+            
+        Returns:
+            TenantContextManager instance
+        """
+        return TenantContextManager(tenant_id=tenant_id, tenant_service=self)
     
     def get_tenant_by_domain(self, domain):
         """

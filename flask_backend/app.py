@@ -170,13 +170,6 @@ def register_middleware(app):
     # Register global request middleware
     app.before_request(lambda: setup_request_context())
     
-    # Register teardown handler to clear tenant context
-    @app.teardown_request
-    def clear_tenant_context(exception=None):
-        """Clear tenant context after each request"""
-        from flask_backend.services.tenant_service import tenant_service
-        tenant_service.clear_current_tenant()
-    
     # Wrap view functions in the middleware stack
     for endpoint, view_func in app.view_functions.items():
         # Skip static endpoint
