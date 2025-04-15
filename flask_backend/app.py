@@ -228,6 +228,7 @@ with app.app_context():
     from flask_backend.routes_testing import *
     from flask_backend.routes_test_data import *
     from flask_backend.routes_security import register_security_routes
+    from flask_backend.routes_auth import register_auth_routes
     import flask_backend.models
     
     # Create all database tables
@@ -238,5 +239,8 @@ with app.app_context():
     
     # Register security routes
     register_security_routes(app)
+    
+    # Register authentication routes
+    register_auth_routes(app)
     
     logger.info("Flask backend started successfully")
