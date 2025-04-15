@@ -159,7 +159,9 @@ class FileSecretsProvider(SecretsProvider):
             return new_value
         return None
 
-class VaultService:
+from flask_backend.services.base_service import BaseService
+
+class VaultService(BaseService):
     """Enhanced secrets management service with multiple providers"""
     
     # Critical secrets that must be present in production
@@ -183,6 +185,26 @@ class VaultService:
         from flask_backend.config import IS_PRODUCTION, IS_PRODUCTION_LIKE
         self._is_production = IS_PRODUCTION
         self._is_production_like = IS_PRODUCTION_LIKE
+        
+    @property
+    def initialized(self):
+        """Return whether the service is initialized"""
+        return self._initialized
+        
+    def health_check(self):
+        """Return the health status of the service"""
+        status = "ok" if self._initialized else "error"
+        message = f"Vault service is {'initialized' if self._initialized else 'not initialized'}"
+        providers_info = f"{len(self._providers)} providers configured"
+        
+        return {
+            "status": status,
+            "message": message,
+            "details": {
+                "providers": providers_info,
+                "cached_secrets": len(self._secrets_cache)
+            }
+        }
         
     def init_app(self, app):
         """Initialize the vault service with the Flask app"""
