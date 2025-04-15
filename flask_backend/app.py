@@ -87,9 +87,25 @@ def add_security_headers(response):
 # Initialize the database with the app
 db.init_app(app)
 
-# Initialize the vault service first (as other services may depend on it)
+# Initialize the service registry
+from flask_backend.services.service_registry import service_registry
+
+# Import all services
 from flask_backend.services.vault_service import vault_service
-vault_service.init_app(app)
+from flask_backend.services.encryption_service import encryption_service
+from flask_backend.services.auth_service import auth_service
+from flask_backend.services.transaction_service import transaction_service
+from flask_backend.services.tenant_service import tenant_service
+from flask_backend.middleware.tenant_middleware import setup_tenant_filters
+
+# Register services with dependencies
+service_registry.register('vault', vault_service)
+service_registry.register('encryption', encryption_service, dependencies=['vault'])
+service_registry.register('auth', auth_service, dependencies=['vault', 'encryption'])
+service_registry.register('tenant', tenant_service)
+
+# Initialize all services in the correct order
+service_registry.initialize(app)
 
 # Set secret key from vault service
 app.secret_key = vault_service.get_secret("SESSION_SECRET")
@@ -120,21 +136,6 @@ else:
 # In production, having webhook paths is mandatory
 if IS_PRODUCTION and (not app.config["GOCARDLESS_WEBHOOK_CERT_PATH"] or not app.config["GOCARDLESS_WEBHOOK_KEY_PATH"]):
     raise RuntimeError("GoCardless webhook certificate paths not configured in production")
-
-# Initialize encryption service
-from flask_backend.services.encryption_service import encryption_service
-encryption_service.init_app(app)
-
-# Initialize authentication service
-from flask_backend.services.auth_service import auth_service
-auth_service.init_app(app)
-
-# Initialize transaction service (no init_app needed)
-from flask_backend.services.transaction_service import transaction_service
-
-# Setup tenant service
-from flask_backend.services.tenant_service import tenant_service
-from flask_backend.middleware.tenant_middleware import setup_tenant_filters
 
 # Setup middleware
 def register_middleware(app):

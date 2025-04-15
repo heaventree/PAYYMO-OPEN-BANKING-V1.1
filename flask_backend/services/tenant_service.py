@@ -10,8 +10,18 @@ from functools import wraps
 from flask import request, g, abort, current_app
 from sqlalchemy.orm import Query
 from sqlalchemy import or_
-from flask_backend.app import db
+from flask_backend.services.base_service import BaseService
+
+# Avoid circular import
+# Import models separately
 from flask_backend.models import WhmcsInstance
+
+# We'll get db from current_app to avoid circular imports
+def get_db():
+    """Get SQLAlchemy db instance from current app"""
+    if current_app:
+        return current_app.extensions['sqlalchemy'].db
+    return None
 
 # Thread-local storage for tenant context
 _tenant_context = threading.local()
@@ -77,12 +87,55 @@ class TenantContextManager:
         # Return False to allow exception propagation
         return False
 
-class TenantService:
+class TenantService(BaseService):
     """Service for managing tenant isolation and security"""
     
     def __init__(self):
         """Initialize the tenant isolation service"""
-        pass
+        self._app = None
+        self._initialized = False
+        
+    def init_app(self, app):
+        """Initialize the service with the Flask app"""
+        self._app = app
+        self._initialized = True
+        logger.info("Tenant service initialized successfully")
+        
+    @property
+    def initialized(self):
+        """
+        Return whether the service is initialized
+        
+        Returns:
+            bool: True if initialized, False otherwise
+        """
+        return self._initialized
+        
+    def health_check(self):
+        """
+        Return the health status of the service
+        
+        Returns:
+            dict: Health status information with at least 'status' and 'message' keys
+        """
+        status = "ok" if self._initialized else "error"
+        message = f"Tenant service is {'initialized' if self._initialized else 'not initialized'}"
+        
+        # Count active tenant contexts if possible
+        active_tenants = 0
+        try:
+            if hasattr(_tenant_context, 'tenant_id'):
+                active_tenants = 1
+        except Exception:
+            pass
+            
+        return {
+            "status": status,
+            "message": message,
+            "details": {
+                "active_tenants": active_tenants
+            }
+        }
     
     def get_current_tenant(self):
         """
@@ -252,6 +305,8 @@ class TenantService:
         if model.__name__ == 'Transaction':
             # Subquery to get all account_ids for this tenant
             from flask_backend.models import BankConnection
+            # Get db from current app
+            db = get_db()
             bank_accounts = db.session.query(BankConnection.account_id).filter(
                 BankConnection.whmcs_instance_id == tenant_id
             ).subquery()
@@ -263,6 +318,8 @@ class TenantService:
         if model.__name__ == 'StripePayment':
             # Subquery to get all stripe_connection_ids for this tenant
             from flask_backend.models import StripeConnection
+            # Get db from current app
+            db = get_db()
             stripe_connections = db.session.query(StripeConnection.id).filter(
                 StripeConnection.whmcs_instance_id == tenant_id
             ).subquery()
