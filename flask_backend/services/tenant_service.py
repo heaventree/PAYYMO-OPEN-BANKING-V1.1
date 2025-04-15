@@ -146,29 +146,50 @@ class TenantService(BaseService):
         """
         return getattr(_tenant_context, 'tenant_id', None)
     
-    def set_current_tenant(self, tenant_id, log_operation=True):
+    def set_current_tenant(self, tenant_id, log_operation=True, log_level=logging.DEBUG):
         """
         Set the current tenant in context
         
         Args:
             tenant_id: ID of the tenant to set
             log_operation: Whether to log this operation
+            log_level: Log level to use (default: DEBUG)
         """
+        # Check if tenant is changing
+        previous_tenant = getattr(_tenant_context, 'tenant_id', None)
         _tenant_context.tenant_id = tenant_id
-        if log_operation and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"Set current tenant: {tenant_id}")
+        
+        # Only log when tenant actually changes and when log level is enabled
+        if log_operation and previous_tenant != tenant_id and logger.isEnabledFor(log_level):
+            if previous_tenant is None:
+                logger.log(log_level, f"Set current tenant: {tenant_id}")
+            else:
+                logger.log(log_level, f"Changed tenant from {previous_tenant} to {tenant_id}")
+        elif log_operation and previous_tenant != tenant_id and log_level == logging.DEBUG and logger.isEnabledFor(logging.INFO):
+            # For more critical log levels, use INFO instead if DEBUG is not enabled
+            if previous_tenant is None:
+                logger.info(f"Set current tenant: {tenant_id}")
+            else:
+                logger.info(f"Changed tenant from {previous_tenant} to {tenant_id}")
     
-    def clear_current_tenant(self, log_operation=True):
+    def clear_current_tenant(self, log_operation=True, log_level=logging.DEBUG):
         """
         Clear the current tenant from context
         
         Args:
             log_operation: Whether to log this operation
+            log_level: Log level to use (default: DEBUG)
         """
         if hasattr(_tenant_context, 'tenant_id'):
+            previous_tenant = getattr(_tenant_context, 'tenant_id', None)
             delattr(_tenant_context, 'tenant_id')
-            if log_operation and logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Cleared current tenant")
+            
+            # Only log when actually clearing a tenant and when log level is enabled
+            if log_operation and previous_tenant is not None and logger.isEnabledFor(log_level):
+                logger.log(log_level, f"Cleared current tenant: {previous_tenant}")
+            elif log_operation and previous_tenant is not None and log_level == logging.DEBUG and logger.isEnabledFor(logging.INFO):
+                # For more critical log levels, use INFO instead if DEBUG is not enabled
+                logger.info(f"Cleared current tenant: {previous_tenant}")
                 
     def get_tenant_context(self, tenant_id=None):
         """
