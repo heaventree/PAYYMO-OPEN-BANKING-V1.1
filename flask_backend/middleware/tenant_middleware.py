@@ -56,19 +56,18 @@ def tenant_middleware():
                         if logger.isEnabledFor(logging.INFO):
                             logger.info(f"Set tenant context from API key: {api_identifier} -> {tenant.id}")
                 
-                # Store super admin status in g - use secrets service for secure key comparison
+                # Store super admin status in g - use vault service for secure key comparison
                 from flask import current_app
-                from flask_backend.services.secrets_service import secrets_service
+                from flask_backend.services.vault_service import vault_service
                 
                 admin_key_header = request.headers.get('X-Super-Admin-Key')
-                super_admin_key = secrets_service.get_secret('SUPER_ADMIN_KEY')
+                super_admin_key = vault_service.get_secret('SUPER_ADMIN_KEY')
                 
                 if not admin_key_header or not super_admin_key:
                     g.is_super_admin = False
                 else:
-                    # Use constant-time comparison to prevent timing attacks
-                    from secrets import compare_digest
-                    g.is_super_admin = compare_digest(admin_key_header, super_admin_key)
+                    # Use secure comparison from vault service
+                    g.is_super_admin = vault_service.secure_compare(admin_key_header, super_admin_key)
                 
                 # Continue to the route after successful middleware execution
                 return f(*args, **kwargs)

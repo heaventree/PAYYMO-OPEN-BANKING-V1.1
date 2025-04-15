@@ -108,12 +108,12 @@ class AuthService:
         else:
             logger.critical("Failed to initialize authentication service properly")
     
-    def _generate_rsa_keys(self, secrets_service):
+    def _generate_rsa_keys(self, vault_service):
         """
-        Generate a new RSA key pair and store in secrets service
+        Generate a new RSA key pair and store in vault service
         
         Args:
-            secrets_service: Secrets service instance
+            vault_service: Vault service instance
         """
         # Generate a new private key
         private_key = rsa.generate_private_key(
@@ -138,9 +138,9 @@ class AuthService:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ).decode('utf-8')
         
-        # Store in secrets service
-        secrets_service.set_secret('JWT_PRIVATE_KEY', private_key_pem)
-        secrets_service.set_secret('JWT_PUBLIC_KEY', public_key_pem)
+        # Store in vault service
+        vault_service.set_secret('JWT_PRIVATE_KEY', private_key_pem)
+        vault_service.set_secret('JWT_PUBLIC_KEY', public_key_pem)
         
         # Update instance variables
         self.private_key = private_key

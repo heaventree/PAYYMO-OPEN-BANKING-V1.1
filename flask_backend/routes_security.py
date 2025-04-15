@@ -8,7 +8,7 @@ These routes are only accessible to super admins.
 import logging
 import datetime
 from flask import Blueprint, jsonify, g, request, current_app
-from flask_backend.services.secrets_service import secrets_service
+from flask_backend.services.vault_service import vault_service
 from flask_backend.services.auth_service import auth_service
 
 # Logger
@@ -30,39 +30,17 @@ def check_admin():
 @security_bp.route('/key-rotation-status', methods=['GET'])
 def key_rotation_status():
     """Get key rotation status"""
-    # Check if we have a key rotation manager
-    if not hasattr(secrets_service, 'has_rotation_manager') or not secrets_service.has_rotation_manager:
-        return jsonify({
-            'success': False,
-            'message': 'Key rotation manager not available',
-            'has_rotation_manager': False
-        })
-        
-    # Get rotation schedule
-    try:
-        rotation_schedule = secrets_service.key_rotation_manager.get_rotation_schedule()
-        
-        # Get summary info
-        rotation_summary = {
-            'total_keys': len(rotation_schedule),
-            'keys_due_for_rotation': sum(1 for key in rotation_schedule if key.get('rotation_due', False)),
-            'next_rotation_due': min([key.get('days_until_rotation', 999) for key in rotation_schedule 
-                                      if key.get('days_until_rotation') is not None], default=None)
+    # Check if we have a key rotation manager (vault service doesn't have rotation yet)
+    return jsonify({
+        'success': True,
+        'message': 'Using vault service for secret management',
+        'has_rotation_manager': False,
+        'rotation_summary': {
+            'total_keys': len(vault_service.CRITICAL_SECRETS),
+            'keys_due_for_rotation': 0,
+            'next_rotation_due': None
         }
-        
-        return jsonify({
-            'success': True,
-            'has_rotation_manager': True,
-            'rotation_summary': rotation_summary,
-            'rotation_schedule': rotation_schedule
-        })
-    except Exception as e:
-        logger.error(f"Error getting key rotation status: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': f"Error getting key rotation status: {str(e)}",
-            'has_rotation_manager': True
-        }), 500
+    })
 
 @security_bp.route('/rotate-key/<key_name>', methods=['POST'])
 def rotate_key(key_name):
@@ -75,7 +53,7 @@ def rotate_key(key_name):
         }), 400
         
     # Check if the key exists
-    if not secrets_service.get_secret(key_name):
+    if not vault_service.get_secret(key_name):
         return jsonify({
             'success': False,
             'message': f'Key {key_name} not found'
@@ -83,7 +61,7 @@ def rotate_key(key_name):
         
     # Rotate the key
     try:
-        new_key = secrets_service.rotate_secret(key_name)
+        new_key = vault_service.rotate_secret(key_name)
         if new_key:
             # Redact the actual key value for security
             return jsonify({
@@ -111,35 +89,39 @@ def list_keys():
     """List all managed keys"""
     # Get list of all secrets
     try:
-        # Check if we have a key rotation manager
-        if hasattr(secrets_service, 'has_rotation_manager') and secrets_service.has_rotation_manager:
-            keys = []
-            
-            # Get rotation info for each key
-            for key_name in secrets_service._secrets_cache:
-                if secrets_service.key_rotation_manager.has_key(key_name):
-                    key_info = secrets_service.key_rotation_manager.get_key_info(key_name)
-                    keys.append(key_info)
-                else:
-                    keys.append({
-                        'name': key_name,
-                        'managed': False,
-                        'rotation_status': 'Not managed by rotation service'
-                    })
+        # List critical secrets from vault service
+        keys = []
+        
+        # Add critical secrets first
+        for key_name, description in vault_service.CRITICAL_SECRETS.items():
+            keys.append({
+                'name': key_name,
+                'managed': True,
+                'critical': True,
+                'description': description,
+                'has_value': vault_service.get_secret(key_name) is not None
+            })
+        
+        # Additional keys that might be in the cache
+        if hasattr(vault_service, '_secrets_cache'):
+            for key_name in vault_service._secrets_cache:
+                # Skip if already added as critical
+                if key_name in vault_service.CRITICAL_SECRETS:
+                    continue
                     
-            return jsonify({
-                'success': True,
-                'keys': keys,
-                'has_rotation_manager': True
-            })
-        else:
-            # Without rotation manager, just list the key names
-            keys = [{'name': name, 'managed': False} for name in secrets_service._secrets_cache]
-            return jsonify({
-                'success': True,
-                'keys': keys,
-                'has_rotation_manager': False
-            })
+                keys.append({
+                    'name': key_name,
+                    'managed': True,
+                    'critical': False,
+                    'has_value': True
+                })
+        
+        return jsonify({
+            'success': True,
+            'keys': keys,
+            'has_rotation_manager': False
+        })
+            
     except Exception as e:
         logger.error(f"Error listing keys: {str(e)}")
         return jsonify({
