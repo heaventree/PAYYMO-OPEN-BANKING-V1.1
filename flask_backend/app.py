@@ -96,7 +96,16 @@ from flask_backend.services.encryption_service import encryption_service
 from flask_backend.services.auth_service import auth_service
 from flask_backend.services.transaction_service import transaction_service
 from flask_backend.services.tenant_service import tenant_service
+from flask_backend.services.core_banking_service import core_banking_service
 from flask_backend.middleware.tenant_middleware import setup_tenant_filters
+
+# For backward compatibility
+from flask_backend.services.gocardless_adapter import gocardless_service
+app.extensions['gocardless_service'] = gocardless_service
+
+# Mark old service as deprecated
+import warnings
+warnings.filterwarnings('always', '.*gocardless_service is deprecated.*', DeprecationWarning, 'flask_backend.services.gocardless_service')
 
 # Register services with dependencies
 service_registry.register('vault', vault_service)
