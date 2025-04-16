@@ -2,6 +2,50 @@ from datetime import datetime
 from flask_backend.app import db
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey, Index
 from sqlalchemy.orm import relationship
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(db.Model):
+    """User model for authentication"""
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    tenant_id = Column(Integer, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    name = Column(String(255), nullable=False)  # Use as username
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default='user')  # Use for admin role
+    status = Column(String(20), default='active')  # Use for active status
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login_at = Column(DateTime)  # Renamed from last_login
+    email_verified = Column(Boolean, default=False)
+    verification_token = Column(String(64))
+    avatar_url = Column(String(255))
+    preferences = Column(Text)
+    
+    @property
+    def username(self):
+        """Alias for name field"""
+        return self.name
+    
+    @property
+    def is_admin(self):
+        """Check if user has admin role"""
+        return self.role == 'admin'
+    
+    @property
+    def is_active(self):
+        """Check if user status is active"""
+        return self.status == 'active'
+    
+    @property
+    def last_login(self):
+        """Alias for last_login_at"""
+        return self.last_login_at
+    
+    def __repr__(self):
+        return f"<User {self.name}>"
 
 class LicenseKey(db.Model):
     """License key model to validate WHMCS instances"""
@@ -215,6 +259,29 @@ class StripeInvoiceMatch(db.Model):
     
     def __repr__(self):
         return f"<StripeInvoiceMatch Payment {self.stripe_payment_id} -> Invoice {self.whmcs_invoice_id}>"
+
+class TokenRevocation(db.Model):
+    """Token revocation record for JWT tokens"""
+    __tablename__ = 'token_revocations'
+    
+    id = Column(Integer, primary_key=True)
+    jti = Column(String(64), unique=True, nullable=False)  # JWT ID (jti claim)
+    user_id = Column(Integer)  # User associated with the token (optional)
+    revoked_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)  # When the token would expire
+    reason = Column(String(255))  # Why the token was revoked
+    token_type = Column(String(20), default='access')  # access, refresh, etc.
+    
+    # Add indices for faster lookups
+    __table_args__ = (
+        Index('idx_token_jti', jti),
+        Index('idx_user_tokens', user_id),
+        Index('idx_token_expiry', expires_at),
+    )
+    
+    def __repr__(self):
+        return f"<TokenRevocation {self.jti} {self.reason}>"
+
 
 class ApiLog(db.Model):
     """Log of API requests and responses"""

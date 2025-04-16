@@ -1,11 +1,20 @@
 import logging
 from datetime import datetime, timedelta
 from sqlalchemy import text, func
-from app import db
-from models import (
-    ApiLog, LicenseVerification, Transaction, InvoiceMatch,
-    BankConnection, LicenseKey
-)
+from flask import current_app
+
+# Logger
+logger = logging.getLogger(__name__)
+
+def get_db():
+    """
+    Get SQLAlchemy DB session from Flask app context
+    
+    Returns:
+        SQLAlchemy DB session
+    """
+    from flask_backend.app import db
+    return db
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +29,12 @@ def cleanup_old_logs(days=30):
         Number of deleted records
     """
     try:
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import ApiLog, LicenseVerification
+        
         cutoff_date = datetime.now() - timedelta(days=days)
         
         # Delete API logs
@@ -40,6 +55,8 @@ def cleanup_old_logs(days=30):
         return total_deleted
     
     except Exception as e:
+        # Get db instance
+        db = get_db()
         db.session.rollback()
         logger.error(f"Error cleaning up old logs: {str(e)}")
         return 0
@@ -52,6 +69,15 @@ def get_database_stats():
         Dictionary of database statistics
     """
     try:
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import (
+            ApiLog, LicenseVerification, Transaction, InvoiceMatch,
+            BankConnection, LicenseKey
+        )
+        
         stats = {
             'license_keys': db.session.query(func.count(LicenseKey.id)).scalar() or 0,
             'active_licenses': db.session.query(func.count(LicenseKey.id)).filter(LicenseKey.status == 'active').scalar() or 0,
@@ -77,6 +103,9 @@ def get_table_sizes():
         Dictionary of table names and row counts
     """
     try:
+        # Get db instance
+        db = get_db()
+        
         # Get all table names
         table_names = db.engine.table_names()
         
@@ -100,6 +129,12 @@ def check_expired_tokens():
         Number of connections marked as expired
     """
     try:
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import BankConnection
+        
         # Find bank connections with expired tokens
         now = datetime.now()
         expired_connections = db.session.query(BankConnection).filter(
@@ -120,6 +155,8 @@ def check_expired_tokens():
         return count
     
     except Exception as e:
+        # Get db instance
+        db = get_db()
         db.session.rollback()
         logger.error(f"Error checking expired tokens: {str(e)}")
         return 0
@@ -135,6 +172,14 @@ def get_recent_activity(limit=10):
         Dictionary of recent activity
     """
     try:
+        # Get db instance
+        db = get_db()
+        
+        # Import models here to avoid circular imports
+        from flask_backend.models import (
+            ApiLog, LicenseVerification, Transaction, InvoiceMatch
+        )
+        
         recent_activity = {
             'verifications': [],
             'transactions': [],
