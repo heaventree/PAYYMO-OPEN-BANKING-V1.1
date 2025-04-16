@@ -1,0 +1,44 @@
+<!-- Feature Card Template
+     Use this template to maintain consistent styling for new feature components
+     
+     Parameters:
+     - card_id: Unique ID for the card (required)
+     - title: Card title (required)
+     - right_badge: Badge to show in the header right side (optional)
+     - right_button: Button to show in the header right side (optional)
+     - button_icon: Icon for the button (optional)
+     - button_text: Text for the button (optional)
+     - button_action: Action/URL for the button (optional)
+     - button_modal: Modal to trigger (optional)
+-->
+
+<div class="card mb-4 shadow-sm" id="{{ card_id }}">
+    <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">{{ title }}</h5>
+        {% if right_badge %}
+        <span class="badge {{ right_badge.class }}">{{ right_badge.text }}</span>
+        {% endif %}
+        {% if right_button %}
+        <div class="btn-group">
+            <button class="btn btn-sm {{ right_button.class }}" 
+                    {% if button_modal %}data-bs-toggle="modal" data-bs-target="#{{ button_modal }}"{% endif %}
+                    {% if button_action %}onclick="{{ button_action }}"{% endif %}>
+                {% if button_icon %}
+                <i data-lucide="{{ button_icon }}" class="me-1" style="width: 14px; height: 14px;"></i>
+                {% endif %}
+                {{ button_text }}
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <!-- Card content goes here -->
+        {% block card_content %}{% endblock %}
+    </div>
+    {% if footer %}
+    <div class="card-footer bg-transparent border-0">
+        <!-- Footer content goes here -->
+        {% block card_footer %}{% endblock %}
+    </div>
+    {% endif %}
+</div>
